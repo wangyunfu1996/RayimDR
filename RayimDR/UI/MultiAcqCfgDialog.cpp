@@ -21,6 +21,13 @@ MultiAcqCfgDialog::MultiAcqCfgDialog(QWidget* parent)
 	ui.spinBox_n->setMinimum(nMin);
 	ui.spinBox_n->setMaximum(nMax);
 
+	auto elaText = this->findChildren<ElaText*>();
+	for (auto item : elaText)
+	{
+		item->setTextPixelSize(15);
+		item->setWordWrap(false);
+	}
+
 	connect(ui.pushButton_confirm, &QPushButton::clicked, this, [this]() {
 		this->accept();
 		});

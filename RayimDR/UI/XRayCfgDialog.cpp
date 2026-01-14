@@ -25,6 +25,13 @@ XRayCfgDialog::XRayCfgDialog(QWidget* parent)
 	ui.lineEdit_currentCurrent->setEnabled(false);
 	ui.lineEdit_currentPower->setEnabled(false);
 	ui.lineEdit_targetPower->setEnabled(false);
+
+	auto elaText = this->findChildren<ElaText*>();
+	for (auto item : elaText)
+	{
+		item->setTextPixelSize(15);
+		item->setWordWrap(false);
+	}
 }
 
 XRayCfgDialog::~XRayCfgDialog()

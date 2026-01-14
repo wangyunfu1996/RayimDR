@@ -22,6 +22,13 @@ DetCfgDialog::DetCfgDialog(QWidget *parent)
 
 	ui.spinBox_fps->setButtonMode(ElaSpinBoxType::ButtonMode::PMSide);
 	ui.spinBox_add->setButtonMode(ElaSpinBoxType::ButtonMode::PMSide);
+
+	auto elaText = this->findChildren<ElaText*>();
+	for (auto item : elaText)
+	{
+		item->setTextPixelSize(15);
+		item->setWordWrap(false);
+	}
 }
 
 DetCfgDialog::~DetCfgDialog()

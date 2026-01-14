@@ -4,6 +4,8 @@
 
 #include "Components/XGlobal.h"
 
+#include "ElaText.h"
+
 AppCfgDialog::AppCfgDialog(QWidget* parent)
 	: ElaDialog(parent)
 {
@@ -27,6 +29,13 @@ AppCfgDialog::AppCfgDialog(QWidget* parent)
 	connect(ui.checkBox_cfg_before_acq, &QCheckBox::toggled, this, [this](bool checked) {
 		xGlobal.CONFIG_BEFORE_ACQ = checked;
 		});
+
+	auto elaText = this->findChildren<ElaText*>();
+	for (auto item : elaText)
+	{
+		item->setTextPixelSize(15);
+		item->setWordWrap(false);
+	}
 
 }
 

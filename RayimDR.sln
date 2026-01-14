@@ -4,6 +4,16 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.36631.11
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RayimDR", "RayimDR\RayimDR.vcxproj", "{0ECFFCB6-819D-42FD-A6E7-6F611AE46919}"
+	ProjectSection(ProjectDependencies) = postProject
+		{877A99A0-A5A2-440F-8F17-CB32DDFB1485} = {877A99A0-A5A2-440F-8F17-CB32DDFB1485}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IRayDetector", "..\IRayDetector\IRayDetector\IRayDetector.vcxproj", "{877A99A0-A5A2-440F-8F17-CB32DDFB1485}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IRayDetectorWidgetsApplication", "..\IRayDetector\IRayDetectorWidgetsApplication\IRayDetectorWidgetsApplication.vcxproj", "{270D294F-07FA-403E-B847-B3221F61B37F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{877A99A0-A5A2-440F-8F17-CB32DDFB1485} = {877A99A0-A5A2-440F-8F17-CB32DDFB1485}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +25,14 @@ Global
 		{0ECFFCB6-819D-42FD-A6E7-6F611AE46919}.Debug|x64.Build.0 = Debug|x64
 		{0ECFFCB6-819D-42FD-A6E7-6F611AE46919}.Release|x64.ActiveCfg = Release|x64
 		{0ECFFCB6-819D-42FD-A6E7-6F611AE46919}.Release|x64.Build.0 = Release|x64
+		{877A99A0-A5A2-440F-8F17-CB32DDFB1485}.Debug|x64.ActiveCfg = Debug|x64
+		{877A99A0-A5A2-440F-8F17-CB32DDFB1485}.Debug|x64.Build.0 = Debug|x64
+		{877A99A0-A5A2-440F-8F17-CB32DDFB1485}.Release|x64.ActiveCfg = Release|x64
+		{877A99A0-A5A2-440F-8F17-CB32DDFB1485}.Release|x64.Build.0 = Release|x64
+		{270D294F-07FA-403E-B847-B3221F61B37F}.Debug|x64.ActiveCfg = Debug|x64
+		{270D294F-07FA-403E-B847-B3221F61B37F}.Debug|x64.Build.0 = Debug|x64
+		{270D294F-07FA-403E-B847-B3221F61B37F}.Release|x64.ActiveCfg = Release|x64
+		{270D294F-07FA-403E-B847-B3221F61B37F}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

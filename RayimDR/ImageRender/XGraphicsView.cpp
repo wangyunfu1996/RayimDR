@@ -1,0 +1,571 @@
+#include "XGraphicsView.h"
+
+#ifdef USE_ELA
+#include "ElaTheme.h"
+#endif // USE_ELA
+
+#include <QtConcurrent/QtConcurrent>
+
+#include <qevent.h>
+#include <qdebug.h>
+#include <qfiledialog.h>
+#include <qthread.h>
+#include <qmenu.h>
+#include <qmessagebox.h>
+#include <qaction.h>
+#include <qcheckbox.h>
+#include <qgraphicsitem.h>
+
+#include "XGraphicsScene.h"
+#include "XImageHelper.h"
+
+#include "Components/XGlobal.h"
+#include "Components/XFileHelper.h"
+#include "Components/XSignalsHelper.h"
+
+XGraphicsView::XGraphicsView(QWidget* parent)
+	: QGraphicsView(parent)
+{
+	this->setMouseTracking(true);
+#ifdef USE_ELA
+	//this->setBackgroundBrush(QColor(0x20, 0x20, 0x20));
+	this->setBackgroundBrush(QColor(0x3e, 0x3e, 0x3e));
+	connect(eTheme, &ElaTheme::themeModeChanged, this, [this](ElaThemeType::ThemeMode themeMode) {
+		if (themeMode == ElaThemeType::ThemeMode::Dark)
+		{
+			//this->setBackgroundBrush(QColor(0x20, 0x20, 0x20));
+			this->setBackgroundBrush(QColor(0x3e, 0x3e, 0x3e));
+		}
+		else
+		{
+			//this->setBackgroundBrush(QColor(0xF3, 0xF3, 0xF3));
+			this->setBackgroundBrush(QColor(0xFF, 0xFF, 0xFF));
+		}
+		});
+#else
+	this->setBackgroundBrush(QColor::fromRgb(0x373c41));
+#endif
+
+	// 设置缩放锚点为鼠标位置
+	this->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+
+	xGraphicsScene = new XGraphicsScene();
+	pixmapItem = new QGraphicsPixmapItem();
+
+	roiRectItem = new QGraphicsRectItem(pixmapItem);
+	{
+		// 设置半透明填充色 (RGBA中的A值控制透明度)
+		QColor fillColor(128, 166, 233, 50); // 半透明的浅蓝色
+		QBrush brush(fillColor);
+		roiRectItem->setBrush(brush);
+
+		// 设置边框
+		QPen pen(QColor("#3C7FB1"), 1, Qt::SolidLine);
+		roiRectItem->setPen(pen);
+	}
+
+	validRectItem = new QGraphicsRectItem(pixmapItem);
+	QPen pen(Qt::blue, 1, Qt::DashLine);
+	validRectItem->setPen(pen);
+	validRectItem->setBrush(Qt::NoBrush);
+
+	vCenterLineItem = new QGraphicsLineItem(pixmapItem);
+	vCenterLineItem->setPen(pen);
+
+	hCenterLineItem = new QGraphicsLineItem(pixmapItem);
+	hCenterLineItem->setPen(pen);
+
+	this->setScene(xGraphicsScene);
+	xGraphicsScene->addItem(pixmapItem);
+
+	initContextMenu();
+}
+
+XGraphicsView::~XGraphicsView()
+{}
+
+void XGraphicsView::updateDisplay()
+{
+
+	if (pixmapItem->pixmap().isNull())
+	{
+		qDebug() << "当前需要绘制的图像为空";
+		return;
+	}
+
+	validRectItem->setRect(pixmapItem->boundingRect().adjusted(10, 10, -10, -10));
+	validRectItem->setVisible(showValidRect);
+
+	auto rect = pixmapItem->boundingRect();
+	vCenterLineItem->setLine(rect.left() + 10, rect.center().y(), rect.right() - 10, rect.center().y());
+	hCenterLineItem->setLine(rect.center().x(), rect.top() + 10, rect.center().x(), rect.bottom() - 10);
+	vCenterLineItem->setVisible(showCenterLines);
+	hCenterLineItem->setVisible(showCenterLines);
+
+	this->viewport()->update();
+}
+
+void XGraphicsView::updateImage(QImage image, bool adjustWL)
+{
+	if (image.format() != QImage::Format_Grayscale16)
+	{
+		qDebug() << "图像类型错误：" << image.format();
+		return;
+	}
+
+	const bool bIsFirstImage = pixmapItem->pixmap().isNull();
+	currentSrcU16Image = image.copy();
+
+	int max = -1;
+	int min = -1;
+	XImageHelper::calculateMaxMinValue(image, max, min);
+	emit signalMinMaxValueChanged(min, max);
+	qDebug() << "min max of srcU16Image: " << min << max;
+
+	if (adjustWL || autoWL || bIsFirstImage)
+	{
+		XImageHelper::calculateWL(max, min, W, L);
+	}
+
+	bool sizeChanged = false;
+	if (!pixmapItem->pixmap().isNull())
+	{
+		sizeChanged = pixmapItem->pixmap().size() != image.size();
+	}
+
+	displayU8Image = XImageHelper::adjustWL(currentSrcU16Image, W, L);
+	pixmapItem->setPixmap(QPixmap::fromImage(displayU8Image));
+	if (bIsFirstImage || sizeChanged)
+	{
+		resetView();
+	}
+
+	updateDisplay();
+}
+
+void XGraphicsView::setValidRectVisible(bool visible)
+{
+	showValidRect = visible;
+	updateDisplay();
+}
+
+void XGraphicsView::setCenterLinesVisible(bool visible)
+{
+	showCenterLines = visible;
+	updateDisplay();
+}
+
+void XGraphicsView::updateRoiRect(QRectF rect)
+{
+	roiRectItem->setRect(rect);
+	roiRectItem->setVisible(enableROI);
+
+	if (rect.width() < 10 || rect.height() < 10)
+	{
+		qDebug() << "选中的ROI区过小";
+	}
+	else
+	{
+		// 计算 ROI 内的 min max
+		int min = 65536;
+		int max = 0;
+		XImageHelper::calculateMaxMinValue(currentSrcU16Image, rect.toRect(), max, min);
+		qDebug() << "ROI区域发生变化，当前窗宽：" << W << "当前窗位：" << L;
+		XImageHelper::calculateWL(max, min, W, L);
+		qDebug() << "ROI区域发生变化，目标窗宽：" << W << "目标窗位：" << L;
+		emit signalRoiWLChanged(W, L);
+	}
+
+}
+
+void XGraphicsView::setROIEnable(bool enable)
+{
+	qDebug() << "设置允许ROI调整为：" << enable;
+	enableROI = enable;
+
+	this->setDragMode(enable ? QGraphicsView::DragMode::RubberBandDrag : QGraphicsView::DragMode::NoDrag);
+	// 取消 ROI 区域的绘制
+	if (!enable)
+	{
+		updateRoiRect(QRectF());
+	}
+}
+
+void XGraphicsView::setAutoWLEnable(bool open)
+{
+	qDebug() << "设置自动窗宽窗位调整为：" << open;
+	autoWL = open;
+}
+
+bool XGraphicsView::isAutoWL() const
+{
+	return autoWL;
+}
+
+void XGraphicsView::zoomIn()
+{
+	scale(1.25, 1.25);
+}
+
+void XGraphicsView::zoomOut()
+{
+	scale(0.8, 0.8);
+}
+
+void XGraphicsView::showImage(int idx)
+{
+	qDebug() << "切换当前显示的图片：" << idx << "，图像数组大小：" << srcU16ImageList.size();
+	if (srcU16ImageList.size() > idx)
+	{
+		updateImage(srcU16ImageList.at(idx));
+	}
+}
+
+void XGraphicsView::clearCurrentImageList()
+{
+	srcU16ImageList.clear();
+}
+
+void XGraphicsView::addImageToList(QImage image)
+{
+	srcU16ImageList.append(image);
+}
+
+void XGraphicsView::adjustWL(int width, int level)
+{
+	// 获取图像
+	if (currentSrcU16Image.isNull() || currentSrcU16Image.format() != QImage::Format_Grayscale16) {
+		return;
+	}
+
+	int w = currentSrcU16Image.width();
+	int h = currentSrcU16Image.height();
+
+	// 创建8位输出图像用于显示
+	QImage dest(w, h, QImage::Format_Grayscale8);
+	dest.fill(0);
+
+	// 计算窗口边界
+	int windowMin = level - width / 2;
+	int windowMax = level + width / 2;
+	float windowRange = windowMax - windowMin;
+
+	// 避免除零错误
+	if (windowRange <= 0) {
+		windowRange = 1;
+	}
+
+	// 遍历所有像素并应用线性映射
+	for (int y = 0; y < h; ++y) {
+		const uint16_t* srcLine = reinterpret_cast<const uint16_t*>(currentSrcU16Image.scanLine(y));
+		uchar* dstLine = dest.scanLine(y);
+
+		for (int x = 0; x < w; ++x) {
+			uint16_t pixelValue = srcLine[x];
+
+			// 线性映射：将 [windowMin, windowMax] 映射到 [0, 255]
+			float normalized = 255.0f * (pixelValue - windowMin) / windowRange;
+
+			// 饱和处理：小于窗口最小值 -> 0，大于窗口最大值 -> 255
+			if (normalized < 0) normalized = 0;
+			if (normalized > 255) normalized = 255;
+
+			dstLine[x] = static_cast<uchar>(normalized);
+		}
+	}
+
+	displayU8Image = dest;
+	pixmapItem->setPixmap(QPixmap::fromImage(displayU8Image));
+}
+
+const QImage& XGraphicsView::getSrcU16Image() const
+{
+	return currentSrcU16Image;
+}
+
+void XGraphicsView::clearROIRect()
+{
+	updateRoiRect(QRectF());
+}
+
+void XGraphicsView::resetView()
+{
+	if (pixmapItem)
+	{
+		// 将 pixmapItem 移动到视野中心
+		resetTransform();
+		qDebug() << pixmapItem->boundingRect();
+		fitInView(pixmapItem->boundingRect(), Qt::KeepAspectRatio);
+	}
+}
+
+void XGraphicsView::openImage()
+{
+	QString filePath = QFileDialog::getOpenFileName(nullptr,
+		"打开RAW图像文件",
+		"",
+		"RAW Files(*.raw)");
+
+	if (!filePath.isEmpty()) {
+		QImage image = XImageHelper::openImageU16Raw(filePath, DET_WIDTH, DET_HEIGHT);
+		srcU16ImageList.clear();
+		srcU16ImageList.append(image);
+		emit signalSrcU16ImageListSizeChanged(srcU16ImageList.size());
+		updateImage(srcU16ImageList.first(), true);
+	}
+}
+
+void XGraphicsView::openImageFolder()
+{
+	QString folderPath = QFileDialog::getExistingDirectory(nullptr,
+		"选择文件夹",
+		QDir::homePath(),
+		QFileDialog::ShowDirsOnly);
+
+	if (folderPath.isEmpty() || folderPath.isNull())
+	{
+		return;
+	}
+
+	if (!QDir(folderPath).exists())
+	{
+		//QMessageBox::critical(nullptr, "错误", QString("选择的目录不存在: ").arg(folderPath));
+		emit xSignaHelper.signalShowErrorMessageBar(QString("选择的目录不存在: ").arg(folderPath));
+		return;
+	}
+
+	qDebug() << "UI线程：" << QThread::currentThreadId();
+	QFuture<QList<QImage>> future = QtConcurrent::run([this, folderPath]() {
+		qDebug() << "开始读取图像文件夹";
+		return XImageHelper::openImagesInFolder(DET_WIDTH, DET_HEIGHT, folderPath);
+		});
+
+	// 连接完成信号
+	QFutureWatcher<QList<QImage>>* watcher = new QFutureWatcher<QList<QImage>>(this);
+	connect(watcher, &QFutureWatcher<QList<QImage>>::finished, this, [this, watcher]() {
+		if (!watcher->future().result().isEmpty()) {
+			srcU16ImageList.clear();
+			srcU16ImageList = watcher->future().result();
+			emit signalSrcU16ImageListSizeChanged(srcU16ImageList.size());
+			updateImage(srcU16ImageList.first(), true);
+		}
+		watcher->deleteLater();
+		qDebug() << "读取图像文件夹结束";
+		});
+
+	watcher->setFuture(future);
+}
+
+void XGraphicsView::saveImage()
+{
+	if (currentSrcU16Image.isNull())
+	{
+		//QMessageBox::critical(nullptr, 
+		//	"错误",
+		//	"当前没有正在显示的图像",
+		//	"确定");
+		emit xSignaHelper.signalShowErrorMessageBar("当前没有正在显示的图像");
+		return;
+	}
+	// 获取保存文件的路径和格式
+	QFileInfo fileInfo = XFileHelper::getImageSaveFileInfo();
+	if (fileInfo.absoluteFilePath().endsWith(".raw"))
+	{
+		XImageHelper::Instance().saveImageU16Raw(currentSrcU16Image, fileInfo.absoluteFilePath());
+	}
+	else if (fileInfo.absoluteFilePath().endsWith(".tif"))
+	{
+		emit xSignaHelper.signalShowErrorMessageBar(".tif格式的保存暂未实现！");
+	}
+	else if (fileInfo.absoluteFilePath().endsWith(".png"))
+	{
+		XImageHelper::Instance().saveImagePNG(displayU8Image, fileInfo.absoluteFilePath());
+	}
+	else if (fileInfo.absoluteFilePath().endsWith(".jpg") ||
+		fileInfo.absoluteFilePath().endsWith(".jpeg"))
+	{
+		XImageHelper::Instance().saveImageJPG(displayU8Image, fileInfo.absoluteFilePath());
+	}
+}
+
+void XGraphicsView::initContextMenu()
+{
+	setContextMenuPolicy(Qt::CustomContextMenu);
+
+	QMenu* menu = new QMenu(this);
+
+	QAction* zoomOut = new QAction("缩小");
+	zoomOut->setCheckable(false);
+	menu->addAction(zoomOut);
+
+	QAction* zoomIn = new QAction("放大");
+	zoomIn->setCheckable(false);
+	menu->addAction(zoomIn);
+
+	QAction* resetViewAction = new QAction("重置视野");
+	resetViewAction->setCheckable(false);
+	menu->addAction(resetViewAction);
+
+	menu->addSeparator();
+
+	QAction* openFileAction = new QAction("打开文件");
+	openFileAction->setCheckable(false);
+	menu->addAction(openFileAction);
+	openFileAction->setVisible(false);
+
+	QAction* openFileFolderAction = new QAction("打开文件夹");
+	openFileFolderAction->setCheckable(false);
+	menu->addAction(openFileFolderAction);
+	openFileFolderAction->setVisible(false);
+
+	QAction* saveAsAction = new QAction("另存为");
+	saveAsAction->setCheckable(false);
+	menu->addAction(saveAsAction);
+
+	menu->addSeparator();
+
+	QAction* showValidRectAction = new QAction("显示探测器有效视野");
+	showValidRectAction->setCheckable(true);
+	menu->addAction(showValidRectAction);
+
+	QAction* showCenterLieAction = new QAction("绘制视野中心线");
+	showCenterLieAction->setCheckable(true);
+	menu->addAction(showCenterLieAction);
+
+	menu->addSeparator();
+
+	QAction* roiWLAction = new QAction("ROI调整窗宽窗位");
+	roiWLAction->setCheckable(true);
+	menu->addAction(roiWLAction);
+
+	QAction* autoWLAction = new QAction("自动调整窗宽窗位");
+	autoWLAction->setCheckable(true);
+	menu->addAction(autoWLAction);
+
+	connect(zoomIn, &QAction::triggered, this, &XGraphicsView::zoomIn);
+	connect(zoomOut, &QAction::triggered, this, &XGraphicsView::zoomOut);
+	connect(resetViewAction, &QAction::triggered, this, &XGraphicsView::resetView);
+	connect(openFileAction, &QAction::triggered, this, &XGraphicsView::openImage);
+	connect(openFileFolderAction, &QAction::triggered, this, &XGraphicsView::openImageFolder);
+	connect(saveAsAction, &QAction::triggered, this, &XGraphicsView::saveImage);
+
+	connect(showValidRectAction, &QAction::triggered, this, [this](bool checked) {
+		showValidRect = checked;
+		updateDisplay();
+		});
+
+	connect(showCenterLieAction, &QAction::triggered, this, [this](bool checked) {
+		showCenterLines = checked;
+		updateDisplay();
+		});
+
+	connect(roiWLAction, &QAction::triggered, this, [this, autoWLAction](bool checked) {
+		setROIEnable(checked);
+		if (checked && autoWLAction->isChecked())
+		{
+			autoWLAction->setChecked(false);
+			setAutoWLEnable(false);
+		}
+		});
+
+	connect(autoWLAction, &QAction::triggered, this, [this, roiWLAction](bool checked) {
+		setAutoWLEnable(checked);
+		if (checked && roiWLAction->isChecked())
+		{
+			roiWLAction->setChecked(false);
+			setROIEnable(false);
+		}
+		});
+
+	connect(this, &QGraphicsView::customContextMenuRequested, this, [this, menu](const QPoint& pos) {
+		// 显示菜单
+		menu->exec(mapToGlobal(pos));
+		});
+}
+
+void XGraphicsView::mouseMoveEvent(QMouseEvent* event)
+{
+	QPoint viewPos = event->pos();
+	QPointF scenePos = mapToScene(viewPos);
+	// 转换为图像项坐标
+	QPointF itemPos = pixmapItem->mapFromScene(scenePos);
+	int x = static_cast<int>(itemPos.x());
+	int y = static_cast<int>(itemPos.y());
+
+	const QImage& image = currentSrcU16Image;
+	// 检查坐标是否在图像范围内
+	if (x >= 0 && x < image.width() && y >= 0 && y < image.height())
+	{
+		// 获取像素值
+		QRgb pixel = image.pixel(x, y);
+
+		// 获取该行数据的常量指针，并重新解释为 ushort 指针
+		const uchar* scanLine = image.constScanLine(y); // 获取第y行数据的起始地址
+		const ushort* pixelData = reinterpret_cast<const ushort*>(scanLine); // 解释为16位数据
+
+		// 读取该像素的16位灰度值
+		ushort grayValue16 = pixelData[x]; // 范围是 0 到 65535
+
+		// 发送信号通知其他组件
+		emit signalPixelHovered(x, y, grayValue16);
+	}
+
+	QGraphicsView::mouseMoveEvent(event);  // 调用基类实现
+}
+
+void XGraphicsView::mousePressEvent(QMouseEvent* event)
+{
+	if (event->button() == Qt::LeftButton) {
+		qDebug() << "鼠标左键按下";
+	}
+
+	// 重要：调用基类事件，确保场景原有的交互（如项目选择）仍能正常工作
+	QGraphicsView::mousePressEvent(event);
+}
+
+void XGraphicsView::mouseReleaseEvent(QMouseEvent* event)
+{
+	if (this->dragMode() == QGraphicsView::DragMode::RubberBandDrag && event->button() == Qt::LeftButton) {
+		qDebug() << "鼠标左键松开";
+		roiSeleting = false;
+
+		auto _sceneRect = this->sceneRect().adjusted(0.5, 0.5, 0, 0);
+		auto _rubbeBandRect = mapToScene(rubberBandRect()).boundingRect();
+		auto validROIRect = _sceneRect.intersected(_rubbeBandRect);
+		qDebug() << _sceneRect << _rubbeBandRect << validROIRect;
+
+		// 绘制完成，发出信号（例如，用于后续ROI处理）
+		if (!validROIRect.isEmpty() && validROIRect.isValid()) {
+			qDebug() << "选中的ROI区域为：" << validROIRect;
+			updateRoiRect(validROIRect);
+		}
+		else
+		{
+			// 清除临时矩形
+			validROIRect = QRectF();
+			updateRoiRect(validROIRect);
+		}
+	}
+	QGraphicsView::mouseReleaseEvent(event);
+}
+
+void XGraphicsView::wheelEvent(QWheelEvent* event)
+{
+	// 检查是否按下Ctrl键
+	if (event->modifiers() & Qt::ControlModifier) {
+		// 处理缩放
+		if (event->angleDelta().y() > 0) {
+			// 滚轮向上，放大
+			zoomIn();
+		}
+		else {
+			// 滚轮向下，缩小
+			zoomOut();
+		}
+		event->accept();
+	}
+	else {
+		// 未按下Ctrl，执行默认滚动行为
+		QGraphicsView::wheelEvent(event);
+	}
+}

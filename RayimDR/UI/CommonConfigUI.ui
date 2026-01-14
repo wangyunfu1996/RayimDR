@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CommonConfigUIClass</class>
+ <widget class="QWidget" name="CommonConfigUIClass">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>512</width>
+    <height>574</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>CommonConfigUI</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>射线源设置</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout" columnstretch="0,1,1,1,1,0">
+      <item row="1" column="4">
+       <widget class="ElaLineEdit" name="lineEdit_currentCurrent"/>
+      </item>
+      <item row="0" column="2">
+       <widget class="ElaSpinBox" name="spinBox_targetVoltage">
+        <property name="maximum">
+         <number>160</number>
+        </property>
+        <property name="value">
+         <number>60</number>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="5">
+       <spacer name="horizontalSpacer_6">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="0" column="4">
+       <widget class="ElaLineEdit" name="lineEdit_currentVoltage"/>
+      </item>
+      <item row="2" column="4">
+       <widget class="ElaLineEdit" name="lineEdit_currentPower"/>
+      </item>
+      <item row="1" column="3">
+       <widget class="ElaText" name="label_4">
+        <property name="text">
+         <string>当前电流(mA)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="ElaText" name="label_3">
+        <property name="text">
+         <string>当前电压(kV)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="ElaText" name="label_5">
+        <property name="text">
+         <string>目标功率(W)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="ElaText" name="label">
+        <property name="text">
+         <string>目标电压(kV)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="ElaSpinBox" name="spinBox_targetCurrent">
+        <property name="maximum">
+         <number>1000</number>
+        </property>
+        <property name="value">
+         <number>100</number>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="ElaLineEdit" name="lineEdit_targetPower"/>
+      </item>
+      <item row="2" column="3">
+       <widget class="ElaText" name="label_6">
+        <property name="text">
+         <string>当前功率(W)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="ElaText" name="label_2">
+        <property name="text">
+         <string>目标电流(mA)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <spacer name="horizontalSpacer_5">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="3" column="1" colspan="4">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="ElaPushButton" name="pushButton">
+          <property name="text">
+           <string>预热</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="ElaPushButton" name="pushButton_2">
+          <property name="text">
+           <string>开射线</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="ElaPushButton" name="pushButton_3">
+          <property name="text">
+           <string>关射线</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="title">
+      <string>探测器设置</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_3" columnstretch="1,1,1,1">
+      <item row="0" column="2">
+       <widget class="ElaComboBox" name="comboBox_mode">
+        <item>
+         <property name="text">
+          <string>1x1</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>2x2</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>3x3</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>4x4</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="ElaSpinBox" name="spinBox_fps">
+        <property name="value">
+         <number>1</number>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="ElaText" name="label_7">
+        <property name="text">
+         <string>模式</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="ElaText" name="label_9">
+        <property name="text">
+         <string>帧率</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="2" column="1">
+       <widget class="ElaText" name="label_8">
+        <property name="text">
+         <string>叠加帧数</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="ElaSpinBox" name="spinBox_add">
+        <property name="value">
+         <number>1</number>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer_3">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_3">
+     <property name="title">
+      <string>运动设置</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2" columnstretch="1,1,1,1">
+      <item row="0" column="0">
+       <spacer name="horizontalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="0" column="1">
+       <widget class="ElaText" name="label_11">
+        <property name="text">
+         <string>目标速度（dps）</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="ElaLineEdit" name="lineEdit"/>
+      </item>
+      <item row="1" column="1">
+       <widget class="ElaText" name="label_10">
+        <property name="text">
+         <string>当前速度（dps）</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <spacer name="horizontalSpacer_4">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="0" column="2">
+       <widget class="ElaDoubleSpinBox" name="doubleSpinBox_targetSpeed"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>ElaText</class>
+   <extends>QLabel</extends>
+   <header>ElaText.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ElaSpinBox</class>
+   <extends>QSpinBox</extends>
+   <header>ElaSpinBox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ElaPushButton</class>
+   <extends>QPushButton</extends>
+   <header>ElaPushButton.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ElaLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>ElaLineEdit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ElaComboBox</class>
+   <extends>QComboBox</extends>
+   <header>ElaComboBox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ElaDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>ElaDoubleSpinBox.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,0 +1,161 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Components">
+      <UniqueIdentifier>{d1c25b96-bc4f-4922-906c-08a75a2f0f27}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ImageRender">
+      <UniqueIdentifier>{e02f704e-9141-4ee9-91b5-ec70ff93f7f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI">
+      <UniqueIdentifier>{abbe00be-c3c1-480b-8b10-5e727e5a1d67}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Components\AcqTask.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\AcqTaskManager.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\DetManager.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\MotionCtrlManager.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\QtLogger.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\XFileHelper.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\XRayManager.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\XSignalsHelper.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\AppCfgDialog.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\CommonConfigUI.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\DetCfgDialog.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\MainWindow.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\MotionCfgDialog.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\MultiAcqCfgDialog.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\XRayCfgDialog.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageRender\XGraphicsScene.cpp">
+      <Filter>ImageRender</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageRender\XGraphicsView.cpp">
+      <Filter>ImageRender</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageRender\XImageAdjustTool.cpp">
+      <Filter>ImageRender</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageRender\XImageHelper.cpp">
+      <Filter>ImageRender</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="Components\AcqTask.h">
+      <Filter>Components</Filter>
+    </QtMoc>
+    <QtMoc Include="Components\AcqTaskManager.h">
+      <Filter>Components</Filter>
+    </QtMoc>
+    <QtMoc Include="Components\DetManager.h">
+      <Filter>Components</Filter>
+    </QtMoc>
+    <QtMoc Include="Components\MotionCtrlManager.h">
+      <Filter>Components</Filter>
+    </QtMoc>
+    <QtMoc Include="Components\XFileHelper.h">
+      <Filter>Components</Filter>
+    </QtMoc>
+    <QtMoc Include="Components\XRayManager.h">
+      <Filter>Components</Filter>
+    </QtMoc>
+    <QtMoc Include="Components\XSignalsHelper.h">
+      <Filter>Components</Filter>
+    </QtMoc>
+    <QtMoc Include="UI\AppCfgDialog.h">
+      <Filter>UI</Filter>
+    </QtMoc>
+    <QtMoc Include="UI\CommonConfigUI.h">
+      <Filter>UI</Filter>
+    </QtMoc>
+    <QtMoc Include="UI\DetCfgDialog.h">
+      <Filter>UI</Filter>
+    </QtMoc>
+    <QtMoc Include="UI\MainWindow.h">
+      <Filter>UI</Filter>
+    </QtMoc>
+    <QtMoc Include="UI\MotionCfgDialog.h">
+      <Filter>UI</Filter>
+    </QtMoc>
+    <QtMoc Include="UI\MultiAcqCfgDialog.h">
+      <Filter>UI</Filter>
+    </QtMoc>
+    <QtMoc Include="UI\XRayCfgDialog.h">
+      <Filter>UI</Filter>
+    </QtMoc>
+    <QtMoc Include="ImageRender\XGraphicsScene.h">
+      <Filter>ImageRender</Filter>
+    </QtMoc>
+    <QtMoc Include="ImageRender\XGraphicsView.h">
+      <Filter>ImageRender</Filter>
+    </QtMoc>
+    <QtMoc Include="ImageRender\XImageAdjustTool.h">
+      <Filter>ImageRender</Filter>
+    </QtMoc>
+    <QtMoc Include="ImageRender\XImageHelper.h">
+      <Filter>ImageRender</Filter>
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Components\QtLogger.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\XGlobal.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="UI\AppCfgDialog.ui">
+      <Filter>UI</Filter>
+    </QtUic>
+    <QtUic Include="UI\CommonConfigUI.ui">
+      <Filter>UI</Filter>
+    </QtUic>
+    <QtUic Include="UI\DetCfgDialog.ui">
+      <Filter>UI</Filter>
+    </QtUic>
+    <QtUic Include="UI\MotionCfgDialog.ui">
+      <Filter>UI</Filter>
+    </QtUic>
+    <QtUic Include="UI\MultiAcqCfgDialog.ui">
+      <Filter>UI</Filter>
+    </QtUic>
+    <QtUic Include="UI\XRayCfgDialog.ui">
+      <Filter>UI</Filter>
+    </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="RayimDR.qrc" />
+  </ItemGroup>
+</Project>

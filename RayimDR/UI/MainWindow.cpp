@@ -343,7 +343,8 @@ void MainWindow::initMenuBar()
 		dialog.exec();
 		});
 
-#ifdef OPEN_TEST
+#define XTEST
+#ifdef XTEST
 	configMenu = menuBar->addMenu("测试");
 	action = configMenu->addAction("快速打开文件");
 	connect(action, &QAction::triggered, this, [this]() {
@@ -352,7 +353,7 @@ void MainWindow::initMenuBar()
 			ElaMessageBar::error(ElaMessageBarType::BottomRight, "错误", "当前正在进行采集，请等待当前采集结束!", 4000);
 			return;
 		}
-		QImage image = XImageHelper::openImageU16Raw("E:\\故宫\\data\\20251106150628936_海棠1106_步进CT扫描\\TWINDOW=3_WINDOW=0_TKEV=15_HKEV=60\\PROJECTION\\table=0_proj=0.raw", 1891, 496);
+		QImage image = XImageHelper::openImageU16Raw("X:\\故宫\\data\\20251106150628936_海棠1106_步进CT扫描\\TWINDOW=3_WINDOW=0_TKEV=15_HKEV=60\\PROJECTION\\table=0_proj=0.raw", 1891, 496);
 		_XGraphicsView->updateImage(image, true);
 		});
 
@@ -363,9 +364,9 @@ void MainWindow::initMenuBar()
 
 	action = configMenu->addAction("测试opencv");
 	connect(action, &QAction::triggered, this, [this]() {
-		XImageHelper::testOpencv("E:\\故宫\\data\\20251106150628936_海棠1106_步进CT扫描\\TWINDOW=3_WINDOW=0_TKEV=15_HKEV=60\\PROJECTION\\table=0_proj=0.raw", 1891, 496);
+		XImageHelper::testOpencv("X:\\故宫\\data\\20251106150628936_海棠1106_步进CT扫描\\TWINDOW=3_WINDOW=0_TKEV=15_HKEV=60\\PROJECTION\\table=0_proj=0.raw", 1891, 496);
 		});
-#endif // OPEN_TEST
+#endif // XTEST
 }
 
 void MainWindow::initToolBar()

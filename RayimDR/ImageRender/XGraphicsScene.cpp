@@ -6,7 +6,7 @@
 #include <QGraphicsSceneMouseEvent>
 
 XGraphicsScene::XGraphicsScene(QObject* parent)
-	: QGraphicsScene(parent), m_isDrawing(false)
+	: QGraphicsScene(parent)
 {
 	initItems();
 }

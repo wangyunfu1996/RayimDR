@@ -16,21 +16,21 @@ public:
 	// 图元访问接口
 	QGraphicsPixmapItem* getPixmapItem() const { return m_pixmapItem; }
 	QGraphicsRectItem* getRoiRectItem() const { return m_roiRectItem; }
-	
+
 	// 图像显示相关
 	void setPixmap(const QPixmap& pixmap);
-	
+
 	// ROI相关
 	void setROIRect(const QRectF& rect);
 	void clearROIRect();
 	void setROIVisible(bool visible);
-	
+
 	// 有效区域显示
 	void setValidRectVisible(bool visible);
-	
+
 	// 中心线显示
 	void setCenterLinesVisible(bool visible);
-	
+
 	// 更新所有图元的显示状态
 	void updateDisplay();
 
@@ -44,7 +44,7 @@ protected:
 	void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 
 private:
-	void initItems();  // 初始化图元
+	void initItems(); // 初始化图元
 
 private:
 	// 图元对象
@@ -53,16 +53,9 @@ private:
 	QGraphicsRectItem* m_validRectItem{ nullptr };
 	QGraphicsLineItem* m_vCenterLineItem{ nullptr };
 	QGraphicsLineItem* m_hCenterLineItem{ nullptr };
-	
+
 	// 显示状态
 	bool m_showValidRect{ false };
 	bool m_showCenterLines{ false };
 	bool m_roiVisible{ false };
-	
-	// 绘制相关
-	bool m_isDrawing{ false };
-	QPointF m_startPoint;
-	QPointF m_endPoint;
-	QRectF m_currentRect;
 };
-

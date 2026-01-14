@@ -3,9 +3,6 @@
 #include <QGraphicsView>
 
 class XGraphicsScene;
-class QGraphicsPixmapItem;
-class QGraphicsRectItem;
-class QGraphicsLineItem;
 
 class XGraphicsView : public QGraphicsView
 {
@@ -15,7 +12,6 @@ public:
 	XGraphicsView(QWidget* parent = nullptr);
 	~XGraphicsView();
 
-	void updateDisplay();
 	void updateImage(QImage image, bool adjustWL = false);
 	void updateRoiRect(QRectF rect);
 	void adjustWL(int width, int level);
@@ -54,25 +50,21 @@ protected:
 	void wheelEvent(QWheelEvent* event) override;
 
 private:
+	// 图像数据
 	QImage currentSrcU16Image;
 	QImage displayU8Image;
-
 	QList<QImage> srcU16ImageList;
 
-	bool autoWL = false;
+	// 窗宽窗位
+	bool autoWL{ false };
 	int W{ 0 };
 	int L{ 0 };
 
+	// Scene引用
 	XGraphicsScene* xGraphicsScene{ nullptr };
-	QGraphicsPixmapItem* pixmapItem{ nullptr };
-	QGraphicsRectItem* roiRectItem{ nullptr };
-	QGraphicsRectItem* validRectItem{ nullptr };
-	QGraphicsLineItem* vCenterLineItem{ nullptr };
-	QGraphicsLineItem* hCenterLineItem{ nullptr };
 
+	// ROI相关
 	bool enableROI{ false };
 	bool roiSeleting{ false };
-	bool showValidRect{ false };
-	bool showCenterLines{ false };
 };
 

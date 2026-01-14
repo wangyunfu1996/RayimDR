@@ -49,34 +49,9 @@ XGraphicsView::XGraphicsView(QWidget* parent)
 	// 设置缩放锚点为鼠标位置
 	this->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 
+	// 创建Scene并设置
 	xGraphicsScene = new XGraphicsScene();
-	pixmapItem = new QGraphicsPixmapItem();
-
-	roiRectItem = new QGraphicsRectItem(pixmapItem);
-	{
-		// 设置半透明填充色 (RGBA中的A值控制透明度)
-		QColor fillColor(128, 166, 233, 50); // 半透明的浅蓝色
-		QBrush brush(fillColor);
-		roiRectItem->setBrush(brush);
-
-		// 设置边框
-		QPen pen(QColor("#3C7FB1"), 1, Qt::SolidLine);
-		roiRectItem->setPen(pen);
-	}
-
-	validRectItem = new QGraphicsRectItem(pixmapItem);
-	QPen pen(Qt::blue, 1, Qt::DashLine);
-	validRectItem->setPen(pen);
-	validRectItem->setBrush(Qt::NoBrush);
-
-	vCenterLineItem = new QGraphicsLineItem(pixmapItem);
-	vCenterLineItem->setPen(pen);
-
-	hCenterLineItem = new QGraphicsLineItem(pixmapItem);
-	hCenterLineItem->setPen(pen);
-
 	this->setScene(xGraphicsScene);
-	xGraphicsScene->addItem(pixmapItem);
 
 	initContextMenu();
 }
@@ -84,26 +59,7 @@ XGraphicsView::XGraphicsView(QWidget* parent)
 XGraphicsView::~XGraphicsView()
 {}
 
-void XGraphicsView::updateDisplay()
-{
 
-	if (pixmapItem->pixmap().isNull())
-	{
-		qDebug() << "当前需要绘制的图像为空";
-		return;
-	}
-
-	validRectItem->setRect(pixmapItem->boundingRect().adjusted(10, 10, -10, -10));
-	validRectItem->setVisible(showValidRect);
-
-	auto rect = pixmapItem->boundingRect();
-	vCenterLineItem->setLine(rect.left() + 10, rect.center().y(), rect.right() - 10, rect.center().y());
-	hCenterLineItem->setLine(rect.center().x(), rect.top() + 10, rect.center().x(), rect.bottom() - 10);
-	vCenterLineItem->setVisible(showCenterLines);
-	hCenterLineItem->setVisible(showCenterLines);
-
-	this->viewport()->update();
-}
 
 void XGraphicsView::updateImage(QImage image, bool adjustWL)
 {
@@ -113,7 +69,8 @@ void XGraphicsView::updateImage(QImage image, bool adjustWL)
 		return;
 	}
 
-	const bool bIsFirstImage = pixmapItem->pixmap().isNull();
+	auto pixmapItem = xGraphicsScene->getPixmapItem();
+	const bool bIsFirstImage = pixmapItem ? pixmapItem->pixmap().isNull() : true;
 	currentSrcU16Image = image.copy();
 
 	int max = -1;
@@ -128,37 +85,33 @@ void XGraphicsView::updateImage(QImage image, bool adjustWL)
 	}
 
 	bool sizeChanged = false;
-	if (!pixmapItem->pixmap().isNull())
+	if (pixmapItem && !pixmapItem->pixmap().isNull())
 	{
 		sizeChanged = pixmapItem->pixmap().size() != image.size();
 	}
 
 	displayU8Image = XImageHelper::adjustWL(currentSrcU16Image, W, L);
-	pixmapItem->setPixmap(QPixmap::fromImage(displayU8Image));
+	xGraphicsScene->setPixmap(QPixmap::fromImage(displayU8Image));
 	if (bIsFirstImage || sizeChanged)
 	{
 		resetView();
 	}
-
-	updateDisplay();
 }
 
 void XGraphicsView::setValidRectVisible(bool visible)
 {
-	showValidRect = visible;
-	updateDisplay();
+	xGraphicsScene->setValidRectVisible(visible);
 }
 
 void XGraphicsView::setCenterLinesVisible(bool visible)
 {
-	showCenterLines = visible;
-	updateDisplay();
+	xGraphicsScene->setCenterLinesVisible(visible);
 }
 
 void XGraphicsView::updateRoiRect(QRectF rect)
 {
-	roiRectItem->setRect(rect);
-	roiRectItem->setVisible(enableROI);
+	xGraphicsScene->setROIRect(rect);
+	xGraphicsScene->setROIVisible(enableROI);
 
 	if (rect.width() < 10 || rect.height() < 10)
 	{
@@ -175,7 +128,6 @@ void XGraphicsView::updateRoiRect(QRectF rect)
 		qDebug() << "ROI区域发生变化，目标窗宽：" << W << "目标窗位：" << L;
 		emit signalRoiWLChanged(W, L);
 	}
-
 }
 
 void XGraphicsView::setROIEnable(bool enable)
@@ -275,7 +227,7 @@ void XGraphicsView::adjustWL(int width, int level)
 	}
 
 	displayU8Image = dest;
-	pixmapItem->setPixmap(QPixmap::fromImage(displayU8Image));
+	xGraphicsScene->setPixmap(QPixmap::fromImage(displayU8Image));
 }
 
 const QImage& XGraphicsView::getSrcU16Image() const
@@ -285,11 +237,12 @@ const QImage& XGraphicsView::getSrcU16Image() const
 
 void XGraphicsView::clearROIRect()
 {
-	updateRoiRect(QRectF());
+	xGraphicsScene->clearROIRect();
 }
 
 void XGraphicsView::resetView()
 {
+	auto pixmapItem = xGraphicsScene->getPixmapItem();
 	if (pixmapItem)
 	{
 		// 将 pixmapItem 移动到视野中心
@@ -450,13 +403,11 @@ void XGraphicsView::initContextMenu()
 	connect(saveAsAction, &QAction::triggered, this, &XGraphicsView::saveImage);
 
 	connect(showValidRectAction, &QAction::triggered, this, [this](bool checked) {
-		showValidRect = checked;
-		updateDisplay();
+		xGraphicsScene->setValidRectVisible(checked);
 		});
 
 	connect(showCenterLieAction, &QAction::triggered, this, [this](bool checked) {
-		showCenterLines = checked;
-		updateDisplay();
+		xGraphicsScene->setCenterLinesVisible(checked);
 		});
 
 	connect(roiWLAction, &QAction::triggered, this, [this, autoWLAction](bool checked) {
@@ -488,6 +439,11 @@ void XGraphicsView::mouseMoveEvent(QMouseEvent* event)
 	QPoint viewPos = event->pos();
 	QPointF scenePos = mapToScene(viewPos);
 	// 转换为图像项坐标
+	auto pixmapItem = xGraphicsScene->getPixmapItem();
+	if (!pixmapItem) {
+		QGraphicsView::mouseMoveEvent(event);
+		return;
+	}
 	QPointF itemPos = pixmapItem->mapFromScene(scenePos);
 	int x = static_cast<int>(itemPos.x());
 	int y = static_cast<int>(itemPos.y());

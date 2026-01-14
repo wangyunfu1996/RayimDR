@@ -27,7 +27,6 @@
     <ClCompile Include="UI\CommonConfigUI.cpp" />
     <ClCompile Include="UI\DetCfgDialog.cpp" />
     <ClCompile Include="UI\MainWindow.cpp" />
-    <ClCompile Include="UI\MotionCfgDialog.cpp" />
     <ClCompile Include="UI\MultiAcqCfgDialog.cpp" />
     <ClCompile Include="UI\XRayCfgDialog.cpp" />
   </ItemGroup>
@@ -54,7 +53,6 @@
     <QtMoc Include="ImageRender\XGraphicsScene.h" />
     <QtMoc Include="UI\XRayCfgDialog.h" />
     <QtMoc Include="UI\MultiAcqCfgDialog.h" />
-    <QtMoc Include="UI\MotionCfgDialog.h" />
     <QtMoc Include="UI\MainWindow.h" />
     <QtMoc Include="UI\DetCfgDialog.h" />
     <QtMoc Include="UI\CommonConfigUI.h" />
@@ -67,7 +65,6 @@
     <QtUic Include="UI\AppCfgDialog.ui" />
     <QtUic Include="UI\CommonConfigUI.ui" />
     <QtUic Include="UI\DetCfgDialog.ui" />
-    <QtUic Include="UI\MotionCfgDialog.ui" />
     <QtUic Include="UI\MultiAcqCfgDialog.ui" />
     <QtUic Include="UI\XRayCfgDialog.ui" />
   </ItemGroup>

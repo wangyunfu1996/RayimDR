@@ -61,15 +61,6 @@ bool CommonConfigUI::checkInputValid()
 		return false;
 	}
 
-	if (ui.doubleSpinBox_targetSpeed->value() > xGlobal.SPEED_MAX ||
-		ui.doubleSpinBox_targetSpeed->value() < xGlobal.SPEED_MIN)
-	{
-		errMsg = QString("设置的转速值必须在 %1dps - %2dps 之间").arg(xGlobal.SPEED_MIN).arg(xGlobal.SPEED_MAX);
-		qDebug() << errMsg;
-		emit xSignaHelper.signalShowErrorMessageBar(errMsg);
-		return false;
-	}
-
 	return true;
 }
 

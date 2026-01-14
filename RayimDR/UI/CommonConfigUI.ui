@@ -149,19 +149,6 @@
     </widget>
    </item>
    <item>
-    <spacer name="verticalSpacer_2">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item>
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
       <string>探测器设置</string>
@@ -268,74 +255,6 @@
      </property>
     </spacer>
    </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_3">
-     <property name="title">
-      <string>运动设置</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_2" columnstretch="1,1,1,1">
-      <item row="0" column="0">
-       <spacer name="horizontalSpacer_3">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item row="0" column="1">
-       <widget class="ElaText" name="label_11">
-        <property name="text">
-         <string>目标速度（dps）</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="ElaLineEdit" name="lineEdit"/>
-      </item>
-      <item row="1" column="1">
-       <widget class="ElaText" name="label_10">
-        <property name="text">
-         <string>当前速度（dps）</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="3">
-       <spacer name="horizontalSpacer_4">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item row="0" column="2">
-       <widget class="ElaDoubleSpinBox" name="doubleSpinBox_targetSpeed"/>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
@@ -364,11 +283,6 @@
    <class>ElaComboBox</class>
    <extends>QComboBox</extends>
    <header>ElaComboBox.h</header>
-  </customwidget>
-  <customwidget>
-   <class>ElaDoubleSpinBox</class>
-   <extends>QDoubleSpinBox</extends>
-   <header>ElaDoubleSpinBox.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

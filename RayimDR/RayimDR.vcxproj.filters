@@ -45,9 +45,6 @@
     <ClCompile Include="UI\MainWindow.cpp">
       <Filter>UI</Filter>
     </ClCompile>
-    <ClCompile Include="UI\MotionCfgDialog.cpp">
-      <Filter>UI</Filter>
-    </ClCompile>
     <ClCompile Include="UI\MultiAcqCfgDialog.cpp">
       <Filter>UI</Filter>
     </ClCompile>
@@ -102,9 +99,6 @@
     <QtMoc Include="UI\MainWindow.h">
       <Filter>UI</Filter>
     </QtMoc>
-    <QtMoc Include="UI\MotionCfgDialog.h">
-      <Filter>UI</Filter>
-    </QtMoc>
     <QtMoc Include="UI\MultiAcqCfgDialog.h">
       <Filter>UI</Filter>
     </QtMoc>
@@ -137,9 +131,6 @@
       <Filter>UI</Filter>
     </QtUic>
     <QtUic Include="UI\DetCfgDialog.ui">
-      <Filter>UI</Filter>
-    </QtUic>
-    <QtUic Include="UI\MotionCfgDialog.ui">
       <Filter>UI</Filter>
     </QtUic>
     <QtUic Include="UI\MultiAcqCfgDialog.ui">

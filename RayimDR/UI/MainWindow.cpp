@@ -36,7 +36,6 @@
 
 #include "UI/XRayCfgDialog.h"
 #include "UI/DetCfgDialog.h"
-#include "UI/MotionCfgDialog.h"
 #include "UI/AppCfgDialog.h"
 #include "UI/MultiAcqCfgDialog.h"
 
@@ -330,11 +329,6 @@ void MainWindow::initMenuBar()
 		dialog.exec();
 		});
 
-	action = configMenu->addAction("运动控制设置");
-	connect(action, &QAction::triggered, this, [this]() {
-		MotionCfgDialog dialog;
-		dialog.exec();
-		});
 
 	fileMenu->addSeparator();
 	action = configMenu->addAction("软件配置");

@@ -281,14 +281,105 @@ bool XImageHelper::calculateMaxMinValue(const QImage& image, const QRect& rect, 
 
 bool XImageHelper::calculateWL(int max, int min, int& w, int& l)
 {
+	// 参数验证：确保 max >= min
 	if (max < min)
 	{
 		return false;
 	}
 
+	// 特殊情况处理：如果max == min，表示图像没有灰度变化
+	if (max == min)
+	{
+		// 给定一个合理的默认窗宽，避免显示问题
+		w = 1;  // 最小窗宽，防止除零
+		l = max; // 窗位设为唯一的灰度值
+		return true;
+	}
+
+	// 标准医学影像窗宽窗位计算
+	// 窗宽 W = max - min（保证包含所有灰度值）
 	w = max - min;
+
+	// 窗位 L = (max + min) / 2（居中显示）
 	l = (max + min) / 2;
-	return false;
+
+	// 确保窗宽至少为1，防止后续处理中的除零错误
+	if (w < 1)
+	{
+		w = 1;
+	}
+
+	return true;
+}
+
+bool XImageHelper::calculateWLAdvanced(int max, int min, int& w, int& l, int mode)
+{
+	// 参数验证
+	if (max < min)
+	{
+		return false;
+	}
+
+	// 处理极限情况
+	if (max == min)
+	{
+		w = 1;
+		l = max;
+		return true;
+	}
+
+	int range = max - min;
+	
+	switch (mode)
+	{
+	case 0:  // 标准模式：全覆盖显示所有灰度值
+	{
+		w = range;
+		l = (max + min) / 2;
+		break;
+	}
+	case 1:  // 优化显示模式：显示85%的范围以增加对比度
+	{
+		w = static_cast<int>(range * 0.85);
+		// 窗位偏向更亮的部分
+		int margin = (range - w) / 2;
+		l = (max + min) / 2 + margin;
+		break;
+	}
+	case 2:  // 高对比模式：仅显示中间50%以突出细节
+	{
+		w = static_cast<int>(range * 0.5);
+		l = (max + min) / 2;
+		break;
+	}
+	default:
+		// 无效模式，回退到标准模式
+		w = range;
+		l = (max + min) / 2;
+		break;
+	}
+
+	// 确保窗宽至少为1
+	if (w < 1)
+	{
+		w = 1;
+	}
+
+	// 确保窗位在合理范围内
+	int windowMin = l - w / 2;
+	int windowMax = l + w / 2;
+	
+	// 如果窗口超出范围，调整窗位而不改变窗宽
+	if (windowMin < min)
+	{
+		l = min + w / 2;
+	}
+	if (windowMax > max)
+	{
+		l = max - w / 2;
+	}
+
+	return true;
 }
 
 QImage XImageHelper::openImageU16Raw(const QString& filePath, int w, int h)

@@ -1,4 +1,5 @@
 #include "XGraphicsScene.h"
+#include "XImageHelper.h"
 
 #include <qpainter.h>
 #include <qdebug.h>
@@ -62,6 +63,18 @@ void XGraphicsScene::setPixmap(const QPixmap& pixmap)
 		m_pixmapItem->setPixmap(pixmap);
 		updateDisplay();
 	}
+}
+
+void XGraphicsScene::updatePixmapDisplay(const QImage& srcImage, int windowWidth, int windowLevel)
+{
+	if (srcImage.isNull() || srcImage.format() != QImage::Format_Grayscale16)
+	{
+		return;
+	}
+
+	// 使用窗宽窗位调整图像
+	QImage displayImage = XImageHelper::adjustWL(srcImage, windowWidth, windowLevel);
+	setPixmap(QPixmap::fromImage(displayImage));
 }
 
 void XGraphicsScene::setROIRect(const QRectF& rect)

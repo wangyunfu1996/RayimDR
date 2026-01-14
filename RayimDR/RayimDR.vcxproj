@@ -23,6 +23,7 @@
     <ClCompile Include="ImageRender\XGraphicsView.cpp" />
     <ClCompile Include="ImageRender\XImageAdjustTool.cpp" />
     <ClCompile Include="ImageRender\XImageHelper.cpp" />
+    <ClCompile Include="ImageRender\XWindowLevelManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="UI\AppCfgDialog.cpp" />
     <ClCompile Include="UI\CommonConfigUI.cpp" />
@@ -48,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Components\XGlobal.h" />
+    <QtMoc Include="ImageRender\XWindowLevelManager.h" />
     <QtMoc Include="ElaUIHepler.h" />
     <QtMoc Include="ImageRender\XImageHelper.h" />
     <QtMoc Include="ImageRender\XImageAdjustTool.h" />

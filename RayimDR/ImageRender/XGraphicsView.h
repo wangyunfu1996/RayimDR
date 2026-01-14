@@ -3,6 +3,7 @@
 #include <QGraphicsView>
 
 class XGraphicsScene;
+class XWindowLevelManager;
 
 class XGraphicsView : public QGraphicsView
 {
@@ -14,7 +15,6 @@ public:
 
 	void updateImage(QImage image, bool adjustWL = false);
 	void updateRoiRect(QRectF rect);
-	void adjustWL(int width, int level);
 	const QImage& getSrcU16Image() const;
 	void clearROIRect();
 
@@ -27,6 +27,7 @@ public:
 	void setCenterLinesVisible(bool visible);	// 绘制视野中心线
 	void setROIEnable(bool enable);				// ROI调整窗宽窗位
 	void setAutoWLEnable(bool enable);			// 自动调整窗宽窗位
+	void setWindowLevel(int width, int level);	// 设置窗宽窗位
 	bool isAutoWL() const;
 	void zoomIn();								// 放大
 	void zoomOut();								// 缩小
@@ -36,6 +37,7 @@ public:
 
 private:
 	void initContextMenu();
+	void onWindowLevelChanged(int width, int level);
 
 signals:
 	void signalPixelHovered(int x, int y, int gray);
@@ -52,13 +54,10 @@ protected:
 private:
 	// 图像数据
 	QImage currentSrcU16Image;
-	QImage displayU8Image;
 	QList<QImage> srcU16ImageList;
 
-	// 窗宽窗位
-	bool autoWL{ false };
-	int W{ 0 };
-	int L{ 0 };
+	// 窗宽窗位管理器
+	XWindowLevelManager* m_windowLevelManager{ nullptr };
 
 	// Scene引用
 	XGraphicsScene* xGraphicsScene{ nullptr };
@@ -66,5 +65,6 @@ private:
 	// ROI相关
 	bool enableROI{ false };
 	bool roiSeleting{ false };
+	bool autoWL{ false };
 };
 

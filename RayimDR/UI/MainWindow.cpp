@@ -125,7 +125,7 @@ MainWindow::MainWindow(QWidget* parent)
 
 	addPageNode("HOME", mainWidget, ElaIconType::House);
 
-	connect(_XImageAdjustTool, &XImageAdjustTool::signalAdjustWL, _XGraphicsView, &XGraphicsView::adjustWL);
+	connect(_XImageAdjustTool, &XImageAdjustTool::signalAdjustWL, _XGraphicsView, &XGraphicsView::setWindowLevel);
 	connect(_XImageAdjustTool, &XImageAdjustTool::signalSetROIEnable, _XGraphicsView, &XGraphicsView::setROIEnable);
 	connect(_XImageAdjustTool, &XImageAdjustTool::signalAutoWL, _XGraphicsView, &XGraphicsView::setAutoWLEnable);
 	connect(_XImageAdjustTool, &XImageAdjustTool::signalImageIdxChanged, _XGraphicsView, &XGraphicsView::showImage);

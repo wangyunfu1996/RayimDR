@@ -28,6 +28,10 @@ public:
 
 	// 根据灰度图的 min max 计算推荐的 width level
 	static bool calculateWL(int max, int min, int& w, int& l);
+	
+	// 高级窗宽窗位计算：支持不同的算法模式
+	// mode: 0=标准(全覆盖), 1=优化显示(85%范围), 2=高对比(中间50%)
+	static bool calculateWLAdvanced(int max, int min, int& w, int& l, int mode = 0);
 	// 从文件打开16位灰度图
 	static QImage openImageU16Raw(const QString& filePath, int w, int h);
 	// 将16位灰度图保存为图像文件

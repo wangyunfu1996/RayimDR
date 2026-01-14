@@ -19,6 +19,7 @@ public:
 
 	// 图像显示相关
 	void setPixmap(const QPixmap& pixmap);
+	void updatePixmapDisplay(const QImage& srcImage, int windowWidth, int windowLevel);
 
 	// ROI相关
 	void setROIRect(const QRectF& rect);

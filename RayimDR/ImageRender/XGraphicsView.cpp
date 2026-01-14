@@ -18,6 +18,7 @@
 
 #include "XGraphicsScene.h"
 #include "XImageHelper.h"
+#include "XWindowLevelManager.h"
 
 #include "Components/XGlobal.h"
 #include "Components/XFileHelper.h"
@@ -53,6 +54,11 @@ XGraphicsView::XGraphicsView(QWidget* parent)
 	xGraphicsScene = new XGraphicsScene();
 	this->setScene(xGraphicsScene);
 
+	// 创建窗宽窗位管理器
+	m_windowLevelManager = new XWindowLevelManager(this);
+	connect(m_windowLevelManager, &XWindowLevelManager::windowLevelChanged, 
+		this, &XGraphicsView::onWindowLevelChanged);
+
 	initContextMenu();
 }
 
@@ -81,7 +87,7 @@ void XGraphicsView::updateImage(QImage image, bool adjustWL)
 
 	if (adjustWL || autoWL || bIsFirstImage)
 	{
-		XImageHelper::calculateWL(max, min, W, L);
+		m_windowLevelManager->calculateFromMinMax(min, max);
 	}
 
 	bool sizeChanged = false;
@@ -90,8 +96,10 @@ void XGraphicsView::updateImage(QImage image, bool adjustWL)
 		sizeChanged = pixmapItem->pixmap().size() != image.size();
 	}
 
-	displayU8Image = XImageHelper::adjustWL(currentSrcU16Image, W, L);
-	xGraphicsScene->setPixmap(QPixmap::fromImage(displayU8Image));
+	// 通过Scene更新显示，传入原始图像和当前窗宽窗位
+	xGraphicsScene->updatePixmapDisplay(currentSrcU16Image, 
+		m_windowLevelManager->getWidth(), 
+		m_windowLevelManager->getLevel());
 	if (bIsFirstImage || sizeChanged)
 	{
 		resetView();
@@ -119,14 +127,11 @@ void XGraphicsView::updateRoiRect(QRectF rect)
 	}
 	else
 	{
-		// 计算 ROI 内的 min max
-		int min = 65536;
-		int max = 0;
-		XImageHelper::calculateMaxMinValue(currentSrcU16Image, rect.toRect(), max, min);
-		qDebug() << "ROI区域发生变化，当前窗宽：" << W << "当前窗位：" << L;
-		XImageHelper::calculateWL(max, min, W, L);
-		qDebug() << "ROI区域发生变化，目标窗宽：" << W << "目标窗位：" << L;
-		emit signalRoiWLChanged(W, L);
+		qDebug() << "ROI区域发生变化，当前窗宽：" << m_windowLevelManager->getWidth() 
+			  << "当前窗位：" << m_windowLevelManager->getLevel();
+		m_windowLevelManager->calculateFromROI(currentSrcU16Image, rect.toRect());
+		qDebug() << "ROI区域发生变化，目标窗宽：" << m_windowLevelManager->getWidth() 
+			  << "目标窗位：" << m_windowLevelManager->getLevel();
 	}
 }
 
@@ -147,6 +152,11 @@ void XGraphicsView::setAutoWLEnable(bool open)
 {
 	qDebug() << "设置自动窗宽窗位调整为：" << open;
 	autoWL = open;
+}
+
+void XGraphicsView::setWindowLevel(int width, int level)
+{
+	m_windowLevelManager->setWindowLevel(width, level);
 }
 
 bool XGraphicsView::isAutoWL() const
@@ -183,51 +193,12 @@ void XGraphicsView::addImageToList(QImage image)
 	srcU16ImageList.append(image);
 }
 
-void XGraphicsView::adjustWL(int width, int level)
+void XGraphicsView::onWindowLevelChanged(int width, int level)
 {
-	// 获取图像
-	if (currentSrcU16Image.isNull() || currentSrcU16Image.format() != QImage::Format_Grayscale16) {
-		return;
-	}
-
-	int w = currentSrcU16Image.width();
-	int h = currentSrcU16Image.height();
-
-	// 创建8位输出图像用于显示
-	QImage dest(w, h, QImage::Format_Grayscale8);
-	dest.fill(0);
-
-	// 计算窗口边界
-	int windowMin = level - width / 2;
-	int windowMax = level + width / 2;
-	float windowRange = windowMax - windowMin;
-
-	// 避免除零错误
-	if (windowRange <= 0) {
-		windowRange = 1;
-	}
-
-	// 遍历所有像素并应用线性映射
-	for (int y = 0; y < h; ++y) {
-		const uint16_t* srcLine = reinterpret_cast<const uint16_t*>(currentSrcU16Image.scanLine(y));
-		uchar* dstLine = dest.scanLine(y);
-
-		for (int x = 0; x < w; ++x) {
-			uint16_t pixelValue = srcLine[x];
-
-			// 线性映射：将 [windowMin, windowMax] 映射到 [0, 255]
-			float normalized = 255.0f * (pixelValue - windowMin) / windowRange;
-
-			// 饱和处理：小于窗口最小值 -> 0，大于窗口最大值 -> 255
-			if (normalized < 0) normalized = 0;
-			if (normalized > 255) normalized = 255;
-
-			dstLine[x] = static_cast<uchar>(normalized);
-		}
-	}
-
-	displayU8Image = dest;
-	xGraphicsScene->setPixmap(QPixmap::fromImage(displayU8Image));
+	// 当窗宽窗位改变时，更新Scene显示
+	xGraphicsScene->updatePixmapDisplay(currentSrcU16Image, width, level);
+	// 发出信号通知其他组件
+	emit signalRoiWLChanged(width, level);
 }
 
 const QImage& XGraphicsView::getSrcU16Image() const
@@ -332,12 +303,22 @@ void XGraphicsView::saveImage()
 	}
 	else if (fileInfo.absoluteFilePath().endsWith(".png"))
 	{
-		XImageHelper::Instance().saveImagePNG(displayU8Image, fileInfo.absoluteFilePath());
+		// 使用Scene提供的pixmap进行保存
+		auto pixmapItem = xGraphicsScene->getPixmapItem();
+		if (pixmapItem && !pixmapItem->pixmap().isNull())
+		{
+			XImageHelper::Instance().saveImagePNG(pixmapItem->pixmap().toImage(), fileInfo.absoluteFilePath());
+		}
 	}
 	else if (fileInfo.absoluteFilePath().endsWith(".jpg") ||
 		fileInfo.absoluteFilePath().endsWith(".jpeg"))
 	{
-		XImageHelper::Instance().saveImageJPG(displayU8Image, fileInfo.absoluteFilePath());
+		// 使用Scene提供的pixmap进行保存
+		auto pixmapItem = xGraphicsScene->getPixmapItem();
+		if (pixmapItem && !pixmapItem->pixmap().isNull())
+		{
+			XImageHelper::Instance().saveImageJPG(pixmapItem->pixmap().toImage(), fileInfo.absoluteFilePath());
+		}
 	}
 }
 

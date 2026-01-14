@@ -67,6 +67,9 @@
     <ClCompile Include="ElaUIHepler.cpp">
       <Filter>UI</Filter>
     </ClCompile>
+    <ClCompile Include="ImageRender\XWindowLevelManager.cpp">
+      <Filter>ImageRender</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Components\AcqTask.h">
@@ -122,6 +125,9 @@
     </QtMoc>
     <QtMoc Include="ElaUIHepler.h">
       <Filter>UI</Filter>
+    </QtMoc>
+    <QtMoc Include="ImageRender\XWindowLevelManager.h">
+      <Filter>ImageRender</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

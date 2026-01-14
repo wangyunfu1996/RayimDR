@@ -44,6 +44,9 @@
     <ClInclude Include="Common\Detector.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="QtLogger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IRayDetector.cpp">
@@ -56,6 +59,9 @@
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="TiffHelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="QtLogger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

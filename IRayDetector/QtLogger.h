@@ -1,10 +1,11 @@
 #pragma once
 
+#include "iraydetector_global.h"
 #include <Windows.h>
 #include <QString>
 #include <QDebug>
 
-class QtLogger
+class IRAYDETECTOR_EXPORT QtLogger
 {
 public:
 	static void initialize();

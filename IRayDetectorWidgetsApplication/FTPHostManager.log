@@ -8,3 +8,13 @@ A2026-01-14 14:41:44.247 49c Now: 538572404, Last: 538570463, Interval: 1941
 A2026-01-14 14:41:44.247 49c Unmap Shared
 A2026-01-14 14:41:44.247 49c Closed Handle
 A2026-01-14 14:41:44.247 49c FTPHostServer Destoryed
+A2026-01-14 15:12:19.360 52ec Enter Watch Dog
+A2026-01-14 15:12:19.360 52ec Leave Watch Dog
+A2026-01-14 15:12:19.361 52ec Get Lock Succeed, Start FTP Monitor And Feeding Dog
+A2026-01-14 15:12:19.372 52ec Enter Watch Dog
+A2026-01-14 15:12:27.265 35c8 Destoryed Feed Dog Thread
+A2026-01-14 15:12:27.265 35c8 Destoryed Monitor FTP Thread
+A2026-01-14 15:12:27.973 35c8 Now: 540416133, Last: 540413577, Interval: 2556
+A2026-01-14 15:12:27.973 35c8 Unmap Shared
+A2026-01-14 15:12:27.973 35c8 Closed Handle
+A2026-01-14 15:12:27.973 35c8 FTPHostServer Destoryed

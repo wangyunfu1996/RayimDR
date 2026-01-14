@@ -7,8 +7,9 @@
 
 #include "UI/MainWindow.h"
 
-#include "Components/QtLogger.h"
 #include "Components/XGlobal.h"
+
+#include "../IRayDetector/QtLogger.h"
 
 int main(int argc, char* argv[])
 {

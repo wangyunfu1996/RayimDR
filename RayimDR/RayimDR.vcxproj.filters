@@ -24,9 +24,6 @@
     <ClCompile Include="Components\MotionCtrlManager.cpp">
       <Filter>Components</Filter>
     </ClCompile>
-    <ClCompile Include="Components\QtLogger.cpp">
-      <Filter>Components</Filter>
-    </ClCompile>
     <ClCompile Include="Components\XFileHelper.cpp">
       <Filter>Components</Filter>
     </ClCompile>
@@ -128,9 +125,6 @@
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Components\QtLogger.h">
-      <Filter>Components</Filter>
-    </ClInclude>
     <ClInclude Include="Components\XGlobal.h">
       <Filter>Components</Filter>
     </ClInclude>

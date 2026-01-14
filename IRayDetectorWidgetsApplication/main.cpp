@@ -1,9 +1,9 @@
 #include <QtWidgets/QApplication>
 
 #include "IRayDetectorWidgetsApplication.h"
-#include "QtLogger.h"
 
 #include "../IRayDetector/IRayDetector.h"
+#include "../IRayDetector/QtLogger.h"
 
 int main(int argc, char* argv[])
 {

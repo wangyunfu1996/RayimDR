@@ -7,6 +7,8 @@
 
 #include "Components/XSignalsHelper.h"
 
+#include "ElaUIHepler.h"
+
 MultiAcqCfgDialog::MultiAcqCfgDialog(QWidget* parent)
 	: ElaDialog(parent)
 {
@@ -17,16 +19,10 @@ MultiAcqCfgDialog::MultiAcqCfgDialog(QWidget* parent)
 	this->setWindowButtonFlag(ElaAppBarType::MaximizeButtonHint, false);
 	this->resize(640, 200);
 
-	ui.spinBox_n->setButtonMode(ElaSpinBoxType::ButtonMode::PMSide);
 	ui.spinBox_n->setMinimum(nMin);
 	ui.spinBox_n->setMaximum(nMax);
 
-	auto elaText = this->findChildren<ElaText*>();
-	for (auto item : elaText)
-	{
-		item->setTextPixelSize(15);
-		item->setWordWrap(false);
-	}
+	ElaUIHepler::ChangeToNormalStyle(this);
 
 	connect(ui.pushButton_confirm, &QPushButton::clicked, this, [this]() {
 		this->accept();

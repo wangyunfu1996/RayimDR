@@ -18,6 +18,7 @@
     <ClCompile Include="Components\XFileHelper.cpp" />
     <ClCompile Include="Components\XRayManager.cpp" />
     <ClCompile Include="Components\XSignalsHelper.cpp" />
+    <ClCompile Include="ElaUIHepler.cpp" />
     <ClCompile Include="ImageRender\XGraphicsScene.cpp" />
     <ClCompile Include="ImageRender\XGraphicsView.cpp" />
     <ClCompile Include="ImageRender\XImageAdjustTool.cpp" />
@@ -47,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Components\XGlobal.h" />
+    <QtMoc Include="ElaUIHepler.h" />
     <QtMoc Include="ImageRender\XImageHelper.h" />
     <QtMoc Include="ImageRender\XImageAdjustTool.h" />
     <QtMoc Include="ImageRender\XGraphicsView.h" />

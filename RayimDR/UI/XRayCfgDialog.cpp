@@ -1,5 +1,7 @@
 #include "XRayCfgDialog.h"
 
+#include "ElaUIHepler.h"
+
 XRayCfgDialog::XRayCfgDialog(QWidget* parent)
 	: ElaDialog(parent)
 {
@@ -18,20 +20,12 @@ XRayCfgDialog::XRayCfgDialog(QWidget* parent)
 		this->reject();
 		});
 
-	ui.spinBox_targetVoltage->setButtonMode(ElaSpinBoxType::ButtonMode::PMSide);
-	ui.spinBox_targetCurrent->setButtonMode(ElaSpinBoxType::ButtonMode::PMSide);
-
 	ui.lineEdit_currentVoltage->setEnabled(false);
 	ui.lineEdit_currentCurrent->setEnabled(false);
 	ui.lineEdit_currentPower->setEnabled(false);
 	ui.lineEdit_targetPower->setEnabled(false);
 
-	auto elaText = this->findChildren<ElaText*>();
-	for (auto item : elaText)
-	{
-		item->setTextPixelSize(15);
-		item->setWordWrap(false);
-	}
+	ElaUIHepler::ChangeToNormalStyle(this);
 }
 
 XRayCfgDialog::~XRayCfgDialog()

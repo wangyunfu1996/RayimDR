@@ -5,6 +5,7 @@
 #include "Components/XGlobal.h"
 
 #include "ElaText.h"
+#include "ElaUIHepler.h"
 
 AppCfgDialog::AppCfgDialog(QWidget* parent)
 	: ElaDialog(parent)
@@ -30,13 +31,7 @@ AppCfgDialog::AppCfgDialog(QWidget* parent)
 		xGlobal.CONFIG_BEFORE_ACQ = checked;
 		});
 
-	auto elaText = this->findChildren<ElaText*>();
-	for (auto item : elaText)
-	{
-		item->setTextPixelSize(15);
-		item->setWordWrap(false);
-	}
-
+	ElaUIHepler::ChangeToNormalStyle(this);
 }
 
 AppCfgDialog::~AppCfgDialog()

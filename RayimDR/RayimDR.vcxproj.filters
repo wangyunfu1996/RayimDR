@@ -64,6 +64,9 @@
       <Filter>ImageRender</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ElaUIHepler.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Components\AcqTask.h">
@@ -116,6 +119,9 @@
     </QtMoc>
     <QtMoc Include="ImageRender\XImageHelper.h">
       <Filter>ImageRender</Filter>
+    </QtMoc>
+    <QtMoc Include="ElaUIHepler.h">
+      <Filter>UI</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

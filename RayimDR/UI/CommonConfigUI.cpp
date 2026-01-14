@@ -4,35 +4,16 @@
 #include "ElaDoubleSpinBox.h"
 
 #include "Components/XSignalsHelper.h"
+#include "ElaUIHepler.h"
 
 CommonConfigUI::CommonConfigUI(QWidget* parent)
 	: QWidget(parent)
 {
 	ui.setupUi(this);
 
-	for (auto elaText : this->findChildren<ElaText*>())
-	{
-		elaText->setTextPixelSize(14);
-	}
-
-	for (auto elaSpinBox : this->findChildren<ElaSpinBox*>())
-	{
-		elaSpinBox->setButtonMode(ElaSpinBoxType::ButtonMode::PMSide);
-	}
-
-	for (auto elaDoubleSpinBox : this->findChildren<ElaDoubleSpinBox*>())
-	{
-		elaDoubleSpinBox->setButtonMode(ElaSpinBoxType::ButtonMode::PMSide);
-	}
-
-	for (auto elaLineEdit : this->findChildren<ElaLineEdit*>())
-	{
-		elaLineEdit->setAlignment(Qt::AlignmentFlag::AlignCenter);
-		elaLineEdit->setEnabled(false);
-	}
-
 	onThemeChanged(ElaThemeType::Dark);
 	connect(eTheme, &ElaTheme::themeModeChanged, this, &CommonConfigUI::onThemeChanged);
+	ElaUIHepler::ChangeToNormalStyle(this);
 
 	initUIConnect();
 }

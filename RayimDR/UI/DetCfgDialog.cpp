@@ -1,5 +1,7 @@
 #include "DetCfgDialog.h"
 
+#include "ElaUIHepler.h"
+
 DetCfgDialog::DetCfgDialog(QWidget *parent)
 	: ElaDialog(parent)
 {
@@ -20,15 +22,7 @@ DetCfgDialog::DetCfgDialog(QWidget *parent)
 		this->reject();
 		});
 
-	ui.spinBox_fps->setButtonMode(ElaSpinBoxType::ButtonMode::PMSide);
-	ui.spinBox_add->setButtonMode(ElaSpinBoxType::ButtonMode::PMSide);
-
-	auto elaText = this->findChildren<ElaText*>();
-	for (auto item : elaText)
-	{
-		item->setTextPixelSize(15);
-		item->setWordWrap(false);
-	}
+	ElaUIHepler::ChangeToNormalStyle(this);
 }
 
 DetCfgDialog::~DetCfgDialog()

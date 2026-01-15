@@ -65,6 +65,16 @@ const static int DET_HEIGHT{ 496 };
 
 const static int IMAGE_BUFFER_SIZE{ 100 };
 
+#define DET_TYPE_VIRTUAL 0
+#define DET_TYPE_IRAY 1
+
+#define DET_TYPE DET_TYPE_IRAY
+
+#if DET_TYPE == DET_TYPE_VIRTUAL
+#elif DET_TYPE == DET_TYPE_IRAY
+#endif // DET_TYPE
+
+
 #define xGlobal XGlobal::Instance()
 
 class XGlobal

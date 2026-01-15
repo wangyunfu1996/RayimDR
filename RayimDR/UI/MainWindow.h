@@ -40,7 +40,6 @@ private:
 	void connectToDevices();
 	void connectToXRay();
 	void connectToDet();
-	void connectToMotionCtrl();
 
 private:
 	ElaContentDialog* _closeDialog{ nullptr };

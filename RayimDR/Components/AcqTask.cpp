@@ -8,6 +8,8 @@
 #include "AcqTaskManager.h"
 #include "ImageRender/XImageHelper.h"
 
+#include "../IRayDetector/IRayDetector.h"
+
 AcqTask::AcqTask(QObject* parent)
 	: QObject(parent)
 {
@@ -16,6 +18,7 @@ AcqTask::AcqTask(QObject* parent)
 
 AcqTask::~AcqTask()
 {
+	disconnect(&DET, nullptr, nullptr, nullptr);
 	qDebug() << "采集任务完成，清理资源";
 }
 
@@ -27,10 +30,17 @@ void AcqTask::doAcq(AcqCondition acqCondition)
 	// 单次采集
 	if (acqCondition.frame == 1)
 	{
+#if DET_TYPE == DET_TYPE_VIRTUAL
+		QImage receivedImage = XImageHelper::generateRandomGaussianGrayImage(DET_WIDTH, DET_HEIGHT);
 		qDebug() << "单次采集结束";
-		QImage randomImage = XImageHelper::generateRandomGaussianGrayImage(DET_WIDTH, DET_HEIGHT);
-		AcqTaskManager::Instance().receivedImageList[0] = randomImage;
-		emit AcqTaskManager::Instance().signalAcqTaskReceivedIdxChanged(acqCondition, 0);
+#elif DET_TYPE == DET_TYPE_IRAY
+		connect(&DET, &IRayDetector::signalAcqImageReceived, this, [this, acqCondition](int receivedIdx) {
+			QImage receivedImage = DET.getReceivedImage();
+			AcqTaskManager::Instance().receivedImageList[receivedIdx] = receivedImage;
+			emit AcqTaskManager::Instance().signalAcqTaskReceivedIdxChanged(acqCondition, receivedIdx);
+			});
+		DET.ClearAcq();
+#endif // DET_TYPE
 	}
 	// 连续采集
 	else if (acqCondition.frame == -1)

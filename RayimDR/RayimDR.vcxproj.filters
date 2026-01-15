@@ -18,12 +18,6 @@
     <ClCompile Include="Components\AcqTaskManager.cpp">
       <Filter>Components</Filter>
     </ClCompile>
-    <ClCompile Include="Components\DetManager.cpp">
-      <Filter>Components</Filter>
-    </ClCompile>
-    <ClCompile Include="Components\MotionCtrlManager.cpp">
-      <Filter>Components</Filter>
-    </ClCompile>
     <ClCompile Include="Components\XFileHelper.cpp">
       <Filter>Components</Filter>
     </ClCompile>
@@ -76,12 +70,6 @@
       <Filter>Components</Filter>
     </QtMoc>
     <QtMoc Include="Components\AcqTaskManager.h">
-      <Filter>Components</Filter>
-    </QtMoc>
-    <QtMoc Include="Components\DetManager.h">
-      <Filter>Components</Filter>
-    </QtMoc>
-    <QtMoc Include="Components\MotionCtrlManager.h">
       <Filter>Components</Filter>
     </QtMoc>
     <QtMoc Include="Components\XFileHelper.h">

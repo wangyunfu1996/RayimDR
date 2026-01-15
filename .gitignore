@@ -9,3 +9,8 @@
 /install/x64/Release
 /build/x64/Release
 /build/x64/Debug
+/IRayDetectorWidgetsApplication/IRayDetectorWidgetsApplication.vcxproj.user
+/IRayDetector/IRayDetector.vcxproj.user
+/debug.md
+/RayimDR/myeasylog.log
+/RayimDR/FTPHostManager.log

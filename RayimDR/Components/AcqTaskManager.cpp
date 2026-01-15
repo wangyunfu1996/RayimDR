@@ -5,11 +5,10 @@
 #include <qdebug.h>
 
 #include "XRayManager.h"
-#include "DetManager.h"
-#include "MotionCtrlManager.h"
 #include "XSignalsHelper.h"
 #include "XGlobal.h"
 
+#include "../IRayDetector/IRayDetector.h"
 #include "AcqTask.h"
 
 AcqTaskManager::AcqTaskManager(QObject* parent)

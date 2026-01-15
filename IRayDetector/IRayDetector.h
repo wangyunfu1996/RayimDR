@@ -3,6 +3,7 @@
 #include "iraydetector_global.h"
 
 #include <QObject>
+#include <QImage>
 
 #define DET IRayDetector::Instance()
 
@@ -47,11 +48,16 @@ public:
 	void StopGainGeneration();
 	int Abort();
 
+	// 图像数据操作
+	void setReceivedImage(int width, int height, const unsigned short* pData, int nDataSize);
+	QImage getReceivedImage() const;
+
 signals:
-	void signalAcqImageReceived();
+	void signalAcqImageReceived(int idx);
 
 private:
 	QString m_uuid;
 	QString m_workDirPath;
+	QImage m_receivedImage;
 };
 

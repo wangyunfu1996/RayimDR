@@ -25,7 +25,6 @@
 #include "Components/XSignalsHelper.h"
 #include "Components/AcqTaskManager.h"
 #include "Components/XRayManager.h"
-#include "Components/DetManager.h"
 #include "Components/XGlobal.h"
 
 #include "ImageRender/XGraphicsView.h"
@@ -39,6 +38,7 @@
 #include "UI/AppCfgDialog.h"
 #include "UI/MultiAcqCfgDialog.h"
 
+#include "../IRayDetector/IRayDetector.h"
 
 MainWindow::MainWindow(QWidget* parent)
 	: ElaWindow(parent)
@@ -67,7 +67,11 @@ MainWindow::MainWindow(QWidget* parent)
 	//_closeDialog->setMiddleButtonVisible(false);
 	_closeDialog->setRightButtonText("确认");
 
-	connect(_closeDialog, &ElaContentDialog::rightButtonClicked, this, &MainWindow::closeWindow);
+	connect(_closeDialog, &ElaContentDialog::rightButtonClicked, this, [this]() {
+		DET.DeInitialize();
+		closeWindow();
+		});
+
 	this->setIsDefaultClosed(false);
 	connect(this, &MainWindow::closeButtonClicked, this, [=]() {
 
@@ -96,7 +100,7 @@ MainWindow::MainWindow(QWidget* parent)
 
 	// 状态栏
 	ElaStatusBar* statusBar = new ElaStatusBar(this);
-	_statusText = new ElaText("初始化成功！", statusBar);
+	_statusText = new ElaText(QDateTime::currentDateTime().toString(), statusBar);
 	_statusText->setTextPixelSize(15);
 	statusBar->addWidget(_statusText, 1);
 	this->setStatusBar(statusBar);
@@ -488,31 +492,17 @@ void MainWindow::connectToDet()
 {
 	emit xSignaHelper.signalUpdateStatusInfo("开始连接探测器");
 	qDebug() << "开始连接探测器";
-	QFuture<void> future = QtConcurrent::run([this]() {
-		do
-		{
-			emit DET.signalConnectToDet();
-		} while (false);
-		});
-
-	QFutureWatcher<void>* wathcher = new QFutureWatcher<void>();
-	connect(wathcher, &QFutureWatcher<void>::finished, this, [wathcher]() {
-		wathcher->deleteLater();
-		if (DET.Status().connected)
-		{
-			emit xSignaHelper.signalShowSuccessMessageBar("探测器已连接!");
-		}
-		else
+	std::async(std::launch::async, []() {
+		int result = DET.Initialize();
+		if (result != 0)
 		{
 			emit xSignaHelper.signalShowErrorMessageBar("探测器连接失败!");
 		}
-
-		});
-	wathcher->setFuture(future);
-}
-
-void MainWindow::connectToMotionCtrl()
-{
+		else
+		{
+			emit xSignaHelper.signalUpdateStatusInfo("探测器已连接");
+		}
+		}).wait();
 }
 
 

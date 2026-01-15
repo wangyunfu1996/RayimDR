@@ -13,8 +13,6 @@
   <ItemGroup>
     <ClCompile Include="Components\AcqTask.cpp" />
     <ClCompile Include="Components\AcqTaskManager.cpp" />
-    <ClCompile Include="Components\DetManager.cpp" />
-    <ClCompile Include="Components\MotionCtrlManager.cpp" />
     <ClCompile Include="Components\XFileHelper.cpp" />
     <ClCompile Include="Components\XRayManager.cpp" />
     <ClCompile Include="Components\XSignalsHelper.cpp" />
@@ -40,12 +38,6 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Components\AcqTaskManager.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtMoc Include="Components\DetManager.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtMoc Include="Components\MotionCtrlManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Components\XGlobal.h" />

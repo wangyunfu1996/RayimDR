@@ -16,6 +16,7 @@ namespace {
 	static int s_nExpWindow = 0;
 
 	static std::atomic_bool s_bOffsetGenerationSucceedOrFailed{ false };
+	std::atomic<int> receviedIdx{ 0 };
 
 	void TimeProc(int uTimerID)
 	{
@@ -61,7 +62,7 @@ namespace {
 			int nImageID = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_ImageID);
 			int nAvgValue = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_AvgValue);
 			int nCenterValue = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_CenterValue);
-
+			
 			//IRayVariantMapItem* pItem = pImg->propList.pItems;
 			//int nItemCnt = pImg->propList.nItemCount;
 			//while (nItemCnt--)
@@ -83,6 +84,12 @@ namespace {
 				<< " nImageID: " << nImageID
 				<< " nAvgValue: " << nAvgValue
 				<< " nCenterValue: " << nCenterValue;
+
+			receviedIdx.store(receviedIdx.load() + 1);
+			// 将图像数据深拷贝到QImage
+			qDebug() << "进行图像拷贝";
+			IRayDetector::Instance().setReceivedImage(pImg->nWidth, pImg->nHeight, pImageData, nImageSize);
+			emit IRayDetector::Instance().signalAcqImageReceived(receviedIdx);
 
 			break;
 		}
@@ -122,35 +129,64 @@ IRayDetector& IRayDetector::Instance()
 int IRayDetector::Initialize()
 {
 	gs_pDetInstance = new CDetector();
-	qDebug("Load libray");
+	qDebug() << "Load libray";
 	int ret = gs_pDetInstance->LoadIRayLibrary();
 	if (Err_OK != ret)
 	{
-		qDebug("[No ]");
+		qDebug() << "[No ]";
 		return ret;
 	}
 	else
-		qDebug("[Yes]");
+		qDebug() << "[Yes]";
 
-	qDebug("Create instance");
+	qDebug() << "Create instance";
 	ret = gs_pDetInstance->Create("D:\\NDT1717MA", SDKCallbackHandler);
 	if (Err_OK != ret)
 	{
-		qDebug("[No ] - error:%s", gs_pDetInstance->GetErrorInfo(ret).c_str());
+		qDebug() << "[No ] - error:" << QString::fromStdString(gs_pDetInstance->GetErrorInfo(ret));
 		return ret;
 	}
 	else
-		qDebug("[Yes]");
+		qDebug() << "[Yes]";
 
-	qDebug("Connect device");
+	qDebug() << "Connect device";
 	ret = gs_pDetInstance->SyncInvoke(Cmd_Connect, 30000);
 	if (Err_OK != ret)
 	{
-		qDebug("[No ] - error:%s", gs_pDetInstance->GetErrorInfo(ret).c_str());
+		qDebug() << "[No ] - error:" << QString::fromStdString(gs_pDetInstance->GetErrorInfo(ret));
 		return ret;
 	}
 	else
-		qDebug("[Yes]");
+		qDebug() << "[Yes]";
+
+
+	ret = UpdateMode("Mode5");
+	int sw_offset{ -1 };
+	int sw_gain{ -1 };
+	int sw_defect{ -1 };
+	ret = GetCurrentCorrectOption(sw_offset, sw_gain, sw_defect);
+	if (Err_OK != ret)
+	{
+		qDebug() << "[No ] - error:" << QString::fromStdString(gs_pDetInstance->GetErrorInfo(ret));
+		return ret;
+	}
+
+	sw_offset = 1;
+	sw_gain = 1;
+	sw_defect = 1;
+	ret = SetCorrectOption(sw_offset, sw_gain, sw_defect);
+	if (Err_OK != ret)
+	{
+		qDebug() << "[No ] - error:" << QString::fromStdString(gs_pDetInstance->GetErrorInfo(ret));
+		return ret;
+	}
+
+	ret = SetPreviewImageEnable(0);
+	if (Err_OK != ret)
+	{
+		qDebug() << "[No ] - error:" << QString::fromStdString(gs_pDetInstance->GetErrorInfo(ret));
+		return ret;
+	}
 
 	return ret;
 }
@@ -187,14 +223,14 @@ int IRayDetector::UpdateMode(std::string mode)
 	int ret = gs_pDetInstance->GetAttr(Attr_CurrentSubset, current_mode);
 	if (current_mode == mode)
 	{
-		qDebug() << "目标模式与当前模式相同，当前模式" << current_mode.c_str();
+		qDebug() << QStringLiteral("目标模式与当前模式相同，当前模式") << QString::fromStdString(current_mode);
 		return Err_OK;
 	}
 
 	ret = gs_pDetInstance->SyncInvoke(Cmd_SetCaliSubset, mode, 50000);
 	if (Err_OK != ret)
 	{
-		qDebug() << "修改探测器工作模式失败！";
+		qDebug() << QStringLiteral("修改探测器工作模式失败！");
 		return ret;
 	}
 
@@ -207,12 +243,12 @@ int IRayDetector::UpdateMode(std::string mode)
 	int zoom{ -1 };
 	gs_pDetInstance->GetAttr(Attr_AcqParam_Zoom_W, zoom);
 
-	qDebug() << "修改探测器工作模式成功，"
-		<< " 当前工作模式：" << mode.c_str()
-		<< " Attr_Width: " << w
-		<< " Attr_Height: " << h
-		<< " Attr_AcqParam_Binning_W: " << bin
-		<< " Attr_AcqParam_Zoom_W: " << zoom;
+	qDebug() << QStringLiteral("修改探测器工作模式成功，")
+		<< QStringLiteral(" 当前工作模式：") << QString::fromStdString(mode)
+		<< QStringLiteral(" Attr_Width: ") << w
+		<< QStringLiteral(" Attr_Height: ") << h
+		<< QStringLiteral(" Attr_AcqParam_Binning_W: ") << bin
+		<< QStringLiteral(" Attr_AcqParam_Zoom_W: ") << zoom;
 
 	return Err_OK;
 }
@@ -259,15 +295,17 @@ int IRayDetector::SetCorrectOption(int sw_offset, int sw_gain, int sw_defect)
 	int ret = gs_pDetInstance->SyncInvoke(Cmd_SetCorrectOption, nCorrectOption, 5000);
 	if (Err_OK != ret)
 	{
-		qDebug() << "修改探测器校正模式失败！"
-			<< gs_pDetInstance->GetErrorInfo(ret).c_str();
+		qDebug() << QStringLiteral("修改探测器校正模式失败！")
+			<< QString::fromStdString(gs_pDetInstance->GetErrorInfo(ret));
 		return ret;
 	}
 
-	qDebug() << "修改探测器校正模式成功："
-		<< " Enm_CorrectOp_SW_PreOffset: " << sw_offset
-		<< " Enm_CorrectOp_SW_Gain: " << sw_gain
-		<< " Enm_CorrectOp_SW_Defect: " << sw_defect;
+	qDebug() << QStringLiteral("修改探测器校正模式成功：")
+		<< QStringLiteral(" Enm_CorrectOp_SW_PreOffset: ") << sw_offset
+		<< QStringLiteral(" Enm_CorrectOp_SW_Gain: ") << sw_gain
+		<< QStringLiteral(" Enm_CorrectOp_SW_Defect: ") << sw_defect;
+
+	return ret;
 }
 
 int IRayDetector::SetPreviewImageEnable(int enable)
@@ -298,6 +336,7 @@ int IRayDetector::GetDetectorState(int& state)
 
 void IRayDetector::ClearAcq()
 {
+	receviedIdx.store(0);
 	int result = gs_pDetInstance->SyncInvoke(Cmd_ClearAcq, 10000);
 	qDebug() << "result: " << result
 		<< gs_pDetInstance->GetErrorInfo(result).c_str();
@@ -305,6 +344,7 @@ void IRayDetector::ClearAcq()
 
 void IRayDetector::StartAcq()
 {
+	receviedIdx.store(0);
 	qDebug("Sequence acquiring...");
 	int result = gs_pDetInstance->Invoke(Cmd_StartAcq);
 	qDebug() << "result: " << result
@@ -348,11 +388,11 @@ int IRayDetector::OffsetGeneration()
 
 int IRayDetector::GainGeneration()
 {
-	qDebug("Generate gain...");
+	qDebug() << QStringLiteral("Generate gain...");
 	int result = gs_pDetInstance->SyncInvoke(Cmd_GainInit, 5000);
 	if (Err_OK != result)
 	{
-		qDebug("GainInit failed! err=%s", gs_pDetInstance->GetErrorInfo(result).c_str());
+		qDebug() << QStringLiteral("GainInit failed! err=") << QString::fromStdString(gs_pDetInstance->GetErrorInfo(result));
 		return result;
 	}
 
@@ -370,19 +410,19 @@ int IRayDetector::GainGeneration()
 			do
 			{
 				nValid = gs_pDetInstance->GetAttrInt(Attr_GainValidFrames);
-				qDebug() << "nGainTotalFrames: " << nGainTotalFrames
-					<< " nValid: " << nValid;
+				qDebug() << QStringLiteral("nGainTotalFrames: ") << nGainTotalFrames
+					<< QStringLiteral(" nValid: ") << nValid;
 				std::this_thread::sleep_for(std::chrono::milliseconds(100));
 			} while (nValid < nGainTotalFrames);
 
 			int ret = gs_pDetInstance->Invoke(Cmd_GainGeneration);
 			if (ret != Err_OK)
 			{
-				qDebug("Generate gain map failed! err=%s", gs_pDetInstance->GetErrorInfo(ret).c_str());
+				qDebug() << QStringLiteral("Generate gain map failed! err=") << QString::fromStdString(gs_pDetInstance->GetErrorInfo(ret));
 			}
 			else
 			{
-				qDebug() << "Generate gain done...";
+				qDebug() << QStringLiteral("Generate gain done...");
 			}
 			});
 		t.detach();
@@ -403,6 +443,64 @@ int IRayDetector::Abort()
 	qDebug() << "result: " << result
 		<< gs_pDetInstance->GetErrorInfo(result).c_str();
 	return result;
+}
+
+void IRayDetector::setReceivedImage(int width, int height, const unsigned short* pData, int nDataSize)
+{
+	// 参数验证
+	if (width <= 0 || height <= 0 || !pData || nDataSize <= 0)
+	{
+		qWarning() << "Invalid image parameters: width=" << width 
+			<< " height=" << height 
+			<< " dataSize=" << nDataSize;
+		return;
+	}
+
+	// 检查数据大小是否匹配
+	int expectedSize = width * height * sizeof(unsigned short);
+	if (nDataSize != expectedSize)
+	{
+		qWarning() << "Image data size mismatch. Expected: " << expectedSize 
+			<< " Actual: " << nDataSize;
+		return;
+	}
+
+	// 创建16位灰度QImage
+	m_receivedImage = QImage(width, height, QImage::Format_Grayscale16);
+
+	// 深拷贝数据到QImage
+	try
+	{
+		for (int y = 0; y < height; ++y)
+		{
+			// 获取当前行的指针
+			ushort* destLine = reinterpret_cast<ushort*>(m_receivedImage.scanLine(y));
+			if (!destLine)
+			{
+				qWarning() << "Failed to get scan line at row " << y;
+				return;
+			}
+
+			// 计算源数据在当前行的位置
+			const ushort* srcLine = pData + (y * width);
+
+			// 拷贝一行数据
+			std::copy(srcLine, srcLine + width, destLine);
+		}
+
+		qDebug() << "Image deep copied successfully: " << width << "x" << height 
+			<< " (" << nDataSize << " bytes)";
+	}
+	catch (const std::exception& e)
+	{
+		qWarning() << "Exception during image deep copy: " << e.what();
+		m_receivedImage = QImage();  // 清空图像
+	}
+}
+
+QImage IRayDetector::getReceivedImage() const
+{
+	return m_receivedImage;
 }
 
 

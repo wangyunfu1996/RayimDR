@@ -222,7 +222,7 @@
       <item row="2" column="2">
        <widget class="ElaSpinBox" name="spinBox_add">
         <property name="value">
-         <number>1</number>
+         <number>0</number>
         </property>
        </widget>
       </item>

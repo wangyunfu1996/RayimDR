@@ -15,7 +15,7 @@ struct AcqCondition
 	int current{ 100 };			// mA
 	int frameRate{ 10 };
 	int frame{ 10 };			// 帧数 可以理解为角度数
-	int stackedFrame{ 1 };		// 叠加帧数
+	int stackedFrame{ 0 };		// 叠加帧数
 	int detMode{ 1 };			// 1x1 2x2 3x3 4x4
 
 	bool saveToFiles{ false };
@@ -66,7 +66,7 @@ const static int IMAGE_BUFFER_SIZE{ 100 };
 #define DET_TYPE_VIRTUAL 0
 #define DET_TYPE_IRAY 1
 
-#define DET_TYPE DET_TYPE_VIRTUAL
+#define DET_TYPE DET_TYPE_IRAY
 
 #if DET_TYPE == DET_TYPE_VIRTUAL
 #elif DET_TYPE == DET_TYPE_IRAY

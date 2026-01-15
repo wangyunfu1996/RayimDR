@@ -44,6 +44,7 @@ private:
 	AcqTask* acqTask{ nullptr };
 
 	QVector<QImage> receivedImageList;
+	QVector<QImage> stackedImageList;
 
 	friend class AcqTask;
 };

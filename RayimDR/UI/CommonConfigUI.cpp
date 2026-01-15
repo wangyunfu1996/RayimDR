@@ -47,7 +47,11 @@ bool CommonConfigUI::checkInputValid()
 
 AcqCondition CommonConfigUI::getAcqCondition()
 {
-	return AcqCondition();
+	AcqCondition acqCond;
+	acqCond.detMode = ui.comboBox_mode->currentIndex() + 1;
+	acqCond.frameRate = ui.spinBox_fps->value();
+	acqCond.stackedFrame = ui.spinBox_add->value();
+	return acqCond;
 }
 
 void CommonConfigUI::onThemeChanged(ElaThemeType::ThemeMode themeMode)

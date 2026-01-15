@@ -62,7 +62,7 @@ namespace {
 			int nImageID = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_ImageID);
 			int nAvgValue = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_AvgValue);
 			int nCenterValue = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_CenterValue);
-			
+
 			//IRayVariantMapItem* pItem = pImg->propList.pItems;
 			//int nItemCnt = pImg->propList.nItemCount;
 			//while (nItemCnt--)
@@ -336,7 +336,11 @@ int IRayDetector::GetDetectorState(int& state)
 
 void IRayDetector::ClearAcq()
 {
-	int result = gs_pDetInstance->SyncInvoke(Cmd_ClearAcq, 10000);
+	int result = gs_pDetInstance->SyncInvoke(Cmd_ActivePanel, 2000);
+	qDebug() << "result: " << result
+		<< gs_pDetInstance->GetErrorInfo(result).c_str();
+
+	result = gs_pDetInstance->SyncInvoke(Cmd_ClearAcq, 10000);
 	qDebug() << "result: " << result
 		<< gs_pDetInstance->GetErrorInfo(result).c_str();
 	if (result == Err_OK)
@@ -347,8 +351,12 @@ void IRayDetector::ClearAcq()
 
 void IRayDetector::StartAcq()
 {
+	int result = gs_pDetInstance->SyncInvoke(Cmd_ActivePanel, 2000);
+	qDebug() << "result: " << result
+		<< gs_pDetInstance->GetErrorInfo(result).c_str();
+
 	qDebug("Sequence acquiring...");
-	int result = gs_pDetInstance->Invoke(Cmd_StartAcq);
+	result = gs_pDetInstance->Invoke(Cmd_StartAcq);
 	qDebug() << "result: " << result
 		<< gs_pDetInstance->GetErrorInfo(result).c_str();
 	if (result == Err_TaskPending)
@@ -361,6 +369,10 @@ void IRayDetector::StopAcq()
 {
 	qDebug("Stop Sequence acquiring...");
 	int result = gs_pDetInstance->SyncInvoke(Cmd_StopAcq, 2000);
+	qDebug() << "result: " << result
+		<< gs_pDetInstance->GetErrorInfo(result).c_str();
+
+	result = gs_pDetInstance->SyncInvoke(Cmd_DeactivePanel, 2000);
 	qDebug() << "result: " << result
 		<< gs_pDetInstance->GetErrorInfo(result).c_str();
 }
@@ -458,8 +470,8 @@ void IRayDetector::setReceivedImage(int width, int height, const unsigned short*
 	// 参数验证
 	if (width <= 0 || height <= 0 || !pData || nDataSize <= 0)
 	{
-		qWarning() << "Invalid image parameters: width=" << width 
-			<< " height=" << height 
+		qWarning() << "Invalid image parameters: width=" << width
+			<< " height=" << height
 			<< " dataSize=" << nDataSize;
 		return;
 	}
@@ -468,7 +480,7 @@ void IRayDetector::setReceivedImage(int width, int height, const unsigned short*
 	int expectedSize = width * height * sizeof(unsigned short);
 	if (nDataSize != expectedSize)
 	{
-		qWarning() << "Image data size mismatch. Expected: " << expectedSize 
+		qWarning() << "Image data size mismatch. Expected: " << expectedSize
 			<< " Actual: " << nDataSize;
 		return;
 	}
@@ -496,7 +508,7 @@ void IRayDetector::setReceivedImage(int width, int height, const unsigned short*
 			std::copy(srcLine, srcLine + width, destLine);
 		}
 
-		qDebug() << "Image deep copied successfully: " << width << "x" << height 
+		qDebug() << "Image deep copied successfully: " << width << "x" << height
 			<< " (" << nDataSize << " bytes)";
 	}
 	catch (const std::exception& e)

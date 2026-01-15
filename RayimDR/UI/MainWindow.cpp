@@ -258,7 +258,8 @@ void MainWindow::onDRMutliBtnClicked()
 
 		if (!dialog.getCfg(acqCond.frame,
 			acqCond.saveToFiles,
-			acqCond.savePath))
+			acqCond.savePath,
+			acqCond.saveType))
 		{
 			//emit xSignaHelper.signalShowErrorMessageBar("获取多帧采集参数错误！");
 			qDebug() << "获取多帧采集参数错误!";

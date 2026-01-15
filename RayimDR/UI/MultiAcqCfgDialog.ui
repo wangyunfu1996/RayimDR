@@ -6,14 +6,34 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>427</width>
-    <height>193</height>
+    <width>443</width>
+    <height>189</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MultiAcqCfgDialog</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout" columnstretch="0,1,1,1,1,0">
+  <layout class="QGridLayout" name="gridLayout" columnstretch="0,1,1,1,1,1,0">
+   <item row="1" column="2">
+    <widget class="ElaSpinBox" name="spinBox_n">
+     <property name="value">
+      <number>10</number>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="6">
+    <spacer name="horizontalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
    <item row="0" column="1">
     <spacer name="verticalSpacer_2">
      <property name="orientation">
@@ -26,6 +46,33 @@
       </size>
      </property>
     </spacer>
+   </item>
+   <item row="4" column="1">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="1" column="4">
+    <widget class="QLabel" name="label_3">
+     <property name="text">
+      <string>保存类型</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="3">
+    <widget class="ElaCheckBox" name="checkBox_saveToFiles">
+     <property name="text">
+      <string>保存到文件</string>
+     </property>
+    </widget>
    </item>
    <item row="1" column="0">
     <spacer name="horizontalSpacer">
@@ -50,33 +97,6 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="2">
-    <widget class="ElaSpinBox" name="spinBox_n">
-     <property name="value">
-      <number>10</number>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="3">
-    <widget class="ElaCheckBox" name="checkBox_saveToFiles">
-     <property name="text">
-      <string>保存到文件</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="5">
-    <spacer name="horizontalSpacer_2">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>40</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
    <item row="2" column="1">
     <widget class="ElaText" name="label">
      <property name="text">
@@ -87,42 +107,57 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="2" colspan="2">
-    <widget class="ElaLineEdit" name="lineEdit_savePath"/>
+   <item row="1" column="5">
+    <widget class="QComboBox" name="comboBox_saveType">
+     <item>
+      <property name="text">
+       <string>.RAW</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>.TIFF</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>.JPG</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>.PNG</string>
+      </property>
+     </item>
+    </widget>
    </item>
-   <item row="2" column="4">
+   <item row="2" column="5">
     <widget class="ElaPushButton" name="pushButton_select">
      <property name="text">
       <string>选择</string>
      </property>
     </widget>
    </item>
-   <item row="3" column="2">
-    <widget class="ElaPushButton" name="pushButton_confirm">
-     <property name="text">
-      <string>确定</string>
-     </property>
-    </widget>
+   <item row="2" column="2" colspan="3">
+    <widget class="ElaLineEdit" name="lineEdit_savePath"/>
    </item>
-   <item row="3" column="3">
-    <widget class="ElaPushButton" name="pushButton_cancel">
-     <property name="text">
-      <string>取消</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="1">
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
+   <item row="3" column="2" colspan="3">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="ElaPushButton" name="pushButton_confirm">
+       <property name="text">
+        <string>确定</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="ElaPushButton" name="pushButton_cancel">
+       <property name="text">
+        <string>取消</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>

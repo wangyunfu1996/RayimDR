@@ -24,6 +24,8 @@
 #include "Components/XFileHelper.h"
 #include "Components/XSignalsHelper.h"
 
+#include "../IRayDetector/TiffHelper.h"
+
 XGraphicsView::XGraphicsView(QWidget* parent)
 	: QGraphicsView(parent)
 {
@@ -56,7 +58,7 @@ XGraphicsView::XGraphicsView(QWidget* parent)
 
 	// 创建窗宽窗位管理器
 	m_windowLevelManager = new XWindowLevelManager(this);
-	connect(m_windowLevelManager, &XWindowLevelManager::windowLevelChanged, 
+	connect(m_windowLevelManager, &XWindowLevelManager::windowLevelChanged,
 		this, &XGraphicsView::onWindowLevelChanged);
 
 	initContextMenu();
@@ -97,8 +99,8 @@ void XGraphicsView::updateImage(QImage image, bool adjustWL)
 	}
 
 	// 通过Scene更新显示，传入原始图像和当前窗宽窗位
-	xGraphicsScene->updatePixmapDisplay(currentSrcU16Image, 
-		m_windowLevelManager->getWidth(), 
+	xGraphicsScene->updatePixmapDisplay(currentSrcU16Image,
+		m_windowLevelManager->getWidth(),
 		m_windowLevelManager->getLevel());
 	if (bIsFirstImage || sizeChanged)
 	{
@@ -127,11 +129,11 @@ void XGraphicsView::updateRoiRect(QRectF rect)
 	}
 	else
 	{
-		qDebug() << "ROI区域发生变化，当前窗宽：" << m_windowLevelManager->getWidth() 
-			  << "当前窗位：" << m_windowLevelManager->getLevel();
+		qDebug() << "ROI区域发生变化，当前窗宽：" << m_windowLevelManager->getWidth()
+			<< "当前窗位：" << m_windowLevelManager->getLevel();
 		m_windowLevelManager->calculateFromROI(currentSrcU16Image, rect.toRect());
-		qDebug() << "ROI区域发生变化，目标窗宽：" << m_windowLevelManager->getWidth() 
-			  << "目标窗位：" << m_windowLevelManager->getLevel();
+		qDebug() << "ROI区域发生变化，目标窗宽：" << m_windowLevelManager->getWidth()
+			<< "目标窗位：" << m_windowLevelManager->getLevel();
 	}
 }
 
@@ -226,17 +228,45 @@ void XGraphicsView::resetView()
 void XGraphicsView::openImage()
 {
 	QString filePath = QFileDialog::getOpenFileName(nullptr,
-		"打开RAW图像文件",
+		"打开图像文件",
 		"",
-		"RAW Files(*.raw)");
-
-	if (!filePath.isEmpty()) {
-		QImage image = XImageHelper::openImageU16Raw(filePath, DET_WIDTH, DET_HEIGHT);
-		srcU16ImageList.clear();
-		srcU16ImageList.append(image);
-		emit signalSrcU16ImageListSizeChanged(srcU16ImageList.size());
-		updateImage(srcU16ImageList.first(), true);
+		"RAW文件(*.raw);;TIFF文件(*.tif *.tiff)");
+	
+	if (filePath.isEmpty())
+		return;
+	
+	QImage image;
+	
+	// 根据文件扩展名选择读取方式
+	if (filePath.endsWith(".tif", Qt::CaseInsensitive) || 
+		filePath.endsWith(".tiff", Qt::CaseInsensitive))
+	{
+		image = TiffHelper::ReadImage(filePath.toStdString());
+		if (image.isNull())
+		{
+			emit xSignaHelper.signalShowErrorMessageBar("TIFF文件读取失败: " + filePath);
+			return;
+		}
 	}
+	else if (filePath.endsWith(".raw", Qt::CaseInsensitive))
+	{
+		image = XImageHelper::openImageU16Raw(filePath, DET_WIDTH, DET_HEIGHT);
+		if (image.isNull())
+		{
+			emit xSignaHelper.signalShowErrorMessageBar("RAW文件读取失败: " + filePath);
+			return;
+		}
+	}
+	else
+	{
+		emit xSignaHelper.signalShowErrorMessageBar("不支持的文件格式: " + filePath);
+		return;
+	}
+	
+	srcU16ImageList.clear();
+	srcU16ImageList.append(image);
+	emit signalSrcU16ImageListSizeChanged(srcU16ImageList.size());
+	updateImage(srcU16ImageList.first(), true);
 }
 
 void XGraphicsView::openImageFolder()
@@ -247,35 +277,104 @@ void XGraphicsView::openImageFolder()
 		QFileDialog::ShowDirsOnly);
 
 	if (folderPath.isEmpty() || folderPath.isNull())
-	{
 		return;
-	}
 
 	if (!QDir(folderPath).exists())
 	{
-		//QMessageBox::critical(nullptr, "错误", QString("选择的目录不存在: ").arg(folderPath));
 		emit xSignaHelper.signalShowErrorMessageBar(QString("选择的目录不存在: ").arg(folderPath));
 		return;
 	}
 
-	qDebug() << "UI线程：" << QThread::currentThreadId();
-	QFuture<QList<QImage>> future = QtConcurrent::run([this, folderPath]() {
-		qDebug() << "开始读取图像文件夹";
-		return XImageHelper::openImagesInFolder(DET_WIDTH, DET_HEIGHT, folderPath);
-		});
+	// 扫描文件夹，获取所有图像文件
+	QDir dir(folderPath);
+	QStringList filters;
+	filters << "*.raw" << "*.tif" << "*.tiff";
+	QFileInfoList fileList = dir.entryInfoList(filters, QDir::Files, QDir::Name);
+	
+	if (fileList.isEmpty())
+	{
+		emit xSignaHelper.signalShowErrorMessageBar("文件夹中没有找到图像文件（支持 .raw / .tif / .tiff）");
+		return;
+	}
+
+	// 检查文件类型是否一致
+	int rawCount = 0;
+	int tiffCount = 0;
+	
+	for (const QFileInfo& fileInfo : fileList)
+	{
+		QString suffix = fileInfo.suffix().toLower();
+		if (suffix == "raw")
+			rawCount++;
+		else if (suffix == "tif" || suffix == "tiff")
+			tiffCount++;
+	}
+	
+	if (rawCount > 0 && tiffCount > 0)
+	{
+		emit xSignaHelper.signalShowErrorMessageBar(
+			QString("文件夹中包含混合格式（RAW: %1, TIFF: %2），请选择只包含单一格式的文件夹")
+			.arg(rawCount).arg(tiffCount));
+		return;
+	}
+	
+	const bool isRawFormat = (rawCount > 0);
+	const bool isTiffFormat = (tiffCount > 0);
+	
+	qDebug() << "开始读取图像文件夹，文件数量：" << fileList.size() 
+		<< "，格式：" << (isRawFormat ? "RAW" : "TIFF");
+
+	// 在后台线程中读取图像
+	QFuture<QList<QImage>> future = QtConcurrent::run([fileList, isRawFormat]() -> QList<QImage> {
+		QList<QImage> images;
+		
+		for (const QFileInfo& fileInfo : fileList)
+		{
+			QImage image;
+			
+			if (isRawFormat)
+			{
+				image = XImageHelper::openImageU16Raw(fileInfo.absoluteFilePath(), DET_WIDTH, DET_HEIGHT);
+			}
+			else  // TIFF format
+			{
+				image = TiffHelper::ReadImage(fileInfo.absoluteFilePath().toStdString());
+			}
+			
+			if (!image.isNull())
+			{
+				images.append(image);
+			}
+			else
+			{
+				qDebug() << "读取文件失败：" << fileInfo.absoluteFilePath();
+			}
+		}
+		
+		return images;
+	});
 
 	// 连接完成信号
 	QFutureWatcher<QList<QImage>>* watcher = new QFutureWatcher<QList<QImage>>(this);
-	connect(watcher, &QFutureWatcher<QList<QImage>>::finished, this, [this, watcher]() {
-		if (!watcher->future().result().isEmpty()) {
+	connect(watcher, &QFutureWatcher<QList<QImage>>::finished, this, [this, watcher, fileList]() {
+		QList<QImage> result = watcher->future().result();
+		
+		if (result.isEmpty())
+		{
+			emit xSignaHelper.signalShowErrorMessageBar("未能成功读取任何图像文件");
+		}
+		else
+		{
 			srcU16ImageList.clear();
-			srcU16ImageList = watcher->future().result();
+			srcU16ImageList = result;
 			emit signalSrcU16ImageListSizeChanged(srcU16ImageList.size());
 			updateImage(srcU16ImageList.first(), true);
+			
+			qDebug() << "成功读取" << result.size() << "/" << fileList.size() << "个图像文件";
 		}
+		
 		watcher->deleteLater();
-		qDebug() << "读取图像文件夹结束";
-		});
+	});
 
 	watcher->setFuture(future);
 }
@@ -299,7 +398,7 @@ void XGraphicsView::saveImage()
 	}
 	else if (fileInfo.absoluteFilePath().endsWith(".tif"))
 	{
-		emit xSignaHelper.signalShowErrorMessageBar(".tif格式的保存暂未实现！");
+		TiffHelper::SaveImage(currentSrcU16Image, fileInfo.absoluteFilePath().toStdString());
 	}
 	else if (fileInfo.absoluteFilePath().endsWith(".png"))
 	{

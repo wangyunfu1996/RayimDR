@@ -11,7 +11,10 @@ public:
 	MultiAcqCfgDialog(QWidget* parent = nullptr);
 	~MultiAcqCfgDialog();
 
-	bool getCfg(int& n, bool& saveToFiles, QString& savePath);
+	bool getCfg(int& n, 
+		bool& saveToFiles, 
+		QString& savePath,
+		QString& saveType);
 
 private:
 	Ui::MultiAcqCfgDialogClass ui;

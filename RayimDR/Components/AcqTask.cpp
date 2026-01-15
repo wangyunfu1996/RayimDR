@@ -9,6 +9,7 @@
 #include "ImageRender/XImageHelper.h"
 
 #include "../IRayDetector/IRayDetector.h"
+#include "../IRayDetector/TiffHelper.h"
 
 AcqTask::AcqTask(QObject* parent)
 	: QObject(parent)
@@ -41,12 +42,22 @@ void AcqTask::doAcq(AcqCondition acqCondition)
 		// 保存文件（仅在指定张数采集时）
 		if (acqCondition.saveToFiles && acqCondition.frame != INT_MAX)
 		{
-			QString fileName = QString("%1/Image%2_%3x%4.raw")
-				.arg(acqCondition.savePath)
-				.arg(receivedIdx)
-				.arg(DET_WIDTH)
-				.arg(DET_HEIGHT);
-			QtConcurrent::run(XImageHelper::Instance().saveImageU16Raw, randomImage, fileName);
+			if (acqCondition.saveType == ".RAW")
+			{
+				QString fileName = QString("%1/Image%2_%3x%4.raw")
+					.arg(acqCondition.savePath)
+					.arg(receivedIdx)
+					.arg(DET_WIDTH)
+					.arg(DET_HEIGHT);
+				QtConcurrent::run(XImageHelper::Instance().saveImageU16Raw, randomImage, fileName);
+			}
+			else if (acqCondition.saveType == ".TIFF")
+			{
+				QString fileName = QString("%1/Image%2.tif")
+					.arg(acqCondition.savePath)
+					.arg(receivedIdx);
+				QtConcurrent::run(TiffHelper::SaveImage, randomImage, fileName.toStdString());
+			}
 		}
 
 		if (receivedIdx == acqCondition.frame)

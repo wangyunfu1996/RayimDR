@@ -20,6 +20,7 @@ struct AcqCondition
 
 	bool saveToFiles{ false };
 	QString savePath;
+	QString saveType;
 };
 
 // 重载 QDebug 输出运算符
@@ -65,7 +66,7 @@ const static int IMAGE_BUFFER_SIZE{ 100 };
 #define DET_TYPE_VIRTUAL 0
 #define DET_TYPE_IRAY 1
 
-#define DET_TYPE DET_TYPE_IRAY
+#define DET_TYPE DET_TYPE_VIRTUAL
 
 #if DET_TYPE == DET_TYPE_VIRTUAL
 #elif DET_TYPE == DET_TYPE_IRAY

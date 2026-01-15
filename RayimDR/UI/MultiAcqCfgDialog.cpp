@@ -33,8 +33,10 @@ MultiAcqCfgDialog::MultiAcqCfgDialog(QWidget* parent)
 		});
 
 	ui.lineEdit_savePath->setEnabled(false);
+	ui.comboBox_saveType->setEnabled(false);
 	ui.pushButton_select->setEnabled(false);
 	connect(ui.checkBox_saveToFiles, &QCheckBox::toggled, this, [this](bool checked) {
+		ui.comboBox_saveType->setEnabled(checked);
 		ui.pushButton_select->setEnabled(checked);
 		});
 
@@ -55,7 +57,10 @@ MultiAcqCfgDialog::MultiAcqCfgDialog(QWidget* parent)
 MultiAcqCfgDialog::~MultiAcqCfgDialog()
 {}
 
-bool MultiAcqCfgDialog::getCfg(int& n, bool& saveToFiles, QString& savePath)
+bool MultiAcqCfgDialog::getCfg(int& n, 
+	bool& saveToFiles, 
+	QString& savePath,
+	QString& saveType)
 {
 	if (ui.spinBox_n->value() < nMin ||
 		ui.spinBox_n->value() > nMax)
@@ -82,7 +87,7 @@ bool MultiAcqCfgDialog::getCfg(int& n, bool& saveToFiles, QString& savePath)
 	n = ui.spinBox_n->value();
 	saveToFiles = ui.checkBox_saveToFiles->isChecked();
 	savePath = ui.lineEdit_savePath->text();
-
+	saveType = ui.comboBox_saveType->currentText();
 	return true;
 }
 

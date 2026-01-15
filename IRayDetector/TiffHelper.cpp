@@ -18,10 +18,12 @@ QImage TiffHelper::ReadImage(const std::string& file_path)
 	TIFF* tif = TIFFOpen(file_path.c_str(), "r");
 	if (!tif)
 	{
+		qWarning() << "无法打开 TIFF 文件:" << file_path.c_str();
 		return QImage();
 	}
 
-	uint16_t width = 0, height = 0;
+	// 使用正确的类型读取 TIFF 标签（TIFF 标准使用 uint32）
+	uint32_t width = 0, height = 0;
 	TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
 	TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
 
@@ -38,26 +40,85 @@ QImage TiffHelper::ReadImage(const std::string& file_path)
 	uint16_t orientation = ORIENTATION_TOPLEFT;
 	TIFFGetFieldDefaulted(tif, TIFFTAG_ORIENTATION, &orientation);
 
-	// 获取总页数
-	int pageCount = 0;
-	do {
-		pageCount++;
-	} while (TIFFReadDirectory(tif));
+	qDebug() << "TIFF 图像信息: 尺寸=" << width << "x" << height
+		<< "位深=" << bitsPerSample 
+		<< "通道数=" << samplesPerPixel
+		<< "压缩=" << compression;
+
+	// 重置到第一个目录（如果之前有读取操作）
+	TIFFSetDirectory(tif, 0);
 
 	QImage image;
 	if (bitsPerSample == 16 && samplesPerPixel == 1) {
 		image = QImage(width, height, QImage::Format_Grayscale16);
-		tmsize_t scanline = TIFFScanlineSize(tif);
-		uint16_t* buf = (uint16_t*)_TIFFmalloc(scanline);
+		if (image.isNull()) {
+			qWarning() << "无法创建 QImage，尺寸:" << width << "x" << height;
+			TIFFClose(tif);
+			return QImage();
+		}
+
+		tmsize_t scanlineSize = TIFFScanlineSize(tif);
+		uint16_t* buf = (uint16_t*)_TIFFmalloc(scanlineSize);
+		if (!buf) {
+			qWarning() << "无法分配扫描行缓冲区";
+			TIFFClose(tif);
+			return QImage();
+		}
 
 		for (uint32_t row = 0; row < height; row++) {
-			TIFFReadScanline(tif, buf, row, 0);
+			if (TIFFReadScanline(tif, buf, row, 0) < 0) {
+				qWarning() << "读取第" << row << "行失败";
+				_TIFFfree(buf);
+				TIFFClose(tif);
+				return QImage();
+			}
 			uint16_t* imageLine = reinterpret_cast<uint16_t*>(image.scanLine(row));
 			memcpy(imageLine, buf, width * sizeof(uint16_t));
 		}
 		_TIFFfree(buf);
+		
+		qDebug() << "成功读取 16 位灰度 TIFF 图像:" << width << "x" << height;
+	}
+	else if (bitsPerSample == 8 && samplesPerPixel == 1) {
+		// 支持 8 位灰度图，转换为 16 位
+		image = QImage(width, height, QImage::Format_Grayscale16);
+		if (image.isNull()) {
+			qWarning() << "无法创建 QImage";
+			TIFFClose(tif);
+			return QImage();
+		}
+
+		tmsize_t scanlineSize = TIFFScanlineSize(tif);
+		uint8_t* buf = (uint8_t*)_TIFFmalloc(scanlineSize);
+		if (!buf) {
+			qWarning() << "无法分配扫描行缓冲区";
+			TIFFClose(tif);
+			return QImage();
+		}
+
+		for (uint32_t row = 0; row < height; row++) {
+			if (TIFFReadScanline(tif, buf, row, 0) < 0) {
+				qWarning() << "读取第" << row << "行失败";
+				_TIFFfree(buf);
+				TIFFClose(tif);
+				return QImage();
+			}
+			uint16_t* imageLine = reinterpret_cast<uint16_t*>(image.scanLine(row));
+			// 将 8 位转换为 16 位（乘以 257 实现 0-255 到 0-65535 的映射）
+			for (uint32_t col = 0; col < width; col++) {
+				imageLine[col] = static_cast<uint16_t>(buf[col]) * 257;
+			}
+		}
+		_TIFFfree(buf);
+		
+		qDebug() << "成功读取 8 位灰度 TIFF 图像（已转为16位）:" << width << "x" << height;
+	}
+	else {
+		qWarning() << "不支持的 TIFF 格式: 位深=" << bitsPerSample 
+			<< "通道数=" << samplesPerPixel;
 	}
 
+	TIFFClose(tif);
 	return image;
 }
 

@@ -138,8 +138,8 @@ MainWindow::MainWindow(QWidget* parent)
 	connect(_XGraphicsView, &XGraphicsView::signalPixelHovered, _XImageAdjustTool, &XImageAdjustTool::updatePixelValueInfo);
 	connect(_XGraphicsView, &XGraphicsView::signalRoiWLChanged, _XImageAdjustTool, &XImageAdjustTool::setWLValue);
 
-	connect(&AcqTaskManager::Instance(), &AcqTaskManager::siganlAcqTaskStopped, this, &MainWindow::onAcqStopped);
-	connect(&AcqTaskManager::Instance(), &AcqTaskManager::signalAcqTaskReceivedIdxChanged, this, &MainWindow::onAcqImageReceived, Qt::QueuedConnection);
+	connect(&AcqTaskManager::Instance(), &AcqTaskManager::signalAcqTaskStopped, this, &MainWindow::onAcqStopped);
+	connect(&AcqTaskManager::Instance(), &AcqTaskManager::signalAcqTaskReceivedIdxChanged, this, &MainWindow::onAcqImageReceived);
 
 	connect(&XImageHelper::Instance(), &XImageHelper::signalOpenImageFolderProgressChanged, this, [this](int progress) {
 		updateStatusText(QString("数据读取中，处理进度: %1%").arg(progress));

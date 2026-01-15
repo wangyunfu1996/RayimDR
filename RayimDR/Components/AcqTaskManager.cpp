@@ -50,14 +50,16 @@ void AcqTaskManager::startAcq()
 		acqTask->doAcq(*acqCondition);
 		});
 
-	// 连接 acqTask 的相关信号
+	// 连接采集停止信号：先让线程退出
+	connect(this, &AcqTaskManager::signalAcqTaskStopped, acqThread, &QThread::quit);
 
-	connect(this, &AcqTaskManager::siganlAcqTaskStopped, acqThread, &QThread::quit);
-	connect(this, &AcqTaskManager::siganlAcqTaskStopped, acqTask, &QObject::deleteLater);
-
+	// 线程结束后清理资源：先删除 task 再删除 thread
+	connect(acqThread, &QThread::finished, acqTask, &QObject::deleteLater);
 	connect(acqThread, &QThread::finished, acqThread, &QObject::deleteLater);
 	connect(acqThread, &QThread::finished, this, [this]() {
 		acquiring.store(false);
+		acqTask = nullptr;
+		acqThread = nullptr;
 		});
 
 	acqThread->start();

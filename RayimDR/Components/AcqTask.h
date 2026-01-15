@@ -16,6 +16,6 @@ public:
 	void stopAcq();
 
 private:
-	bool stopRequested{ false };
+	std::atomic_bool stopRequested{ false };
 };
 

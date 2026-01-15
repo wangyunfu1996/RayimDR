@@ -87,9 +87,9 @@ namespace {
 
 			receviedIdx.store(receviedIdx.load() + 1);
 			// 将图像数据深拷贝到QImage
-			qDebug() << "进行图像拷贝";
+			qDebug() << "进行图像拷贝，receviedIdx：" << receviedIdx.load();
 			IRayDetector::Instance().setReceivedImage(pImg->nWidth, pImg->nHeight, pImageData, nImageSize);
-			emit IRayDetector::Instance().signalAcqImageReceived(receviedIdx);
+			emit IRayDetector::Instance().signalAcqImageReceived(receviedIdx.load());
 
 			break;
 		}
@@ -336,25 +336,33 @@ int IRayDetector::GetDetectorState(int& state)
 
 void IRayDetector::ClearAcq()
 {
-	receviedIdx.store(0);
 	int result = gs_pDetInstance->SyncInvoke(Cmd_ClearAcq, 10000);
 	qDebug() << "result: " << result
 		<< gs_pDetInstance->GetErrorInfo(result).c_str();
+	if (result == Err_OK)
+	{
+		receviedIdx.store(0);
+	}
 }
 
 void IRayDetector::StartAcq()
 {
-	receviedIdx.store(0);
 	qDebug("Sequence acquiring...");
 	int result = gs_pDetInstance->Invoke(Cmd_StartAcq);
 	qDebug() << "result: " << result
 		<< gs_pDetInstance->GetErrorInfo(result).c_str();
+	if (result == Err_TaskPending)
+	{
+		receviedIdx.store(0);
+	}
 }
 
 void IRayDetector::StopAcq()
 {
 	qDebug("Stop Sequence acquiring...");
-	gs_pDetInstance->SyncInvoke(Cmd_StopAcq, 2000);
+	int result = gs_pDetInstance->SyncInvoke(Cmd_StopAcq, 2000);
+	qDebug() << "result: " << result
+		<< gs_pDetInstance->GetErrorInfo(result).c_str();
 }
 
 int IRayDetector::OffsetGeneration()
@@ -500,6 +508,7 @@ void IRayDetector::setReceivedImage(int width, int height, const unsigned short*
 
 QImage IRayDetector::getReceivedImage() const
 {
+	qDebug() << "获取图像";
 	return m_receivedImage;
 }
 

@@ -208,15 +208,17 @@ QImage AcqTask::stackImages(const QVector<QImage>& images)
 	int height = images[0].height();
 	QImage::Format format = images[0].format();
 	int count = images.size();
+	int totalPixels = width * height;
 	
-	qDebug() << "[性能] 开始叠加：" << count << "帧图像，尺寸：" << width << "x" << height << "，总像素：" << (width * height);
+	qDebug() << "[性能] 开始叠加：" << count << "帧图像，尺寸：" << width << "x" << height << "，总像素：" << totalPixels;
 	
 	qint64 accumulateStartTime = QDateTime::currentMSecsSinceEpoch();
 
-	// 创建累加缓冲区（使用32位整数避免溢出）
-	QVector<quint32> accumulateBuffer(width * height, 0);
-
-	// 累加所有图像
+	// 创建累加缓冲区（使用浮点数提高精度，便于并行处理）
+	QVector<float> accumulateBuffer(totalPixels, 0.0f);
+	
+	// 收集所有源图像指针，减少重复访问开销
+	QVector<const quint16*> pixelDataList;
 	for (const QImage& img : images)
 	{
 		if (img.width() != width || img.height() != height || img.format() != format)
@@ -224,25 +226,65 @@ QImage AcqTask::stackImages(const QVector<QImage>& images)
 			qWarning() << "叠加图像尺寸或格式不一致，跳过该帧";
 			continue;
 		}
-
-		const quint16* srcData = reinterpret_cast<const quint16*>(img.constBits());
-		for (int i = 0; i < width * height; ++i)
-		{
-			accumulateBuffer[i] += srcData[i];
-		}
+		pixelDataList.append(reinterpret_cast<const quint16*>(img.constBits()));
 	}
+	
+	// 【多线程优化】分块并行处理，每块64K像素
+	const int BLOCK_SIZE = 65536;
+	int blockCount = (totalPixels + BLOCK_SIZE - 1) / BLOCK_SIZE;
+	
+	// 并行累加所有图像
+	QVector<QFuture<void>> accumulateFutures;
+	for (int blockIdx = 0; blockIdx < blockCount; ++blockIdx)
+	{
+		auto future = QtConcurrent::run([&, blockIdx]() {
+			int startIdx = blockIdx * BLOCK_SIZE;
+			int endIdx = qMin(startIdx + BLOCK_SIZE, totalPixels);
+			
+			// 对这个块的所有像素进行累加
+			for (const quint16* pixelData : pixelDataList)
+			{
+				for (int i = startIdx; i < endIdx; ++i)
+				{
+					accumulateBuffer[i] += static_cast<float>(pixelData[i]);
+				}
+			}
+		});
+		accumulateFutures.append(future);
+	}
+	
+	// 等待所有累加任务完成
+	for (auto& future : accumulateFutures)
+		future.waitForFinished();
 	
 	qint64 accumulateTime = QDateTime::currentMSecsSinceEpoch() - accumulateStartTime;
 	qint64 averageStartTime = QDateTime::currentMSecsSinceEpoch();
 
-	// 创建结果图像并求平均
+	// 创建结果图像
 	QImage result(width, height, format);
 	quint16* dstData = reinterpret_cast<quint16*>(result.bits());
-
-	for (int i = 0; i < width * height; ++i)
+	
+	// 【多线程优化】并行求平均值
+	float invCount = 1.0f / static_cast<float>(count);
+	
+	QVector<QFuture<void>> averageFutures;
+	for (int blockIdx = 0; blockIdx < blockCount; ++blockIdx)
 	{
-		dstData[i] = static_cast<quint16>(accumulateBuffer[i] / count);
+		auto future = QtConcurrent::run([&, blockIdx, invCount]() {
+			int startIdx = blockIdx * BLOCK_SIZE;
+			int endIdx = qMin(startIdx + BLOCK_SIZE, totalPixels);
+			
+			for (int i = startIdx; i < endIdx; ++i)
+			{
+				dstData[i] = static_cast<quint16>(accumulateBuffer[i] * invCount);
+			}
+		});
+		averageFutures.append(future);
 	}
+	
+	// 等待所有平均计算任务完成
+	for (auto& future : averageFutures)
+		future.waitForFinished();
 	
 	qint64 averageTime = QDateTime::currentMSecsSinceEpoch() - averageStartTime;
 	qint64 totalTime = QDateTime::currentMSecsSinceEpoch() - startTime;
@@ -251,7 +293,8 @@ QImage AcqTask::stackImages(const QVector<QImage>& images)
 	         << "，累加耗时：" << accumulateTime << "ms"
 	         << "，平均耗时：" << averageTime << "ms"
 	         << "，总耗时：" << totalTime << "ms"
-	         << "，平均每像素：" << (double(totalTime) * 1000.0 / (width * height)) << "μs";
+	         << "，并行度：" << blockCount << "块"
+	         << "，每像素：" << (double(totalTime) * 1000.0 / totalPixels) << "μs";
 	
 	return result;
 }

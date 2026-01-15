@@ -38,12 +38,6 @@ public:
 signals:
 	void roiRectChanged(const QRectF& rect);
 
-protected:
-	// 重写鼠标事件
-	void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
-	void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
-	void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
-
 private:
 	void initItems(); // 初始化图元
 

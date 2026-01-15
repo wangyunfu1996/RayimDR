@@ -145,23 +145,3 @@ void XGraphicsScene::updateDisplay()
 	
 	update();
 }
-
-void XGraphicsScene::mousePressEvent(QGraphicsSceneMouseEvent* event)
-{
-	// 可以在这里添加自定义的鼠标按下逻辑
-	QGraphicsScene::mousePressEvent(event);
-}
-
-void XGraphicsScene::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
-{
-	// 可以在这里添加自定义的鼠标移动逻辑
-	QGraphicsScene::mouseMoveEvent(event);
-}
-
-void XGraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
-{
-	// 可以在这里添加自定义的鼠标释放逻辑
-	QGraphicsScene::mouseReleaseEvent(event);
-}
-
-

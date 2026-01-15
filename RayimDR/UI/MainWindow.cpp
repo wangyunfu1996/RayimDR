@@ -1,10 +1,11 @@
 #include "MainWindow.h"
 
+#include <QtConcurrent/QtConcurrent>
+
 #include <qtimer.h>
 #include <qdebug.h>
 #include <qlayout.h>
-
-#include <QtConcurrent/QtConcurrent>
+#include <qthread.h>
 #include <qfuture.h>
 #include <qfuturewatcher.h>
 #include <qfutureinterface.h>
@@ -171,15 +172,15 @@ void MainWindow::onAcqStarted(const AcqCondition& acqCond)
 	_XGraphicsView->clearROIRect();
 	_XGraphicsView->clearCurrentImageList();
 
-	// 如果是多张采集，开启图像索引的sliderIdx
-	if (acqCond.frame > 1)
-	{
-		_XImageAdjustTool->updateIdxRange(acqCond.frame);
-	}
-	// 其他情况（单张和连续），不启用图像索引的sliderIdx
-	else
+	// （单张和连续），不启用图像索引的sliderIdx
+	if (acqCond.frame == 1 || acqCond.frame == INT_MAX)
 	{
 		_XImageAdjustTool->updateIdxRange(0);
+	}
+	// 如果是多张采集，开启图像索引的sliderIdx
+	else
+	{
+		_XImageAdjustTool->updateIdxRange(acqCond.frame);
 	}
 
 	updateStatusText("开始采集");
@@ -209,7 +210,7 @@ void MainWindow::onAcqImageReceived(AcqCondition condition, int receivedIdx)
 		{
 			updateStatusText("单张采集结束");
 		}
-		else if (condition.frame == -1)
+		else if (condition.frame == INT_MAX)
 		{
 			updateStatusText(QString("连续DR采集，当前接受帧数：%1").arg(receivedIdx));
 		}
@@ -259,7 +260,8 @@ void MainWindow::onDRMutliBtnClicked()
 			acqCond.saveToFiles,
 			acqCond.savePath))
 		{
-			emit xSignaHelper.signalShowErrorMessageBar("获取多帧采集参数错误！");
+			//emit xSignaHelper.signalShowErrorMessageBar("获取多帧采集参数错误！");
+			qDebug() << "获取多帧采集参数错误!";
 			qDebug() << acqCond;
 			return;
 		}
@@ -285,7 +287,7 @@ void MainWindow::onDRRealTimeBtnClicked()
 
 	auto acqCond = _CommonConfigUI->getAcqCondition();
 	acqCond.acqType = AcqType::DR;
-	acqCond.frame = -1;
+	acqCond.frame = INT_MAX;
 
 	AcqTaskManager::Instance().updateAcqCond(acqCond);
 	AcqTaskManager::Instance().startAcq();
@@ -492,6 +494,10 @@ void MainWindow::connectToDet()
 {
 	emit xSignaHelper.signalUpdateStatusInfo("开始连接探测器");
 	qDebug() << "开始连接探测器";
+#if DET_TYPE == DET_TYPE_VIRTUAL
+	QThread::currentThread()->msleep(1000);
+	emit xSignaHelper.signalUpdateStatusInfo("探测器已连接");
+#elif DET_TYPE == DET_TYPE_IRAY
 	std::async(std::launch::async, []() {
 		int result = DET.Initialize();
 		if (result != 0)
@@ -503,6 +509,8 @@ void MainWindow::connectToDet()
 			emit xSignaHelper.signalUpdateStatusInfo("探测器已连接");
 		}
 		}).wait();
+#endif // DET_TYPE
+
 }
 
 

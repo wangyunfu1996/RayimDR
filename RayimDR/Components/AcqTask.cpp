@@ -27,81 +27,65 @@ void AcqTask::doAcq(AcqCondition acqCondition)
 	qDebug() << "开启采集任务，当前线程：" << QThread::currentThreadId();
 	qDebug() << acqCondition;
 
-	// 单次采集
-    if (acqCondition.frame == 1)
-    {
 #if DET_TYPE == DET_TYPE_VIRTUAL
-		int receivedIdx{ 0 };
-		QImage receivedImage = XImageHelper::generateRandomGaussianGrayImage(DET_WIDTH, DET_HEIGHT);
-		qDebug() << "单次采集结束";
+	int receivedIdx{ 0 };
+	while (!stopRequested.load())
+	{
+		receivedIdx++;
+		int vecIdx = receivedIdx % IMAGE_BUFFER_SIZE;
+		qDebug() << "第 " << receivedIdx << " 帧数据采集完成，在数组中的存储索引为：" << vecIdx;
+		QImage randomImage = XImageHelper::generateRandomGaussianGrayImage(DET_WIDTH, DET_HEIGHT);
+		AcqTaskManager::Instance().receivedImageList[vecIdx] = randomImage;
+		emit AcqTaskManager::Instance().signalAcqTaskReceivedIdxChanged(acqCondition, receivedIdx);
+
+		// 保存文件（仅在指定张数采集时）
+		if (acqCondition.saveToFiles && acqCondition.frame != INT_MAX)
+		{
+			QString fileName = QString("%1/Image%2_%3x%4.raw")
+				.arg(acqCondition.savePath)
+				.arg(receivedIdx)
+				.arg(DET_WIDTH)
+				.arg(DET_HEIGHT);
+			QtConcurrent::run(XImageHelper::Instance().saveImageU16Raw, randomImage, fileName);
+		}
+
+		if (receivedIdx == acqCondition.frame)
+		{
+			stopAcq();
+		}
+	}
+#elif DET_TYPE == DET_TYPE_IRAY
+	QPointer<AcqTask> weakThis(this);
+	connect(&DET, &IRayDetector::signalAcqImageReceived, this, [weakThis, acqCondition](int receivedIdx) {
+		if (!weakThis || weakThis->stopRequested.load())
+		{
+			qDebug() << "收到探测器数据，但是采集任务已经被停止";
+			return;
+		}
+		QImage receivedImage = DET.getReceivedImage();
 		AcqTaskManager::Instance().receivedImageList[receivedIdx] = receivedImage;
 		emit AcqTaskManager::Instance().signalAcqTaskReceivedIdxChanged(acqCondition, receivedIdx);
-#elif DET_TYPE == DET_TYPE_IRAY
-		connect(&DET, &IRayDetector::signalAcqImageReceived, this, [this, acqCondition](int receivedIdx) {
-			QImage receivedImage = DET.getReceivedImage();
-			AcqTaskManager::Instance().receivedImageList[receivedIdx] = receivedImage;
-			emit AcqTaskManager::Instance().signalAcqTaskReceivedIdxChanged(acqCondition, receivedIdx);
-			});
-		DET.ClearAcq();
-		emit AcqTaskManager::Instance().signalAcqTaskStopped();
-#endif // DET_TYPE
-	}
-	// 连续采集
-	else if (acqCondition.frame == -1)
-	{
-#if DET_TYPE == DET_TYPE_VIRTUAL
-		int receivedIdx{ 0 };
-		while (!stopRequested.load())
-		{
-			int vecIdx = (receivedIdx + 1) % IMAGE_BUFFER_SIZE;
-			qDebug() << "第 " << receivedIdx + 1 << " 帧数据采集完成，在数组中的存储索引为：" << vecIdx;
-			QImage randomImage = XImageHelper::generateRandomGaussianGrayImage(DET_WIDTH, DET_HEIGHT);
-			AcqTaskManager::Instance().receivedImageList[vecIdx] = randomImage;
-			emit AcqTaskManager::Instance().signalAcqTaskReceivedIdxChanged(acqCondition, receivedIdx);
-			receivedIdx++;
-		}
-		emit AcqTaskManager::Instance().signalAcqTaskStopped();
-#elif DET_TYPE == DET_TYPE_IRAY
-		connect(&DET, &IRayDetector::signalAcqImageReceived, this, [this, acqCondition](int receivedIdx) {
-			QImage receivedImage = DET.getReceivedImage();
-			AcqTaskManager::Instance().receivedImageList[receivedIdx] = receivedImage;
-			emit AcqTaskManager::Instance().signalAcqTaskReceivedIdxChanged(acqCondition, receivedIdx);
-			});
-		DET.StartAcq();
-		// 立即返回让线程事件循环运行，保证 queued 信号能实时派发
-		return;
-#endif // DET_TYPE
-	}
-	// 指定张数的采集
-	else
-	{
-		for (int frameIdx(0); frameIdx < acqCondition.frame; frameIdx++)
-		{
-			if (stopRequested.load())
-			{
-				qDebug() << "采集即将停止";
-				break;
-			}
-			int vecIdx = (frameIdx + 1) % IMAGE_BUFFER_SIZE;
-			qDebug() << "第 " << frameIdx + 1 << " 个角度的数据采集完成，共 " << acqCondition.frame << " 个角度，在数组中的存储索引为：" << vecIdx;
-			QImage randomImage = XImageHelper::generateRandomGaussianGrayImage(DET_WIDTH, DET_HEIGHT);
-			AcqTaskManager::Instance().receivedImageList[vecIdx] = randomImage;
-			emit AcqTaskManager::Instance().signalAcqTaskReceivedIdxChanged(acqCondition, frameIdx);
 
-			if (acqCondition.saveToFiles)
-			{
-				QString fileName = QString("%1/Image_%2_%3x%4.raw")
-					.arg(acqCondition.savePath)
-					.arg(frameIdx)
-					.arg(DET_WIDTH)
-					.arg(DET_HEIGHT);
-				// 开启后台任务 将图像保存到文件
-				QtConcurrent::run(XImageHelper::Instance().saveImageU16Raw, randomImage, fileName);
-			}
+		// 保存文件（仅在指定张数采集时）
+		if (acqCondition.saveToFiles && acqCondition.frame != INT_MAX)
+		{
+			QString fileName = QString("%1/Image%2_%3x%4.raw")
+				.arg(acqCondition.savePath)
+				.arg(receivedIdx)
+				.arg(DET_WIDTH)
+				.arg(DET_HEIGHT);
+			QtConcurrent::run(XImageHelper::Instance().saveImageU16Raw, receivedImage, fileName);
 		}
-		emit AcqTaskManager::Instance().signalAcqTaskStopped();
-	}
 
+		if (receivedIdx == acqCondition.frame)
+		{
+			qDebug() << "已采集足够数据，停止采集";
+			weakThis->stopAcq();
+		}
+		});
+	DET.StartAcq();
+	return;
+#endif // DET_TYPE
 }
 
 void AcqTask::stopAcq()

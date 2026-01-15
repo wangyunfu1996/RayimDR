@@ -57,11 +57,8 @@ inline QDebug operator<<(QDebug debug, const AcqCondition& cond)
 	return debug;
 }
 
-const static int DET_WIDTH{ 1891 };
-const static int DET_HEIGHT{ 496 };
-
-//const static int DET_WIDTH{ 4288 };
-//const static int DET_HEIGHT{ 4288 };
+const static int DET_WIDTH{ 4300 };
+const static int DET_HEIGHT{ 4300 };
 
 const static int IMAGE_BUFFER_SIZE{ 100 };
 

@@ -61,7 +61,7 @@
     </spacer>
    </item>
    <item row="1" column="4">
-    <widget class="QLabel" name="label_3">
+    <widget class="ElaText" name="label_3">
      <property name="text">
       <string>保存类型</string>
      </property>
@@ -108,7 +108,7 @@
     </widget>
    </item>
    <item row="1" column="5">
-    <widget class="QComboBox" name="comboBox_saveType">
+    <widget class="ElaComboBox" name="comboBox_saveType">
      <item>
       <property name="text">
        <string>.RAW</string>
@@ -187,6 +187,11 @@
    <class>ElaLineEdit</class>
    <extends>QLineEdit</extends>
    <header>ElaLineEdit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ElaComboBox</class>
+   <extends>QComboBox</extends>
+   <header>ElaComboBox.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -36,6 +36,7 @@ void ElaUIHepler::ChangeToNormalStyle(QWidget* widget)
 	for (auto elaText : widget->findChildren<ElaText*>())
 	{
 		elaText->setWordWrap(false);
+		elaText->setTextPixelSize(15);
 	}
 
 	for (auto elaSpinBox : widget->findChildren<ElaSpinBox*>())
@@ -55,10 +56,6 @@ void ElaUIHepler::ChangeToNormalStyle(QWidget* widget)
 		elaLineEdit->setMinimumWidth(ELALINEEDIT_WIDTH);
 		elaLineEdit->setAlignment(Qt::AlignmentFlag::AlignCenter);
 		elaLineEdit->setEnabled(false);
-	}
-
-	for (auto elaComboBox : widget->findChildren<ElaComboBox*>())
-	{
 	}
 
 }

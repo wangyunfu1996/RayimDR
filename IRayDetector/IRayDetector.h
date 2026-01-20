@@ -4,8 +4,22 @@
 
 #include <QObject>
 #include <QImage>
+#include <QTimer>
+#include <QThread>
+#include <future>
+#include <mutex>
 
 #define DET IRayDetector::Instance()
+
+struct IRayDetectorStatus
+{
+	// 电池相关
+	int Battery_ExternalPower{ 0 };
+	int Battery_Exist{ 0 };
+	int Battery_Remaining{ 0 };
+	int Battery_ChargingStatus{ 0 };
+	int Battery_PowerWarnStatus{ 0 };
+};
 
 class IRAYDETECTOR_EXPORT IRayDetector : public QObject
 {
@@ -40,7 +54,7 @@ public:
 	int GetDetectorState(int& state);
 
 	void ClearAcq();
-	void StartAcq();
+	int StartAcq();
 	void StopAcq();
 
 	int OffsetGeneration();
@@ -49,15 +63,21 @@ public:
 	int Abort();
 
 	// 图像数据操作
-	void setReceivedImage(int width, int height, const unsigned short* pData, int nDataSize);
-	QImage getReceivedImage() const;
+	void SetReceivedImage(int width, int height, const unsigned short* pData, int nDataSize);
+	QImage GetReceivedImage() const;
+
+	void QueryStatus();
+	void StartQueryStatus();
+	void StopQueryStatus();
 
 signals:
 	void signalAcqImageReceived(int idx);
+	void signalStatusChanged(const IRayDetectorStatus& status);
 
 private:
 	QString m_uuid;
 	QString m_workDirPath;
 	QImage m_receivedImage;
+	IRayDetectorStatus m_status;
 };
 

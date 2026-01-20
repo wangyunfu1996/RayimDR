@@ -69,6 +69,7 @@ MainWindow::MainWindow(QWidget* parent)
 	_closeDialog->setRightButtonText("确认");
 
 	connect(_closeDialog, &ElaContentDialog::rightButtonClicked, this, [this]() {
+		DET.StopQueryStatus();
 		DET.DeInitialize();
 		closeWindow();
 		});
@@ -141,6 +142,11 @@ MainWindow::MainWindow(QWidget* parent)
 
 	connect(&AcqTaskManager::Instance(), &AcqTaskManager::signalAcqTaskStopped, this, &MainWindow::onAcqStopped);
 	connect(&AcqTaskManager::Instance(), &AcqTaskManager::signalAcqTaskReceivedIdxChanged, this, &MainWindow::onAcqImageReceived);
+	connect(&AcqTaskManager::Instance(), &AcqTaskManager::signalAcqErrMsg, this, [this](const QString& msg)
+		{
+			updateStatusText(msg);
+			ElaMessageBar::error(ElaMessageBarType::TopRight, "错误", msg, 4000);
+		});
 
 	connect(&XImageHelper::Instance(), &XImageHelper::signalOpenImageFolderProgressChanged, this, [this](int progress) {
 		updateStatusText(QString("数据读取中，处理进度: %1%").arg(progress));
@@ -499,8 +505,13 @@ void MainWindow::connectToDet()
 	QThread::currentThread()->msleep(1000);
 	emit xSignaHelper.signalUpdateStatusInfo("探测器已连接");
 #elif DET_TYPE == DET_TYPE_IRAY
-	std::async(std::launch::async, []() {
-		int result = DET.Initialize();
+	QFuture<int> future = QtConcurrent::run([this]() {
+		return DET.Initialize();
+	});
+
+	QFutureWatcher<int>* watcher = new QFutureWatcher<int>();
+	connect(watcher, &QFutureWatcher<int>::finished, this, [this, watcher]() {
+		int result = watcher->result();
 		if (result != 0)
 		{
 			emit xSignaHelper.signalShowErrorMessageBar("探测器连接失败!");
@@ -508,8 +519,11 @@ void MainWindow::connectToDet()
 		else
 		{
 			emit xSignaHelper.signalUpdateStatusInfo("探测器已连接");
+			DET.StartQueryStatus();
 		}
-		}).wait();
+		watcher->deleteLater();
+	});
+	watcher->setFuture(future);
 #endif // DET_TYPE
 
 }

@@ -112,7 +112,7 @@ void AcqTask::doAcq(AcqCondition acqCondition)
 			return;
 		}
 
-		QImage rawImage = DET.getReceivedImage();
+		QImage rawImage = DET.GetReceivedImage();
 		AcqTaskManager::Instance().stackedImageList.append(rawImage);
 		int currentRawCount = weakThis->rawFrameCount.fetch_add(1) + 1;
 		qDebug() << "接收原始帧 " << currentRawCount << "，叠加缓冲区当前帧数：" << AcqTaskManager::Instance().stackedImageList.size();
@@ -171,7 +171,12 @@ void AcqTask::doAcq(AcqCondition acqCondition)
 
 		}
 		});
-	DET.StartAcq();
+	
+	if (1 != DET.StartAcq())
+	{
+		emit AcqTaskManager::Instance().signalAcqErrMsg(QString("采集失败，请重试！"));
+		stopAcq();
+	}
 	return;
 #endif // DET_TYPE
 }

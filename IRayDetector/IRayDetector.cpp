@@ -1,9 +1,12 @@
 #include "IRayDetector.h"
 
 #include <thread>
+#include <mutex>
 
 #include <qdebug.h>
 #include <quuid.h>
+#include <qtimer.h>
+#include <QMetaObject>
 
 #include "Common/Detector.h"
 #include "Common/DisplayProgressbar.h"
@@ -16,7 +19,8 @@ namespace {
 	static int s_nExpWindow = 0;
 
 	static std::atomic_bool s_bOffsetGenerationSucceedOrFailed{ false };
-	std::atomic<int> receviedIdx{ 0 };
+	std::atomic<int> gn_receviedIdx{ 0 };
+	std::atomic_bool gb_StatusQueryFlag{ false };
 
 	void TimeProc(int uTimerID)
 	{
@@ -85,11 +89,11 @@ namespace {
 				<< " nAvgValue: " << nAvgValue
 				<< " nCenterValue: " << nCenterValue;
 
-			receviedIdx.store(receviedIdx.load() + 1);
+			gn_receviedIdx.store(gn_receviedIdx.load() + 1);
 			// 将图像数据深拷贝到QImage
-			qDebug() << "进行图像拷贝，receviedIdx：" << receviedIdx.load();
-			IRayDetector::Instance().setReceivedImage(pImg->nWidth, pImg->nHeight, pImageData, nImageSize);
-			emit IRayDetector::Instance().signalAcqImageReceived(receviedIdx.load());
+			qDebug() << "进行图像拷贝，receviedIdx：" << gn_receviedIdx.load();
+			IRayDetector::Instance().SetReceivedImage(pImg->nWidth, pImg->nHeight, pImageData, nImageSize);
+			emit IRayDetector::Instance().signalAcqImageReceived(gn_receviedIdx.load());
 
 			break;
 		}
@@ -112,6 +116,7 @@ IRayDetector::IRayDetector(QObject* parent)
 {
 	m_uuid = QUuid::createUuid().toString();
 	qDebug() << "构造探测器实例：" << m_uuid;
+
 }
 
 IRayDetector::~IRayDetector()
@@ -150,7 +155,9 @@ int IRayDetector::Initialize()
 		qDebug() << "[Yes]";
 
 	qDebug() << "Connect device";
-	ret = gs_pDetInstance->SyncInvoke(Cmd_Connect, 30000);
+	int timeout = 10000;
+	ret = gs_pDetInstance->SyncInvoke(Cmd_Connect, timeout);
+
 	if (Err_OK != ret)
 	{
 		qDebug() << "[No ] - error:" << QString::fromStdString(gs_pDetInstance->GetErrorInfo(ret));
@@ -228,6 +235,7 @@ int IRayDetector::UpdateMode(std::string mode)
 	}
 
 	ret = gs_pDetInstance->SyncInvoke(Cmd_SetCaliSubset, mode, 50000);
+
 	if (Err_OK != ret)
 	{
 		qDebug() << QStringLiteral("修改探测器工作模式失败！");
@@ -292,7 +300,9 @@ int IRayDetector::SetCorrectOption(int sw_offset, int sw_gain, int sw_defect)
 		nCorrectOption |= Enm_CorrectOp_SW_Defect;
 	}
 
-	int ret = gs_pDetInstance->SyncInvoke(Cmd_SetCorrectOption, nCorrectOption, 5000);
+	int ret;
+	ret = gs_pDetInstance->SyncInvoke(Cmd_SetCorrectOption, nCorrectOption, 5000);
+
 	if (Err_OK != ret)
 	{
 		qDebug() << QStringLiteral("修改探测器校正模式失败！")
@@ -328,7 +338,7 @@ int IRayDetector::SetPreviewImageEnable(int enable)
 
 int IRayDetector::GetDetectorState(int& state)
 {
-	int result = gs_pDetInstance->GetAttr(Cfg_PreviewImage_Enable, state);
+	int result = gs_pDetInstance->GetAttr(Attr_State, state);
 	qDebug() << "result: " << result
 		<< gs_pDetInstance->GetErrorInfo(result).c_str();
 	return result;
@@ -336,33 +346,55 @@ int IRayDetector::GetDetectorState(int& state)
 
 void IRayDetector::ClearAcq()
 {
-	int result = gs_pDetInstance->SyncInvoke(Cmd_ActivePanel, 20000);
-	qDebug() << "result: " << result
-		<< gs_pDetInstance->GetErrorInfo(result).c_str();
+	if (gs_pDetInstance->GetAttrInt(Attr_State) != Enm_DetectorState::Enm_State_Ready)
+	{
+		qDebug() << "探测器状态未就绪";
+		return;
+	}
 
-	result = gs_pDetInstance->SyncInvoke(Cmd_ClearAcq, 10000);
+	//int result = gs_pDetInstance->SyncInvoke(Cmd_ActivePanel, 20000);
+	//qDebug() << "result: " << result
+	//	<< gs_pDetInstance->GetErrorInfo(result).c_str();
+
+	int result = gs_pDetInstance->SyncInvoke(Cmd_ClearAcq, 10000);
 	qDebug() << "result: " << result
 		<< gs_pDetInstance->GetErrorInfo(result).c_str();
 	if (result == Err_OK)
 	{
-		receviedIdx.store(0);
+		gn_receviedIdx.store(0);
 	}
 }
 
-void IRayDetector::StartAcq()
+int IRayDetector::StartAcq()
 {
-	int result = gs_pDetInstance->SyncInvoke(Cmd_ActivePanel, 20000);
-	qDebug() << "result: " << result
-		<< gs_pDetInstance->GetErrorInfo(result).c_str();
+	int state = Enm_State_Unknown;
+	int retryTimes{ 10 };
+	do
+	{
+		state = gs_pDetInstance->GetAttrInt(Attr_State);
+		if (state != Enm_DetectorState::Enm_State_Ready)
+		{
+			qDebug() << "探测器状态未就绪，当前状态 " << state
+				<< "Attr_CurrentTask: " << gs_pDetInstance->GetAttrInt(Attr_CurrentTask);
+			std::this_thread::sleep_for(std::chrono::milliseconds(200));
+			retryTimes--;
+		}
+	} while (state != Enm_State_Ready && retryTimes);
+
+	//int result = gs_pDetInstance->SyncInvoke(Cmd_ActivePanel, 20000);
+	//qDebug() << "result: " << result
+	//	<< gs_pDetInstance->GetErrorInfo(result).c_str();
 
 	qDebug("Sequence acquiring...");
-	result = gs_pDetInstance->Invoke(Cmd_StartAcq);
+	int result = gs_pDetInstance->Invoke(Cmd_StartAcq);
 	qDebug() << "result: " << result
 		<< gs_pDetInstance->GetErrorInfo(result).c_str();
 	if (result == Err_TaskPending)
 	{
-		receviedIdx.store(0);
+		gn_receviedIdx.store(0);
 	}
+
+	return result;
 }
 
 void IRayDetector::StopAcq()
@@ -372,9 +404,9 @@ void IRayDetector::StopAcq()
 	qDebug() << "result: " << result
 		<< gs_pDetInstance->GetErrorInfo(result).c_str();
 
-	result = gs_pDetInstance->SyncInvoke(Cmd_DeactivePanel, 2000);
-	qDebug() << "result: " << result
-		<< gs_pDetInstance->GetErrorInfo(result).c_str();
+	//result = gs_pDetInstance->SyncInvoke(Cmd_DeactivePanel, 2000);
+	//qDebug() << "result: " << result
+	//	<< gs_pDetInstance->GetErrorInfo(result).c_str();
 }
 
 int IRayDetector::OffsetGeneration()
@@ -383,7 +415,9 @@ int IRayDetector::OffsetGeneration()
 	int nIntervalTimeOfEachFrame = gs_pDetInstance->GetAttrInt(Attr_UROM_SequenceIntervalTime);
 	qDebug("Generate offset...");
 	int timeout = (nOffsetTotalFrames + 10) * nIntervalTimeOfEachFrame + 5000;
-	int ret = gs_pDetInstance->Invoke(Cmd_OffsetGeneration);
+	int ret;
+	ret = gs_pDetInstance->Invoke(Cmd_OffsetGeneration);
+
 	if (ret == Err_TaskPending)
 	{
 		s_bOffsetGenerationSucceedOrFailed.store(false);
@@ -409,7 +443,9 @@ int IRayDetector::OffsetGeneration()
 int IRayDetector::GainGeneration()
 {
 	qDebug() << QStringLiteral("Generate gain...");
-	int result = gs_pDetInstance->SyncInvoke(Cmd_GainInit, 5000);
+	int result;
+	result = gs_pDetInstance->SyncInvoke(Cmd_GainInit, 5000);
+
 	if (Err_OK != result)
 	{
 		qDebug() << QStringLiteral("GainInit failed! err=") << QString::fromStdString(gs_pDetInstance->GetErrorInfo(result));
@@ -423,6 +459,7 @@ int IRayDetector::GainGeneration()
 
 	// 采集亮场图像
 	result = gs_pDetInstance->Invoke(Cmd_StartAcq);
+
 	if (result == Err_TaskPending)
 	{
 		std::thread t([this, nGainTotalFrames]() {
@@ -435,7 +472,9 @@ int IRayDetector::GainGeneration()
 				std::this_thread::sleep_for(std::chrono::milliseconds(100));
 			} while (nValid < nGainTotalFrames);
 
-			int ret = gs_pDetInstance->Invoke(Cmd_GainGeneration);
+			int ret;
+			ret = gs_pDetInstance->Invoke(Cmd_GainGeneration);
+
 			if (ret != Err_OK)
 			{
 				qDebug() << QStringLiteral("Generate gain map failed! err=") << QString::fromStdString(gs_pDetInstance->GetErrorInfo(ret));
@@ -452,7 +491,9 @@ int IRayDetector::GainGeneration()
 
 void IRayDetector::StopGainGeneration()
 {
-	int result = gs_pDetInstance->SyncInvoke(Cmd_FinishGenerationProcess, 3000);
+	int result;
+	result = gs_pDetInstance->SyncInvoke(Cmd_FinishGenerationProcess, 3000);
+
 	qDebug() << "result: " << result
 		<< gs_pDetInstance->GetErrorInfo(result).c_str();
 }
@@ -465,7 +506,7 @@ int IRayDetector::Abort()
 	return result;
 }
 
-void IRayDetector::setReceivedImage(int width, int height, const unsigned short* pData, int nDataSize)
+void IRayDetector::SetReceivedImage(int width, int height, const unsigned short* pData, int nDataSize)
 {
 	// 参数验证
 	if (width <= 0 || height <= 0 || !pData || nDataSize <= 0)
@@ -518,10 +559,93 @@ void IRayDetector::setReceivedImage(int width, int height, const unsigned short*
 	}
 }
 
-QImage IRayDetector::getReceivedImage() const
+QImage IRayDetector::GetReceivedImage() const
 {
 	qDebug() << "获取图像";
 	return m_receivedImage;
 }
+
+void IRayDetector::QueryStatus()
+{
+	if (!gs_pDetInstance)
+	{
+		return;
+	}
+
+	try
+	{
+		// 查询电池状态
+		int state = gs_pDetInstance->GetAttrInt(Attr_State);
+		if (state != Enm_DetectorState::Enm_State_Ready || 0 != gs_pDetInstance->GetAttrInt(Attr_CurrentTask))
+		{
+			qDebug() << "探测器状态未就绪，当前状态：" << state
+				<< " 当前任务：" << gs_pDetInstance->GetAttrInt(Attr_CurrentTask);
+			return;
+		}
+
+		int result = gs_pDetInstance->SyncInvoke(Cmd_ReadBatteryStatus, 5000);
+		if (result != Err_OK && result != Err_TaskPending)
+		{
+			qWarning() << "状态查询失败，错误码：" << result;
+			return;
+		}
+
+		m_status.Battery_ExternalPower = gs_pDetInstance->GetAttrInt(Attr_Battery_ExternalPower);
+		m_status.Battery_Exist = gs_pDetInstance->GetAttrInt(Attr_Battery_Exist);
+		m_status.Battery_Remaining = gs_pDetInstance->GetAttrInt(Attr_Battery_Remaining);
+		m_status.Battery_ChargingStatus = gs_pDetInstance->GetAttrInt(Attr_Battery_ChargingStatus);
+		m_status.Battery_PowerWarnStatus = gs_pDetInstance->GetAttrInt(Attr_Battery_PowerWarnStatus);
+
+		//qDebug() << "Attr_Battery_ExternalPower: " << m_status.Battery_ExternalPower
+		//	<< " Attr_Battery_Exist: " << m_status.Battery_Exist
+		//	<< " Attr_Battery_Remaining: " << m_status.Battery_Remaining
+		//	<< " Attr_Battery_ChargingStatus: " << m_status.Battery_ChargingStatus
+		//	<< " Attr_Battery_PowerWarnStatus: " << m_status.Battery_ExternalPower;
+	}
+	catch (const std::exception& ex)
+	{
+		qWarning() << "状态查询异常：" << ex.what();
+	}
+	catch (...)
+	{
+		qWarning() << "状态查询发生未知异常";
+	}
+}
+
+void IRayDetector::StartQueryStatus()
+{
+	if (gb_StatusQueryFlag.load()) {
+		qDebug() << "状态查询已在运行中";
+		return;
+	}
+
+	// 设置标志位为 true
+	gb_StatusQueryFlag.store(true);
+
+	std::thread([this]() {
+		qDebug() << "状态查询线程启动";
+
+		while (gb_StatusQueryFlag.load())
+		{
+			QueryStatus();
+			// 每秒查询一次状态
+			std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+		}
+
+		qDebug() << "状态查询线程退出";
+		}).detach();
+}
+
+void IRayDetector::StopQueryStatus()
+{
+	if (!gb_StatusQueryFlag.load()) {
+		qDebug() << "状态查询未在运行";
+		return;
+	}
+
+	// 设置标志位为 false
+	gb_StatusQueryFlag.store(false);
+}
+
 
 

@@ -36,6 +36,7 @@ public:
 signals:
 	void signalAcqTaskReceivedIdxChanged(AcqCondition condition, int receivedIdx);
 	void signalAcqTaskStopped();
+	void signalAcqErrMsg(const QString& msg);
 
 private:
 	std::atomic_bool acquiring{false};

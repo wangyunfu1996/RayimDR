@@ -11,6 +11,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IRayDetector", "IRayDetector\IRayDetector.vcxproj", "{877A99A0-A5A2-440F-8F17-CB32DDFB1485}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IRayDetectorWidgetsApplication", "IRayDetectorWidgetsApplication\IRayDetectorWidgetsApplication.vcxproj", "{270D294F-07FA-403E-B847-B3221F61B37F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{877A99A0-A5A2-440F-8F17-CB32DDFB1485} = {877A99A0-A5A2-440F-8F17-CB32DDFB1485}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

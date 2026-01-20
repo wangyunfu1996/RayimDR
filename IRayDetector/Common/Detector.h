@@ -163,7 +163,8 @@ public:
         std::vector<IRayCmdParam> cmdParamList;
         ParseCmdParams(cmdParamList, args...);
         IRayCmdParam *pCmdParams = &cmdParamList[0];
-        return m_pFnInvoke(m_nDetectorID, nCmdId, pCmdParams, cmdParamList.size());
+        // cmdParamList.size() is size_t; cast to int to match SDK signature
+        return m_pFnInvoke(m_nDetectorID, nCmdId, pCmdParams, static_cast<int>(cmdParamList.size()));
     }
 
     //the last parameter is timeout
@@ -179,7 +180,8 @@ public:
         ParseCmdParams(cmdParamList, args...);
         int timeout = cmdParamList[cmdParamList.size() - 1].var.val.nVal;
         IRayCmdParam *pCmdParams = &cmdParamList[0];
-        FPDRESULT result = m_pFnInvoke(m_nDetectorID, nCmdId, pCmdParams, cmdParamList.size() - 1);
+        // cmdParamList.size() is size_t; cast to int for SDK call
+        FPDRESULT result = m_pFnInvoke(m_nDetectorID, nCmdId, pCmdParams, static_cast<int>(cmdParamList.size() - 1));
         if (Err_TaskPending == result)
         {
             result = WaitEvent(timeout);

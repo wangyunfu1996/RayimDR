@@ -36,10 +36,10 @@ public:
 signals:
 	void signalAcqTaskReceivedIdxChanged(AcqCondition condition, int receivedIdx);
 	void signalAcqTaskStopped();
-	void signalAcqErrMsg(const QString& msg);
+	void signalAcqStatusMsg(const QString& msg, int ec);	// ec=0 ok ec=1 error
 
 private:
-	std::atomic_bool acquiring{false};
+	std::atomic_bool acquiring{ false };
 	AcqCondition* acqCondition{ nullptr };
 	QThread* acqThread{ nullptr };
 	AcqTask* acqTask{ nullptr };

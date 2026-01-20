@@ -142,10 +142,11 @@ MainWindow::MainWindow(QWidget* parent)
 
 	connect(&AcqTaskManager::Instance(), &AcqTaskManager::signalAcqTaskStopped, this, &MainWindow::onAcqStopped);
 	connect(&AcqTaskManager::Instance(), &AcqTaskManager::signalAcqTaskReceivedIdxChanged, this, &MainWindow::onAcqImageReceived);
-	connect(&AcqTaskManager::Instance(), &AcqTaskManager::signalAcqErrMsg, this, [this](const QString& msg)
+	connect(&AcqTaskManager::Instance(), &AcqTaskManager::signalAcqStatusMsg, this, [this](const QString& msg, int ec)
 		{
 			updateStatusText(msg);
-			ElaMessageBar::error(ElaMessageBarType::TopRight, "错误", msg, 4000);
+			if (ec == 1)
+				ElaMessageBar::error(ElaMessageBarType::TopRight, "错误", msg, 4000);
 		});
 
 	connect(&XImageHelper::Instance(), &XImageHelper::signalOpenImageFolderProgressChanged, this, [this](int progress) {

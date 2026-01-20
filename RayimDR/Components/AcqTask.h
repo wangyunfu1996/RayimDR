@@ -18,7 +18,7 @@ public:
 
 private:
 	QImage stackImages(const QVector<QImage>& images);
-	
+
 	std::atomic_bool stopRequested{ false };
 	std::atomic_int rawFrameCount{ 0 };
 	std::atomic_int receivedIdx{ 0 };

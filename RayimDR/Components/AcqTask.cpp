@@ -9,7 +9,7 @@
 #include "AcqTaskManager.h"
 #include "ImageRender/XImageHelper.h"
 
-#include "../IRayDetector/IRayDetector.h"
+#include "../IRayDetector/NDT1717MA.h"
 #include "../IRayDetector/TiffHelper.h"
 
 AcqTask::AcqTask(QObject* parent)
@@ -64,7 +64,7 @@ void AcqTask::processStackedFrames(const QVector<QImage>& imagesToStack, const A
 		});
 }
 
-void AcqTask::doAcq(AcqCondition acqCondition)
+void AcqTask::startAcq(AcqCondition acqCondition)
 {
 	qDebug() << "开启采集任务，当前线程：" << QThread::currentThreadId();
 	qDebug() << acqCondition;
@@ -105,7 +105,7 @@ void AcqTask::doAcq(AcqCondition acqCondition)
 		QThread::msleep(10); // Prevent high CPU usage
 	}
 #elif DET_TYPE == DET_TYPE_IRAY
-	connect(&DET, &IRayDetector::signalAcqImageReceived, this, [weakThis, acqCondition, totalStackFrames](int detectorFrameIdx) {
+	connect(&DET, &NDT1717MA::signalAcqImageReceived, this, [weakThis, acqCondition, totalStackFrames](int detectorFrameIdx) {
 		if (!weakThis || weakThis->stopRequested.load())
 		{
 			qDebug() << "Received detector data, but acquisition task has been stopped";

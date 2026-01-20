@@ -12,10 +12,10 @@ const int CDetector::DEFECTMASK = Enm_CorrectOp_SW_Defect | Enm_CorrectOp_HW_Def
 #if defined(linux)
 bool IRayTimer::m_stoptimerFlag;
 #endif
-timeproc IRayTimer::timercallback=NULL;
+timeproc IRayTimer::timercallback = NULL;
 CDetector::CDetector()
-: m_nDetectorID(0)
-, m_bInitilized(false)
+	: m_nDetectorID(0)
+	, m_bInitilized(false)
 {
 	m_WaitAckEvent = CreateEvent(NULL, false, false, NULL);
 }
@@ -44,20 +44,20 @@ int CDetector::LoadIRayLibrary()
 	EXTRACT_FUNC(FnSetAttr, SetAttr);
 	EXTRACT_FUNC(FnInvoke, Invoke);
 	EXTRACT_FUNC(FnAbort, Abort);
-    EXTRACT_FUNC(FnGetErrInfo, GetErrInfo);
-    EXTRACT_FUNC(FnGetSDKVersion, GetSDKVersion);
-    EXTRACT_FUNC(FnScanOnce, ScanOnce);
-    EXTRACT_FUNC(FnScanOnceEx, ScanOnceEx);
-    EXTRACT_FUNC(FnGetAuthority, GetAuthority);
-    EXTRACT_FUNC(FnRegisterScanNotify, RegisterScanNotify);
-    EXTRACT_FUNC(FnRegisterScanNotifyEx, RegisterScanNotifyEx)
-    EXTRACT_FUNC(FnUseImageBuf, UseImageBuf);
-    EXTRACT_FUNC(FnClearImageBuf, ClearImageBuf);
-    EXTRACT_FUNC(FnQueryImageBuf, QueryImageBuf);
-    EXTRACT_FUNC(FnGetImageFromBuf, GetImageFromBuf);
-    EXTRACT_FUNC(FnOpenDefectTemplateFile, OpenDefectTemplateFile);
-    EXTRACT_FUNC(FnSaveDefectTemplateFile, SaveDefectTemplateFile);
-    EXTRACT_FUNC(FnCloseDefectTemplateFile, CloseDefectTemplateFile);
+	EXTRACT_FUNC(FnGetErrInfo, GetErrInfo);
+	EXTRACT_FUNC(FnGetSDKVersion, GetSDKVersion);
+	EXTRACT_FUNC(FnScanOnce, ScanOnce);
+	EXTRACT_FUNC(FnScanOnceEx, ScanOnceEx);
+	EXTRACT_FUNC(FnGetAuthority, GetAuthority);
+	EXTRACT_FUNC(FnRegisterScanNotify, RegisterScanNotify);
+	EXTRACT_FUNC(FnRegisterScanNotifyEx, RegisterScanNotifyEx)
+		EXTRACT_FUNC(FnUseImageBuf, UseImageBuf);
+	EXTRACT_FUNC(FnClearImageBuf, ClearImageBuf);
+	EXTRACT_FUNC(FnQueryImageBuf, QueryImageBuf);
+	EXTRACT_FUNC(FnGetImageFromBuf, GetImageFromBuf);
+	EXTRACT_FUNC(FnOpenDefectTemplateFile, OpenDefectTemplateFile);
+	EXTRACT_FUNC(FnSaveDefectTemplateFile, SaveDefectTemplateFile);
+	EXTRACT_FUNC(FnCloseDefectTemplateFile, CloseDefectTemplateFile);
 	m_bInitilized = true;
 	return Err_OK;
 }
@@ -72,26 +72,23 @@ void CDetector::FreeIRayLibrary()
 }
 int CDetector::GetAuthority()
 {
-    int nAuthority = 0;
-    return m_pFnGetAuthority(&nAuthority);
+	int nAuthority = 0;
+	return m_pFnGetAuthority(&nAuthority);
 }
 
-void CDetector::ScanOnce(const char* ip)
-{
-    m_pFnScanOnce((char*)ip);
-}
 void CDetector::ScanOnceEx(Enm_CommChannel eScanType, void* pInParam /*= nullptr*/)
 {
-    m_pFnScanOnceEx(eScanType, pInParam);
+	m_pFnScanOnceEx(eScanType, pInParam);
 }
 
 void CDetector::RegisterScanCB(FnNotifyScanResult scanRetCB)
 {
-    m_pFnRegisterScanNotify(scanRetCB);
+	m_pFnRegisterScanNotify(scanRetCB);
 }
+
 void CDetector::RegisterScanExCB(FnNotifyScanResultEx scanRetCB)
 {
-    m_pFnRegisterScanNotifyEx(scanRetCB);
+	m_pFnRegisterScanNotifyEx(scanRetCB);
 }
 
 FPDRESULT CDetector::Create(const char* pszWorkDir, FnCallback fpCallback)
@@ -132,37 +129,37 @@ FPDRESULT CDetector::Abort()
 
 FPDRESULT CDetector::UseImageBuf(unsigned long long ullBufSizeInBytes)
 {
-    return m_pFnUseImageBuf(m_nDetectorID, ullBufSizeInBytes);
+	return m_pFnUseImageBuf(m_nDetectorID, ullBufSizeInBytes);
 }
 
 FPDRESULT CDetector::ClearImageBuf()
 {
-    return m_pFnClearImageBuf(m_nDetectorID);
+	return m_pFnClearImageBuf(m_nDetectorID);
 }
 
 FPDRESULT CDetector::QueryImageBuf(int& nFrameNum, int& nImageSize, int& nPropListMemSize)
 {
-    int nImageHeight, nImageWidth, nBytesPerPixel;
-    int result = m_pFnQueryImageBuf(m_nDetectorID, &nFrameNum, &nImageHeight, &nImageWidth, &nBytesPerPixel, &nPropListMemSize);
-    nImageSize = nImageHeight * nImageWidth * nBytesPerPixel;
-    return result;
+	int nImageHeight, nImageWidth, nBytesPerPixel;
+	int result = m_pFnQueryImageBuf(m_nDetectorID, &nFrameNum, &nImageHeight, &nImageWidth, &nBytesPerPixel, &nPropListMemSize);
+	nImageSize = nImageHeight * nImageWidth * nBytesPerPixel;
+	return result;
 }
 
 FPDRESULT CDetector::GetImageFromBuf(void* pImage, int nImageDataSize, int nPropListMemSize, int& nFrameNum)
 {
-    IRayVariantMap pProperties;
-    pProperties.nItemCount = nPropListMemSize / sizeof(IRayVariantMapItem);
-    pProperties.pItems = new IRayVariantMapItem[pProperties.nItemCount];
-    int result = Err_Unknown;
-    do{
-        result = m_pFnGetImageFromBuf(m_nDetectorID, pImage, nImageDataSize, pProperties.pItems, nPropListMemSize);
-        if (Err_OK != result)
-            break;
-        nFrameNum = GetImagePropertyInt(&pProperties, Enm_ImageTag_FrameNo);
-    } while (false);
+	IRayVariantMap pProperties;
+	pProperties.nItemCount = nPropListMemSize / sizeof(IRayVariantMapItem);
+	pProperties.pItems = new IRayVariantMapItem[pProperties.nItemCount];
+	int result = Err_Unknown;
+	do {
+		result = m_pFnGetImageFromBuf(m_nDetectorID, pImage, nImageDataSize, pProperties.pItems, nPropListMemSize);
+		if (Err_OK != result)
+			break;
+		nFrameNum = GetImagePropertyInt(&pProperties, Enm_ImageTag_FrameNo);
+	} while (false);
 
-    delete[]pProperties.pItems;
-    return result;
+	delete[]pProperties.pItems;
+	return result;
 }
 
 FPDRESULT CDetector::SetAttr(int nAttrID, int nValue)
@@ -204,7 +201,7 @@ FPDRESULT CDetector::SetAttr(int nAttrID, const char* strValue)
 
 	IRayVariant var;
 	var.vt = IVT_STR;
-	strncpy(var.val.strVal, strValue, IRAY_MAX_STR_LEN-1);
+	strncpy(var.val.strVal, strValue, IRAY_MAX_STR_LEN - 1);
 	FPDRESULT result = m_pFnSetAttr(m_nDetectorID, nAttrID, &var);
 	if (Err_OK != result)
 	{
@@ -212,79 +209,53 @@ FPDRESULT CDetector::SetAttr(int nAttrID, const char* strValue)
 	return result;
 }
 
-
-int CDetector::GetAttr(int nAttrID, AttrResult& result)
+int CDetector::GetAttr(int nAttrID, int& retV)
 {
 	IRayVariant var;
 	FPDRESULT ret = m_pFnGetAttr(m_nDetectorID, nAttrID, &var);
 	if (Err_OK != ret)
 	{
-		memset(&result, 0, sizeof(result));
 		return ret;
 	}
-
-	if (IVT_INT == var.vt)
+	if (var.vt != IRAY_VAR_TYPE::IVT_INT)
 	{
-		result.nVal = var.val.nVal;
+		return Err_InvalidParamType;
 	}
-	else if (IVT_FLT == var.vt)
-	{
-		result.fVal = var.val.fVal;
-	}
-	else if (IVT_STR == var.vt)
-	{
-		memcpy(result.strVal, var.val.strVal, IRAY_MAX_STR_LEN);
-	}
-    return Err_OK;
-}
 
-int CDetector::GetAttr(int nAttrID, int& retV)
-{
-    IRayVariant var;
-    FPDRESULT ret = m_pFnGetAttr(m_nDetectorID, nAttrID, &var);
-    if (Err_OK != ret)
-    {
-        return ret;
-    }
-    if (var.vt != IRAY_VAR_TYPE::IVT_INT)
-    {
-        return Err_InvalidParamType;
-    }
-
-    retV = var.val.nVal;
-    return Err_OK;
+	retV = var.val.nVal;
+	return Err_OK;
 }
 
 int CDetector::GetAttr(int nAttrID, float& retV)
 {
-    IRayVariant var;
-    FPDRESULT ret = m_pFnGetAttr(m_nDetectorID, nAttrID, &var);
-    if (Err_OK != ret)
-    {
-        return ret;
-    }
-    if (var.vt != IRAY_VAR_TYPE::IVT_FLT)
-    {
-        return Err_InvalidParamType;
-    }
-    retV = var.val.fVal;
-    return Err_OK;
+	IRayVariant var;
+	FPDRESULT ret = m_pFnGetAttr(m_nDetectorID, nAttrID, &var);
+	if (Err_OK != ret)
+	{
+		return ret;
+	}
+	if (var.vt != IRAY_VAR_TYPE::IVT_FLT)
+	{
+		return Err_InvalidParamType;
+	}
+	retV = var.val.fVal;
+	return Err_OK;
 }
 
 int CDetector::GetAttr(int nAttrID, std::string& retV)
 {
-    IRayVariant var;
-    FPDRESULT ret = m_pFnGetAttr(m_nDetectorID, nAttrID, &var);
-    if (Err_OK != ret)
-    {
-        return ret;
-    }
-    if (var.vt != IRAY_VAR_TYPE::IVT_STR)
-    {
-        return Err_InvalidParamType;
-    }
-    retV = var.val.strVal;
-    return Err_OK;
+	IRayVariant var;
+	FPDRESULT ret = m_pFnGetAttr(m_nDetectorID, nAttrID, &var);
+	if (Err_OK != ret)
+	{
+		return ret;
+	}
+	if (var.vt != IRAY_VAR_TYPE::IVT_STR)
+	{
+		return Err_InvalidParamType;
+	}
+	retV = var.val.strVal;
+	return Err_OK;
 }
 
 
@@ -297,9 +268,9 @@ string CDetector::GetErrorInfo(int nErrorCode)
 
 string CDetector::GetSDKVersion()
 {
-    char version[32] = { 0 };
-    m_pFnGetSDKVersion(version);
-    return string(version);
+	char version[32] = { 0 };
+	m_pFnGetSDKVersion(version);
+	return string(version);
 }
 
 
@@ -341,12 +312,12 @@ int CDetector::WaitEvent(int timeout)
 void CDetector::SDKCallback(int nDetectorID, int nEventID, int nEventLevel,
 	const char* pszMsg, int nParam1, int nParam2, int nPtrParamLen, void* pParam)
 {
-    if ((Evt_TaskResult_Succeed == nEventID) || (Evt_TaskResult_Failed == nEventID) || (Evt_TaskResult_Canceled == nEventID))
+	if ((Evt_TaskResult_Succeed == nEventID) || (Evt_TaskResult_Failed == nEventID) || (Evt_TaskResult_Canceled == nEventID))
 	{
-        if (Evt_TaskResult_Canceled == nEventID)
-            m_nLastError = Err_Unknown;
-        else
-		    m_nLastError = nParam2;
+		if (Evt_TaskResult_Canceled == nEventID)
+			m_nLastError = Err_Unknown;
+		else
+			m_nLastError = nParam2;
 		if (m_CurCmdId == nParam1)
 		{
 			SetEvent(m_WaitAckEvent);
@@ -376,10 +347,10 @@ int CDetector::OpenDefectTemplateFile(
 	unsigned short* pHeight,
 	char** ppPoints)
 {
-    char* ppRows = nullptr;
-    char* ppCols = nullptr;
-    char* ppDualReadCols2 = nullptr;
-	return m_pFnOpenDefectTemplateFile(pszFilePath,ppHandler,pWidth, pHeight,ppPoints, &ppRows, &ppCols, &ppDualReadCols2);
+	char* ppRows = nullptr;
+	char* ppCols = nullptr;
+	char* ppDualReadCols2 = nullptr;
+	return m_pFnOpenDefectTemplateFile(pszFilePath, ppHandler, pWidth, pHeight, ppPoints, &ppRows, &ppCols, &ppDualReadCols2);
 }
 
 int CDetector::SaveDefectTemplateFile(void* pHandler)
@@ -391,9 +362,14 @@ int CDetector::CloseDefectTemplateFile(void* pHandler)
 	return m_pFnCloseDefectTemplateFile(pHandler);
 }
 
+bool CDetector::Initilized() const
+{
+	return m_bInitilized;
+}
+
 std::string GetWorkDirPath()
 {
-	char buff[128] = {0};
+	char buff[128] = { 0 };
 	FILE* pFile = NULL;
 	std::string workdir("");
 	pFile = fopen("..\\common\\workdir_path.txt", "r");

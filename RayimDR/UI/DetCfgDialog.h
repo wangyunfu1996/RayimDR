@@ -11,6 +11,11 @@ public:
 	DetCfgDialog(QWidget* parent = nullptr);
 	~DetCfgDialog();
 
+	void UpdateCorrectionOptions();
+	void Active();
+	void Deactive();
+	void PowerOff();
+
 private:
 	Ui::DetCfgDialogClass ui;
 };

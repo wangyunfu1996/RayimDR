@@ -8,7 +8,7 @@
 #include "XSignalsHelper.h"
 #include "XGlobal.h"
 
-#include "../IRayDetector/IRayDetector.h"
+#include "../IRayDetector/NDT1717MA.h"
 #include "AcqTask.h"
 
 AcqTaskManager::AcqTaskManager(QObject* parent)
@@ -47,7 +47,7 @@ void AcqTaskManager::startAcq()
 	acqTask->moveToThread(acqThread);
 
 	connect(acqThread, &QThread::started, acqTask, [this]() {
-		acqTask->doAcq(*acqCondition);
+		acqTask->startAcq(*acqCondition);
 		});
 
 	// 连接采集停止信号：先让线程退出

@@ -13,7 +13,7 @@ public:
 	AcqTask(QObject* parent = nullptr);
 	~AcqTask();
 
-	void doAcq(AcqCondition acqCondition);
+	void startAcq(AcqCondition acqCondition);
 	void stopAcq();
 
 private:

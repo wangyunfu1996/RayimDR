@@ -2,7 +2,9 @@
 
 #include "ElaUIHepler.h"
 
-DetCfgDialog::DetCfgDialog(QWidget *parent)
+#include "../IRayDetector/NDT1717MA.h"
+
+DetCfgDialog::DetCfgDialog(QWidget* parent)
 	: ElaDialog(parent)
 {
 	ui.setupUi(this);
@@ -23,8 +25,20 @@ DetCfgDialog::DetCfgDialog(QWidget *parent)
 		});
 
 	ElaUIHepler::ChangeToNormalStyle(this);
+
+	connect(ui.checkBox_Offset, &QCheckBox::toggled, this, &DetCfgDialog::UpdateCorrectionOptions);
+	connect(ui.checkBox_Gain, &QCheckBox::toggled, this, &DetCfgDialog::UpdateCorrectionOptions);
+	connect(ui.checkBox_Defect, &QCheckBox::toggled, this, &DetCfgDialog::UpdateCorrectionOptions);
 }
 
 DetCfgDialog::~DetCfgDialog()
 {}
+
+void DetCfgDialog::UpdateCorrectionOptions()
+{
+	int sw_offset = ui.checkBox_Offset->isChecked();
+	int sw_gain = ui.checkBox_Gain->isChecked();
+	int sw_defect = ui.checkBox_Defect->isChecked();
+	DET.SetCorrectOption(sw_offset, sw_gain, sw_defect);
+}
 

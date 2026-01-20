@@ -119,7 +119,7 @@
   <ItemGroup>
     <ClInclude Include="QtLogger.h" />
     <QtMoc Include="TiffHelper.h" />
-    <QtMoc Include="IRayDetector.h" />
+    <QtMoc Include="NDT1717MA.h" />
     <ClInclude Include="Common\Detector.h" />
     <ClInclude Include="Common\DisplayProgressbar.h" />
     <ClInclude Include="Common\IRayInclude.h" />
@@ -130,7 +130,7 @@
   <ItemGroup>
     <ClCompile Include="Common\Detector.cpp" />
     <ClCompile Include="Common\winevent.cpp" />
-    <ClCompile Include="IRayDetector.cpp" />
+    <ClCompile Include="NDT1717MA.cpp" />
     <ClCompile Include="QtLogger.cpp" />
     <ClCompile Include="TiffHelper.cpp" />
   </ItemGroup>

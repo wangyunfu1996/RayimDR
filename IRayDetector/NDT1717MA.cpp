@@ -1,4 +1,4 @@
-#include "IRayDetector.h"
+#include "NDT1717MA.h"
 
 #include <thread>
 #include <mutex>
@@ -91,8 +91,21 @@ namespace {
 
 			gn_receviedIdx.store(gn_receviedIdx.load() + 1);
 			// 将图像数据深拷贝到QImage
-			IRayDetector::Instance().SetReceivedImage(pImg->nWidth, pImg->nHeight, pImageData, nImageSize);
-			emit IRayDetector::Instance().signalAcqImageReceived(gn_receviedIdx.load());
+			NDT1717MA::Instance().SetReceivedImage(pImg->nWidth, pImg->nHeight, pImageData, nImageSize);
+
+			if (gs_pDetInstance->GetAttrInt(Attr_CurrentTransaction) == Enm_Transaction::Enm_Transaction_GainGen)
+			{
+				qDebug() << "Enm_Transaction_GainGen";
+			}
+			else if (gs_pDetInstance->GetAttrInt(Attr_CurrentTransaction) == Enm_Transaction::Enm_Transaction_DefectGen)
+			{
+				qDebug() << "Enm_Transaction_DefectGen";
+			}
+			else
+			{
+				qDebug() << "Normal Acq Image";
+				emit NDT1717MA::Instance().signalAcqImageReceived(gn_receviedIdx.load());
+			}
 
 			break;
 		}
@@ -111,27 +124,33 @@ namespace {
 	}
 }
 
-IRayDetector::IRayDetector(QObject* parent)
+NDT1717MA::NDT1717MA(QObject* parent)
 	: QObject(parent)
 {
 	m_uuid = QUuid::createUuid().toString();
 	qDebug() << "构造探测器实例：" << m_uuid;
 }
 
-IRayDetector::~IRayDetector()
+NDT1717MA::~NDT1717MA()
 {
 	qDebug() << "析构探测器实例：" << m_uuid;
 }
 
 
-IRayDetector& IRayDetector::Instance()
+NDT1717MA& NDT1717MA::Instance()
 {
-	static IRayDetector iRayDetector;
+	static NDT1717MA iRayDetector;
 	return iRayDetector;
 }
 
-int IRayDetector::Initialize()
+int NDT1717MA::Initialize()
 {
+	if (gs_pDetInstance &&
+		gs_pDetInstance->Initilized())
+	{
+		return Err_OK;
+	}
+
 	gs_pDetInstance = new CDetector();
 	qDebug() << "Load libray";
 	int ret = gs_pDetInstance->LoadIRayLibrary();
@@ -197,7 +216,7 @@ int IRayDetector::Initialize()
 	return ret;
 }
 
-void IRayDetector::DeInitialize()
+void NDT1717MA::DeInitialize()
 {
 	if (gs_pDetInstance)
 	{
@@ -208,22 +227,22 @@ void IRayDetector::DeInitialize()
 	}
 }
 
-int IRayDetector::GetAttr(int nAttrID, int& nVal)
+int NDT1717MA::GetAttr(int nAttrID, int& nVal)
 {
 	return gs_pDetInstance->GetAttr(nAttrID, nVal);
 }
 
-int IRayDetector::GetAttr(int nAttrID, float& fVal)
+int NDT1717MA::GetAttr(int nAttrID, float& fVal)
 {
 	return gs_pDetInstance->GetAttr(nAttrID, fVal);
 }
 
-int IRayDetector::GetAttr(int nAttrID, std::string& strVal)
+int NDT1717MA::GetAttr(int nAttrID, std::string& strVal)
 {
 	return gs_pDetInstance->GetAttr(nAttrID, strVal);
 }
 
-int IRayDetector::UpdateMode(std::string mode)
+int NDT1717MA::UpdateMode(std::string mode)
 {
 	std::string current_mode;
 	int ret = gs_pDetInstance->GetAttr(Attr_CurrentSubset, current_mode);
@@ -260,7 +279,7 @@ int IRayDetector::UpdateMode(std::string mode)
 	return Err_OK;
 }
 
-int IRayDetector::GetCurrentCorrectOption(int& sw_offset, int& sw_gain, int& sw_defect)
+int NDT1717MA::GetCurrentCorrectOption(int& sw_offset, int& sw_gain, int& sw_defect)
 {
 	if (nullptr == gs_pDetInstance)
 	{
@@ -281,7 +300,7 @@ int IRayDetector::GetCurrentCorrectOption(int& sw_offset, int& sw_gain, int& sw_
 	return Err_OK;
 }
 
-int IRayDetector::SetCorrectOption(int sw_offset, int sw_gain, int sw_defect)
+int NDT1717MA::SetCorrectOption(int sw_offset, int sw_gain, int sw_defect)
 {
 	int nCorrectOption{ Enm_CorrectOp_Null };
 	if (sw_offset)
@@ -317,25 +336,105 @@ int IRayDetector::SetCorrectOption(int sw_offset, int sw_gain, int sw_defect)
 	return ret;
 }
 
-int IRayDetector::SetPreviewImageEnable(int enable)
+int NDT1717MA::SetPreviewImageEnable(int enable)
 {
-	{
-		int current_enbale{ -1 };
-		gs_pDetInstance->GetAttr(Cfg_PreviewImage_Enable, current_enbale);
-		qDebug() << "Cfg_PreviewImage_Enable: " << current_enbale;
-	}
-
+	int current_enbale{ -1 };
+	gs_pDetInstance->GetAttr(Cfg_PreviewImage_Enable, current_enbale);
+	qDebug() << "Cfg_PreviewImage_Enable: " << current_enbale;
 	int ret = gs_pDetInstance->SetAttr(Cfg_PreviewImage_Enable, enable);
-
-	{
-		int current_enbale{ -1 };
-		gs_pDetInstance->GetAttr(Cfg_PreviewImage_Enable, current_enbale);
-		qDebug() << "Cfg_PreviewImage_Enable: " << current_enbale;
-	}
+	gs_pDetInstance->GetAttr(Cfg_PreviewImage_Enable, current_enbale);
+	qDebug() << "Cfg_PreviewImage_Enable: " << current_enbale;
 	return ret;
 }
 
-int IRayDetector::GetDetectorState(int& state)
+int NDT1717MA::SyncInvoke(int nCmdId, int timeout)
+{
+	qDebug() << "nCmdId: " << nCmdId
+		<< " timeout: " << timeout;
+
+	if (!gs_pDetInstance || !gs_pDetInstance->Initilized())
+	{
+		qWarning() << "Detector not initialized";
+		return Err_NotInitialized;
+	}
+
+	return gs_pDetInstance->SyncInvoke(nCmdId, timeout);
+}
+
+int NDT1717MA::SyncInvoke(int nCmdId, int nParam1, int timeout)
+{
+	qDebug() << "nCmdId: " << nCmdId
+		<< " nParam1: " << nParam1
+		<< " timeout: " << timeout;
+
+	if (!gs_pDetInstance || !gs_pDetInstance->Initilized())
+	{
+		qWarning() << "Detector not initialized";
+		return Err_NotInitialized;
+	}
+
+	return gs_pDetInstance->SyncInvoke(nCmdId, nParam1, timeout);
+}
+
+int NDT1717MA::SyncInvoke(int nCmdId, int nParam1, int nParam2, int timeout)
+{
+	qDebug() << "nCmdId: " << nCmdId
+		<< " nParam1: " << nParam1
+		<< " nParam2: " << nParam2
+		<< " timeout: " << timeout;
+
+	if (!gs_pDetInstance || !gs_pDetInstance->Initilized())
+	{
+		qWarning() << "Detector not initialized";
+		return Err_NotInitialized;
+	}
+
+	return gs_pDetInstance->SyncInvoke(nCmdId, nParam1, nParam2, timeout);
+}
+
+int NDT1717MA::Invoke(int nCmdId)
+{
+	qDebug() << "nCmdId: " << nCmdId;
+
+	if (!gs_pDetInstance || !gs_pDetInstance->Initilized())
+	{
+		qWarning() << "Detector not initialized";
+		return Err_NotInitialized;
+	}
+
+	return gs_pDetInstance->Invoke(nCmdId);
+}
+
+int NDT1717MA::Invoke(int nCmdId, int nParam1)
+{
+	qDebug() << "nCmdId: " << nCmdId
+		<< " nParam1: " << nParam1;
+
+	if (!gs_pDetInstance || !gs_pDetInstance->Initilized())
+	{
+		qWarning() << "Detector not initialized";
+		return Err_NotInitialized;
+	}
+
+	return gs_pDetInstance->Invoke(nCmdId, nParam1);
+}
+
+int NDT1717MA::Invoke(int nCmdId, int nParam1, int nParam2)
+{
+	qDebug() << "nCmdId: " << nCmdId
+		<< " nParam1: " << nParam1
+		<< " nParam2: " << nParam2;
+
+	if (!gs_pDetInstance || !gs_pDetInstance->Initilized())
+	{
+		qWarning() << "Detector not initialized";
+		return Err_NotInitialized;
+	}
+
+	return gs_pDetInstance->Invoke(nCmdId, nParam1, nParam2);
+}
+
+int NDT1717MA::GetDetectorState(int& state)
 {
 	int result = gs_pDetInstance->GetAttr(Attr_State, state);
 	qDebug() << "result: " << result
@@ -343,7 +442,7 @@ int IRayDetector::GetDetectorState(int& state)
 	return result;
 }
 
-void IRayDetector::ClearAcq()
+void NDT1717MA::ClearAcq()
 {
 	if (gs_pDetInstance->GetAttrInt(Attr_State) != Enm_DetectorState::Enm_State_Ready)
 	{
@@ -364,7 +463,7 @@ void IRayDetector::ClearAcq()
 	}
 }
 
-bool IRayDetector::StartAcq()
+bool NDT1717MA::StartAcq()
 {
 	if (!CheckBatteryStateOK())
 	{
@@ -401,7 +500,7 @@ bool IRayDetector::StartAcq()
 	return result == Err_TaskPending;
 }
 
-void IRayDetector::StopAcq()
+void NDT1717MA::StopAcq()
 {
 	qDebug("Stop Sequence acquiring...");
 	int result = gs_pDetInstance->SyncInvoke(Cmd_StopAcq, 2000);
@@ -413,7 +512,7 @@ void IRayDetector::StopAcq()
 	//	<< gs_pDetInstance->GetErrorInfo(result).c_str();
 }
 
-int IRayDetector::OffsetGeneration()
+int NDT1717MA::OffsetGeneration()
 {
 	int nOffsetTotalFrames = gs_pDetInstance->GetAttrInt(Attr_OffsetTotalFrames);
 	int nIntervalTimeOfEachFrame = gs_pDetInstance->GetAttrInt(Attr_UROM_SequenceIntervalTime);
@@ -444,7 +543,7 @@ int IRayDetector::OffsetGeneration()
 	return Err_OK;
 }
 
-int IRayDetector::GainGeneration()
+int NDT1717MA::GainGeneration()
 {
 	qDebug() << QStringLiteral("Generate gain...");
 	int result;
@@ -493,7 +592,7 @@ int IRayDetector::GainGeneration()
 	return Err_OK;
 }
 
-void IRayDetector::StopGainGeneration()
+void NDT1717MA::StopGainGeneration()
 {
 	int result;
 	result = gs_pDetInstance->SyncInvoke(Cmd_FinishGenerationProcess, 3000);
@@ -502,7 +601,7 @@ void IRayDetector::StopGainGeneration()
 		<< gs_pDetInstance->GetErrorInfo(result).c_str();
 }
 
-int IRayDetector::Abort()
+int NDT1717MA::Abort()
 {
 	int result = gs_pDetInstance->Abort();
 	qDebug() << "result: " << result
@@ -510,7 +609,7 @@ int IRayDetector::Abort()
 	return result;
 }
 
-void IRayDetector::SetReceivedImage(int width, int height, const unsigned short* pData, int nDataSize)
+void NDT1717MA::SetReceivedImage(int width, int height, const unsigned short* pData, int nDataSize)
 {
 	qDebug() << "进行图像拷贝，receviedIdx：" << gn_receviedIdx.load();
 	// 参数验证
@@ -564,13 +663,13 @@ void IRayDetector::SetReceivedImage(int width, int height, const unsigned short*
 	}
 }
 
-QImage IRayDetector::GetReceivedImage() const
+QImage NDT1717MA::GetReceivedImage() const
 {
 	qDebug() << "获取图像";
 	return m_receivedImage;
 }
 
-void IRayDetector::QueryStatus()
+void NDT1717MA::QueryStatus()
 {
 	if (!gs_pDetInstance)
 	{
@@ -602,11 +701,11 @@ void IRayDetector::QueryStatus()
 		m_status.Battery_ChargingStatus = gs_pDetInstance->GetAttrInt(Attr_Battery_ChargingStatus);
 		m_status.Battery_PowerWarnStatus = gs_pDetInstance->GetAttrInt(Attr_Battery_PowerWarnStatus);
 
-		qDebug() << "Attr_Battery_ExternalPower: " << m_status.Battery_ExternalPower
-			<< " Attr_Battery_Exist: " << m_status.Battery_Exist
-			<< " Attr_Battery_Remaining: " << m_status.Battery_Remaining
-			<< " Attr_Battery_ChargingStatus: " << m_status.Battery_ChargingStatus
-			<< " Attr_Battery_PowerWarnStatus: " << m_status.Battery_ExternalPower;
+		//qDebug() << "Attr_Battery_ExternalPower: " << m_status.Battery_ExternalPower
+		//	<< " Attr_Battery_Exist: " << m_status.Battery_Exist
+		//	<< " Attr_Battery_Remaining: " << m_status.Battery_Remaining
+		//	<< " Attr_Battery_ChargingStatus: " << m_status.Battery_ChargingStatus
+		//	<< " Attr_Battery_PowerWarnStatus: " << m_status.Battery_ExternalPower;
 
 		emit DET.signalStatusChanged(m_status);
 	}
@@ -620,7 +719,7 @@ void IRayDetector::QueryStatus()
 	}
 }
 
-void IRayDetector::StartQueryStatus()
+void NDT1717MA::StartQueryStatus()
 {
 	if (gb_StatusQueryFlag.load()) {
 		qDebug() << "状态查询已在运行中";
@@ -644,7 +743,7 @@ void IRayDetector::StartQueryStatus()
 		}).detach();
 }
 
-void IRayDetector::StopQueryStatus()
+void NDT1717MA::StopQueryStatus()
 {
 	if (!gb_StatusQueryFlag.load()) {
 		qDebug() << "状态查询未在运行";
@@ -655,7 +754,7 @@ void IRayDetector::StopQueryStatus()
 	gb_StatusQueryFlag.store(false);
 }
 
-bool IRayDetector::CheckBatteryStateOK()
+bool NDT1717MA::CheckBatteryStateOK()
 {
 	QueryStatus();
 
@@ -671,6 +770,3 @@ bool IRayDetector::CheckBatteryStateOK()
 
 	return true;
 }
-
-
-

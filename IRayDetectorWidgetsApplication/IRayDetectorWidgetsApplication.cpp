@@ -7,7 +7,7 @@
 #include <QFuture>
 #include <QFutureWatcher>
 
-#include "../IRayDetector/IRayDetector.h"
+#include "../IRayDetector/NDT1717MA.h"
 #include "../IRayDetector/TiffHelper.h"
 
 IRayDetectorWidgetsApplication::IRayDetectorWidgetsApplication(QWidget* parent)
@@ -50,7 +50,7 @@ IRayDetectorWidgetsApplication::IRayDetectorWidgetsApplication(QWidget* parent)
 	ui.comboBox_mode->addItem("Mode6");
 	ui.comboBox_mode->addItem("Mode7");
 	ui.comboBox_mode->addItem("Mode8");
-	
+
 	connect(ui.comboBox_mode, &QComboBox::currentTextChanged, this, [this]() {
 		DET.UpdateMode(ui.comboBox_mode->currentText().toStdString());
 		});
@@ -149,7 +149,7 @@ IRayDetectorWidgetsApplication::IRayDetectorWidgetsApplication(QWidget* parent)
 				"确定");
 			return;
 		}
-		
+
 		DET.StartAcq();
 
 		});
@@ -216,16 +216,70 @@ IRayDetectorWidgetsApplication::IRayDetectorWidgetsApplication(QWidget* parent)
 		TiffHelper::SaveImage(image, "X:\\repos\\IRayDetector\\data\\savedImage.tiff");
 		});
 
+	connect(ui.pushButton_Invoke, &QPushButton::clicked, this, [this]() {
+		int nCmdId = ui.lineEdit_cmdId->text().toInt();
+		bool hasParam1 = ui.checkBox_nParam1->isChecked();
+		bool hasParam2 = ui.checkBox_nParam2->isChecked();
 
-	if (DET.Initialize() != 0)
-	{
-		qDebug() << "探测器初始化失败！";
-		DET.DeInitialize();
-	}
-	else
-	{
-		DET.StartQueryStatus();
-	}
+		if (!hasParam1 && !hasParam2)
+		{
+			// 无参数调用
+			int result = DET.Invoke(nCmdId);
+			qDebug() << result;
+		}
+		else if (hasParam1 && !hasParam2)
+		{
+			// 单参数调用
+			int nParam1 = ui.lineEdit_nParam1->text().toInt();
+			int result = DET.Invoke(nCmdId, nParam1);
+			qDebug() << result;
+		}
+		else if (hasParam1 && hasParam2)
+		{
+			// 双参数调用
+			int nParam1 = ui.lineEdit_nParam1->text().toInt();
+			int nParam2 = ui.lineEdit_nParam2->text().toInt();
+			int result = DET.Invoke(nCmdId, nParam1, nParam2);
+			qDebug() << result;
+		}
+		else
+		{
+
+		}
+		});
+
+	connect(ui.pushButton_SyncInvoke, &QPushButton::clicked, this, [this]() {
+		int nCmdId = ui.lineEdit_cmdId->text().toInt();
+		bool hasParam1 = ui.checkBox_nParam1->isChecked();
+		bool hasParam2 = ui.checkBox_nParam2->isChecked();
+		int timeout = 20000;
+
+		if (!hasParam1 && !hasParam2)
+		{
+			// 无参数调用
+			int result = DET.SyncInvoke(nCmdId, timeout);
+			qDebug() << result;
+		}
+		else if (hasParam1 && !hasParam2)
+		{
+			// 单参数调用
+			int nParam1 = ui.lineEdit_nParam1->text().toInt();
+			int result = DET.SyncInvoke(nCmdId, nParam1, timeout);
+			qDebug() << result;
+		}
+		else if (hasParam1 && hasParam2)
+		{
+			// 双参数调用
+			int nParam1 = ui.lineEdit_nParam1->text().toInt();
+			int nParam2 = ui.lineEdit_nParam2->text().toInt();
+			int result = DET.SyncInvoke(nCmdId, nParam1, nParam2, timeout);
+			qDebug() << result;
+		}
+		else
+		{
+
+		}
+		});
 }
 
 IRayDetectorWidgetsApplication::~IRayDetectorWidgetsApplication()

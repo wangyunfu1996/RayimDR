@@ -6,9 +6,9 @@
 #include <QImage>
 #include <QThread>
 
-#define DET IRayDetector::Instance()
+#define DET NDT1717MA::Instance()
 
-struct IRayDetectorStatus
+struct NDT1717MAStatus
 {
 	// 电池相关
 	int Battery_ExternalPower{ 0 };
@@ -18,16 +18,16 @@ struct IRayDetectorStatus
 	int Battery_PowerWarnStatus{ 0 };
 };
 
-class IRAYDETECTOR_EXPORT IRayDetector : public QObject
+class IRAYDETECTOR_EXPORT NDT1717MA : public QObject
 {
 	Q_OBJECT
 
 private:
-	IRayDetector(QObject* parent = nullptr);
-	~IRayDetector();
+	NDT1717MA(QObject* parent = nullptr);
+	~NDT1717MA();
 
 public:
-	static IRayDetector& Instance();
+	static NDT1717MA& Instance();
 
 	int Initialize();
 	void DeInitialize();
@@ -40,6 +40,15 @@ public:
 	int GetCurrentCorrectOption(int& sw_offset, int& sw_gain, int& sw_defect);
 	int SetCorrectOption(int sw_offset, int sw_gain, int sw_defect);
 	int SetPreviewImageEnable(int enable);
+
+	// 测试用
+	int SyncInvoke(int nCmdId, int timeout);
+	int SyncInvoke(int nCmdId, int nParam1, int timeout);
+	int SyncInvoke(int nCmdId, int nParam1, int nParam2, int timeout);
+
+	int Invoke(int nCmdId);
+	int Invoke(int nCmdId, int nParam1);
+	int Invoke(int nCmdId, int nParam1, int nParam2);
 
 	//enum Enm_DetectorState
 	//{
@@ -72,12 +81,11 @@ private:
 
 signals:
 	void signalAcqImageReceived(int idx);
-	void signalStatusChanged(const IRayDetectorStatus& status);
+	void signalStatusChanged(const NDT1717MAStatus& status);
 
 private:
 	QString m_uuid;
 	QString m_workDirPath;
 	QImage m_receivedImage;
-	IRayDetectorStatus m_status;
+	NDT1717MAStatus m_status;
 };
-

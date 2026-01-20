@@ -3,6 +3,10 @@
 #include <qdebug.h>
 #include <qmessagebox.h>
 
+#include <QtConcurrent/QtConcurrent>
+#include <QFuture>
+#include <QFutureWatcher>
+
 #include "../IRayDetector/IRayDetector.h"
 #include "../IRayDetector/TiffHelper.h"
 
@@ -211,8 +215,23 @@ IRayDetectorWidgetsApplication::IRayDetectorWidgetsApplication(QWidget* parent)
 
 		TiffHelper::SaveImage(image, "X:\\repos\\IRayDetector\\data\\savedImage.tiff");
 		});
+
+
+	if (DET.Initialize() != 0)
+	{
+		qDebug() << "探测器初始化失败！";
+		DET.DeInitialize();
+	}
+	else
+	{
+		DET.StartQueryStatus();
+	}
 }
 
 IRayDetectorWidgetsApplication::~IRayDetectorWidgetsApplication()
-{}
+{
+	qDebug() << "主窗口析构";
+	DET.StopQueryStatus();
+	DET.DeInitialize();
+}
 

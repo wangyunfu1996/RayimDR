@@ -10,11 +10,15 @@ int main(int argc, char* argv[])
 	QApplication app(argc, argv);
 	QtLogger::initialize();
 
-	if (DET.Initialize() != 0)
-	{
-		qDebug() << "探测器初始化失败！";
-		DET.DeInitialize();
-	}
+	//if (DET.Initialize() != 0)
+	//{
+	//	qDebug() << "探测器初始化失败！";
+	//	DET.DeInitialize();
+	//}
+	//else
+	//{
+	//	DET.StartQueryStatus();
+	//}
 
 	IRayDetectorWidgetsApplication window;
 	window.show();

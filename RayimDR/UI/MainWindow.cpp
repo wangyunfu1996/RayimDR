@@ -69,9 +69,7 @@ MainWindow::MainWindow(QWidget* parent)
 	_closeDialog->setRightButtonText("确认");
 
 	connect(_closeDialog, &ElaContentDialog::rightButtonClicked, this, [this]() {
-		DET.StopQueryStatus();
-		DET.DeInitialize();
-		closeWindow();
+		this->close();
 		});
 
 	this->setIsDefaultClosed(false);
@@ -158,6 +156,9 @@ MainWindow::MainWindow(QWidget* parent)
 
 MainWindow::~MainWindow()
 {
+	qDebug() << "主窗口析构";
+	DET.StopQueryStatus();
+	DET.DeInitialize();
 }
 
 void MainWindow::updateStatusText(const QString& msg)
@@ -500,33 +501,46 @@ void MainWindow::connectToXRay()
 
 void MainWindow::connectToDet()
 {
-	emit xSignaHelper.signalUpdateStatusInfo("开始连接探测器");
-	qDebug() << "开始连接探测器";
 #if DET_TYPE == DET_TYPE_VIRTUAL
 	QThread::currentThread()->msleep(1000);
 	emit xSignaHelper.signalUpdateStatusInfo("探测器已连接");
 #elif DET_TYPE == DET_TYPE_IRAY
-	QFuture<int> future = QtConcurrent::run([this]() {
-		return DET.Initialize();
-	});
 
-	QFutureWatcher<int>* watcher = new QFutureWatcher<int>();
-	connect(watcher, &QFutureWatcher<int>::finished, this, [this, watcher]() {
-		int result = watcher->result();
-		if (result != 0)
-		{
-			emit xSignaHelper.signalShowErrorMessageBar("探测器连接失败!");
-		}
-		else
-		{
-			emit xSignaHelper.signalUpdateStatusInfo("探测器已连接");
-			DET.StartQueryStatus();
-		}
-		watcher->deleteLater();
-	});
-	watcher->setFuture(future);
+	if (0 != DET.Initialize())
+	{
+		DET.DeInitialize();
+		emit xSignaHelper.signalShowErrorMessageBar("探测器连接失败！");
+	}
+	else
+	{
+		emit xSignaHelper.signalUpdateStatusInfo("探测器已连接");
+		emit xSignaHelper.signalShowSuccessMessageBar("探测器已连接");
+		DET.StartQueryStatus();
+	}
+
+	//QFuture<int> future = QtConcurrent::run([this]() {
+	//	emit xSignaHelper.signalUpdateStatusInfo("开始连接探测器");
+	//	qDebug() << "开始连接探测器";
+	//	return DET.Initialize();
+	//});
+
+	//QFutureWatcher<int>* watcher = new QFutureWatcher<int>();
+	//connect(watcher, &QFutureWatcher<int>::finished, this, [this, watcher]() {
+	//	int result = watcher->result();
+	//	if (result != 0)
+	//	{
+
+	//	}
+	//	else
+	//	{
+	//		emit xSignaHelper.signalUpdateStatusInfo("探测器已连接");
+	//		DET.StartQueryStatus();
+	//	}
+	//	watcher->deleteLater();
+	//});
+	//watcher->setFuture(future);
+
 #endif // DET_TYPE
-
 }
 
 

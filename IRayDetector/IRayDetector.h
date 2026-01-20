@@ -4,10 +4,7 @@
 
 #include <QObject>
 #include <QImage>
-#include <QTimer>
 #include <QThread>
-#include <future>
-#include <mutex>
 
 #define DET IRayDetector::Instance()
 
@@ -54,7 +51,7 @@ public:
 	int GetDetectorState(int& state);
 
 	void ClearAcq();
-	int StartAcq();
+	bool StartAcq();
 	void StopAcq();
 
 	int OffsetGeneration();
@@ -69,6 +66,9 @@ public:
 	void QueryStatus();
 	void StartQueryStatus();
 	void StopQueryStatus();
+
+private:
+	bool CheckBatteryStateOK();
 
 signals:
 	void signalAcqImageReceived(int idx);

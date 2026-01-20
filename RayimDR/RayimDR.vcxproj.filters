@@ -21,6 +21,9 @@
     <ClCompile Include="Components\XFileHelper.cpp">
       <Filter>Components</Filter>
     </ClCompile>
+    <ClCompile Include="Components\XRayWorker.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
     <ClCompile Include="Components\XRayManager.cpp">
       <Filter>Components</Filter>
     </ClCompile>
@@ -73,6 +76,9 @@
       <Filter>Components</Filter>
     </QtMoc>
     <QtMoc Include="Components\XFileHelper.h">
+      <Filter>Components</Filter>
+    </QtMoc>
+    <QtMoc Include="Components\XRayWorker.h">
       <Filter>Components</Filter>
     </QtMoc>
     <QtMoc Include="Components\XRayManager.h">

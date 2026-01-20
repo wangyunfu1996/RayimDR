@@ -67,31 +67,30 @@ namespace {
 			int nAvgValue = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_AvgValue);
 			int nCenterValue = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_CenterValue);
 
-			//IRayVariantMapItem* pItem = pImg->propList.pItems;
-			//int nItemCnt = pImg->propList.nItemCount;
-			//while (nItemCnt--)
-			//{
-			//	qDebug() << "pItem->nMapKey: " << pItem->nMapKey
-			//		<< " Enm_ImageTag: " << QString("0x%1").arg(pItem->nMapKey, 4, 16, QChar('0')).toUpper()
-			//		<< " pItem->varMapVal.vt: " << pItem->varMapVal.vt
-			//		<< " pItem->varMapVal.val.nVal: " << pItem->varMapVal.val.nVal
-			//		<< " pItem->varMapVal.val.fVal: " << pItem->varMapVal.val.fVal
-			//		<< " pItem->varMapVal.val.strVal: " << pItem->varMapVal.val.strVal;
-			//	pItem++;
-			//}
+			IRayVariantMapItem* pItem = pImg->propList.pItems;
+			int nItemCnt = pImg->propList.nItemCount;
+			while (nItemCnt--)
+			{
+				qDebug() << "pItem->nMapKey: " << pItem->nMapKey
+					<< " Enm_ImageTag: " << QString("0x%1").arg(pItem->nMapKey, 4, 16, QChar('0')).toUpper()
+					<< " pItem->varMapVal.vt: " << pItem->varMapVal.vt
+					<< " pItem->varMapVal.val.nVal: " << pItem->varMapVal.val.nVal
+					<< " pItem->varMapVal.val.fVal: " << pItem->varMapVal.val.fVal
+					<< " pItem->varMapVal.val.strVal: " << pItem->varMapVal.val.strVal;
+				pItem++;
+			}
 
-			qDebug() << "pImg->nWidth: " << pImg->nWidth
-				<< " pImg->nHeight: " << pImg->nHeight
-				<< " pImg->nBytesPerPixel: " << pImg->nBytesPerPixel
-				<< " nImageSize: " << nImageSize
-				<< " nFrameNo: " << nFrameNo
-				<< " nImageID: " << nImageID
-				<< " nAvgValue: " << nAvgValue
-				<< " nCenterValue: " << nCenterValue;
+			//qDebug() << "pImg->nWidth: " << pImg->nWidth
+			//	<< " pImg->nHeight: " << pImg->nHeight
+			//	<< " pImg->nBytesPerPixel: " << pImg->nBytesPerPixel
+			//	<< " nImageSize: " << nImageSize
+			//	<< " nFrameNo: " << nFrameNo
+			//	<< " nImageID: " << nImageID
+			//	<< " nAvgValue: " << nAvgValue
+			//	<< " nCenterValue: " << nCenterValue;
 
 			gn_receviedIdx.store(gn_receviedIdx.load() + 1);
 			// 将图像数据深拷贝到QImage
-			qDebug() << "进行图像拷贝，receviedIdx：" << gn_receviedIdx.load();
 			IRayDetector::Instance().SetReceivedImage(pImg->nWidth, pImg->nHeight, pImageData, nImageSize);
 			emit IRayDetector::Instance().signalAcqImageReceived(gn_receviedIdx.load());
 
@@ -104,6 +103,7 @@ namespace {
 				qDebug("Offset template generated - {%s}", gs_pDetInstance->GetErrorInfo(nParam2).c_str());
 				s_bOffsetGenerationSucceedOrFailed.store(true);
 			}
+			qDebug() << gs_pDetInstance->GetErrorInfo(nParam2).c_str();
 			break;
 		default:
 			break;
@@ -116,7 +116,6 @@ IRayDetector::IRayDetector(QObject* parent)
 {
 	m_uuid = QUuid::createUuid().toString();
 	qDebug() << "构造探测器实例：" << m_uuid;
-
 }
 
 IRayDetector::~IRayDetector()
@@ -365,8 +364,13 @@ void IRayDetector::ClearAcq()
 	}
 }
 
-int IRayDetector::StartAcq()
+bool IRayDetector::StartAcq()
 {
+	if (!CheckBatteryStateOK())
+	{
+		return false;
+	}
+
 	int state = Enm_State_Unknown;
 	int retryTimes{ 10 };
 	do
@@ -394,7 +398,7 @@ int IRayDetector::StartAcq()
 		gn_receviedIdx.store(0);
 	}
 
-	return result;
+	return result == Err_TaskPending;
 }
 
 void IRayDetector::StopAcq()
@@ -508,6 +512,7 @@ int IRayDetector::Abort()
 
 void IRayDetector::SetReceivedImage(int width, int height, const unsigned short* pData, int nDataSize)
 {
+	qDebug() << "进行图像拷贝，receviedIdx：" << gn_receviedIdx.load();
 	// 参数验证
 	if (width <= 0 || height <= 0 || !pData || nDataSize <= 0)
 	{
@@ -574,21 +579,22 @@ void IRayDetector::QueryStatus()
 
 	try
 	{
-		// 查询电池状态
-		int state = gs_pDetInstance->GetAttrInt(Attr_State);
-		if (state != Enm_DetectorState::Enm_State_Ready || 0 != gs_pDetInstance->GetAttrInt(Attr_CurrentTask))
-		{
-			qDebug() << "探测器状态未就绪，当前状态：" << state
-				<< " 当前任务：" << gs_pDetInstance->GetAttrInt(Attr_CurrentTask);
-			return;
-		}
+		//// 查询电池状态
+		//int state = gs_pDetInstance->GetAttrInt(Attr_State);
+		//if (state != Enm_DetectorState::Enm_State_Ready || 0 != gs_pDetInstance->GetAttrInt(Attr_CurrentTask))
+		//{
+		//	qDebug() << "探测器状态未就绪，当前状态：" << state
+		//		<< " 当前任务：" << gs_pDetInstance->GetAttrInt(Attr_CurrentTask);
+		//	//return;
+		//}
 
-		int result = gs_pDetInstance->SyncInvoke(Cmd_ReadBatteryStatus, 5000);
-		if (result != Err_OK && result != Err_TaskPending)
-		{
-			qWarning() << "状态查询失败，错误码：" << result;
-			return;
-		}
+		//int result = gs_pDetInstance->Invoke(Cmd_ReadBatteryStatus);
+		////int result = gs_pDetInstance->SyncInvoke(Cmd_ReadBatteryStatus, 5000);
+		//if (result != Err_OK && result != Err_TaskPending)
+		//{
+		//	qWarning() << "状态查询失败，错误码：" << result;
+		//	return;
+		//}
 
 		m_status.Battery_ExternalPower = gs_pDetInstance->GetAttrInt(Attr_Battery_ExternalPower);
 		m_status.Battery_Exist = gs_pDetInstance->GetAttrInt(Attr_Battery_Exist);
@@ -596,11 +602,13 @@ void IRayDetector::QueryStatus()
 		m_status.Battery_ChargingStatus = gs_pDetInstance->GetAttrInt(Attr_Battery_ChargingStatus);
 		m_status.Battery_PowerWarnStatus = gs_pDetInstance->GetAttrInt(Attr_Battery_PowerWarnStatus);
 
-		//qDebug() << "Attr_Battery_ExternalPower: " << m_status.Battery_ExternalPower
-		//	<< " Attr_Battery_Exist: " << m_status.Battery_Exist
-		//	<< " Attr_Battery_Remaining: " << m_status.Battery_Remaining
-		//	<< " Attr_Battery_ChargingStatus: " << m_status.Battery_ChargingStatus
-		//	<< " Attr_Battery_PowerWarnStatus: " << m_status.Battery_ExternalPower;
+		qDebug() << "Attr_Battery_ExternalPower: " << m_status.Battery_ExternalPower
+			<< " Attr_Battery_Exist: " << m_status.Battery_Exist
+			<< " Attr_Battery_Remaining: " << m_status.Battery_Remaining
+			<< " Attr_Battery_ChargingStatus: " << m_status.Battery_ChargingStatus
+			<< " Attr_Battery_PowerWarnStatus: " << m_status.Battery_ExternalPower;
+
+		emit DET.signalStatusChanged(m_status);
 	}
 	catch (const std::exception& ex)
 	{
@@ -629,7 +637,7 @@ void IRayDetector::StartQueryStatus()
 		{
 			QueryStatus();
 			// 每秒查询一次状态
-			std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		}
 
 		qDebug() << "状态查询线程退出";
@@ -645,6 +653,23 @@ void IRayDetector::StopQueryStatus()
 
 	// 设置标志位为 false
 	gb_StatusQueryFlag.store(false);
+}
+
+bool IRayDetector::CheckBatteryStateOK()
+{
+	QueryStatus();
+
+	const int MIN_REMAINING = 20;
+	// 存在电池，没有开启外部充电，电池点亮低于 MIN_REMAINING
+	if (m_status.Battery_Exist &&
+		!m_status.Battery_ExternalPower &&
+		m_status.Battery_Remaining < MIN_REMAINING)
+	{
+		qDebug() << "电量低，不允许进行扫描";
+		return false;
+	}
+
+	return true;
 }
 
 

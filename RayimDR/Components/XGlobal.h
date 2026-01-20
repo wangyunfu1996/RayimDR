@@ -61,12 +61,12 @@ inline QDebug operator<<(QDebug debug, const AcqCondition& cond)
 const static int DET_WIDTH{ 4300 };
 const static int DET_HEIGHT{ 4300 };
 
-const static int IMAGE_BUFFER_SIZE{ 100 };
+const static int IMAGE_BUFFER_SIZE{ 10 };
 
 #define DET_TYPE_VIRTUAL 0
 #define DET_TYPE_IRAY 1
 
-#define DET_TYPE DET_TYPE_VIRTUAL
+#define DET_TYPE DET_TYPE_IRAY
 
 #if DET_TYPE == DET_TYPE_VIRTUAL
 #elif DET_TYPE == DET_TYPE_IRAY

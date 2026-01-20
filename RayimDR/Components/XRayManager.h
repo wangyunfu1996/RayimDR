@@ -2,6 +2,7 @@
 
 #include <shared_mutex>
 #include <QObject>
+#include <QThread>
 
 struct XRayStatus
 {
@@ -31,15 +32,6 @@ public:
 	static XRayManager& Instance();
 	const XRayStatus& Status() const;
 
-private:
-	void ConnectToXRaySource();
-	void DisconnectFromXRaySource();
-	void XRaySourceWarmup();
-	void XRaySourceOpen();
-	void XRaySourceClose();
-	void XRaySourceUpdateTargetTubeVoltage();
-	void XRaySourceUpdateTargetTubeCurrent();
-
 signals:
 	void signalConnectToXRaySource();
 	void signalDisconnectFromXRaySource();
@@ -48,9 +40,15 @@ signals:
 	void signalXRaySourceClose();
 	void signalXRaySourceUpdateTargetTubeVoltage(float tubeVoltage);
 	void signalXRaySourceUpdateTargetTubeCurrent(float tubeCurrent);
+	void signalStatusChanged(const XRayStatus& status);
+
+public slots:
+	void onWorkerStatusChanged(const XRayStatus& status);
 
 private:
 	XRayStatus status;
 	mutable std::shared_mutex _rw_mutex;
+	QThread xrayThread_;
+	class XRayWorker* worker_{ nullptr };
 };
 

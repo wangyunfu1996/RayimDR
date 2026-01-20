@@ -14,6 +14,7 @@
     <ClCompile Include="Components\AcqTask.cpp" />
     <ClCompile Include="Components\AcqTaskManager.cpp" />
     <ClCompile Include="Components\XFileHelper.cpp" />
+    <ClCompile Include="Components\XRayWorker.cpp" />
     <ClCompile Include="Components\XRayManager.cpp" />
     <ClCompile Include="Components\XSignalsHelper.cpp" />
     <ClCompile Include="ElaUIHepler.cpp" />
@@ -55,6 +56,7 @@
     <QtMoc Include="UI\AppCfgDialog.h" />
     <QtMoc Include="Components\XSignalsHelper.h" />
     <QtMoc Include="Components\XRayManager.h" />
+    <QtMoc Include="Components\XRayWorker.h" />
     <QtMoc Include="Components\XFileHelper.h" />
   </ItemGroup>
   <ItemGroup>

@@ -145,7 +145,7 @@ void AcqTask::doAcq(AcqCondition acqCondition)
 		}
 		});
 	
-	if (1 != DET.StartAcq())
+	if (!DET.StartAcq())
 	{
 		emit AcqTaskManager::Instance().signalAcqStatusMsg(QString("采集失败, 请重试!"), 1);
 		stopAcq();

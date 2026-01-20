@@ -18,6 +18,7 @@ public:
 
 private:
 	QImage stackImages(const QVector<QImage>& images);
+	void processStackedFrames(const QVector<QImage>& imagesToStack, const AcqCondition& acqCondition, int receivedIdx);
 
 	std::atomic_bool stopRequested{ false };
 	std::atomic_int rawFrameCount{ 0 };

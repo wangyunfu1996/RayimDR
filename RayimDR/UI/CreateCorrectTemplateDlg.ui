@@ -17,7 +17,7 @@
    <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab_offset">
       <attribute name="title">
@@ -70,8 +70,56 @@
       <attribute name="title">
        <string>Create Gain</string>
       </attribute>
-      <layout class="QGridLayout" name="gridLayout_3">
-       <item row="3" column="4">
+      <layout class="QGridLayout" name="gridLayout_3" columnstretch="1,1,0,0">
+       <item row="0" column="0">
+        <widget class="QPushButton" name="pushButton_GainInit">
+         <property name="text">
+          <string>Start</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QPushButton" name="pushButton_GainAbort">
+         <property name="text">
+          <string>Cancel</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QLabel" name="label_GainSuggestedKV">
+         <property name="text">
+          <string>Suggested KV:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QLineEdit" name="lineEdit_GainSuggestedKV">
+         <property name="text">
+          <string>70</string>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QLabel" name="label_GainTargetCurrent">
+         <property name="text">
+          <string>Target Current:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="3">
+        <widget class="QSpinBox" name="spinBox_GainTargetCurrent"/>
+       </item>
+       <item row="3" column="2">
+        <widget class="QLabel" name="label_GainExceptedValue">
+         <property name="text">
+          <string>Exepcted Value:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="3">
         <widget class="QLineEdit" name="lineEdit_GainExceptedValue">
          <property name="text">
           <string>12000</string>
@@ -81,91 +129,57 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="3">
-        <widget class="QLabel" name="label_GainTargetCurrent">
-         <property name="text">
-          <string>Target Current:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="3">
-        <widget class="QLabel" name="label_GainCenterValue">
-         <property name="text">
-          <string>CurrrentValue</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="3" colspan="2">
-        <widget class="QPushButton" name="pushButton_GainSelectAll">
-         <property name="text">
-          <string>Select</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="4">
-        <widget class="QLineEdit" name="lineEdit_GainCenterValue">
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="3" colspan="2">
-        <widget class="QPushButton" name="pushButton_GainGeneration">
-         <property name="text">
-          <string>Generate</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0" rowspan="7" colspan="2">
-        <widget class="QGraphicsView" name="graphicsView_GainExceptedValue"/>
-       </item>
-       <item row="4" column="3" colspan="2">
+       <item row="4" column="2">
         <widget class="QPushButton" name="pushButton_GainStartAcq">
          <property name="text">
           <string>Start Acq</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="4">
-        <widget class="QSpinBox" name="spinBox_GainTargetCurrent"/>
-       </item>
-       <item row="0" column="1">
-        <widget class="QPushButton" name="pushButton_GainAbort">
+       <item row="5" column="2">
+        <widget class="QLabel" name="label_GainCenterValue">
          <property name="text">
-          <string>Cancel</string>
+          <string>CurrrentValue:</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="3">
-        <widget class="QLabel" name="label_GainExceptedValue">
-         <property name="text">
-          <string>Exepcted Value:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="3">
-        <widget class="QLabel" name="label_GainSuggestedKV">
-         <property name="text">
-          <string>Suggested KV:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QPushButton" name="pushButton_GainInit">
-         <property name="text">
-          <string>Start</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="4">
-        <widget class="QLineEdit" name="lineEdit_GainSuggestedKV">
-         <property name="text">
-          <string>70</string>
-         </property>
+       <item row="5" column="3">
+        <widget class="QLineEdit" name="lineEdit_GainCenterValue">
          <property name="readOnly">
           <bool>true</bool>
          </property>
         </widget>
+       </item>
+       <item row="6" column="2">
+        <widget class="QPushButton" name="pushButton_GainSelectAll">
+         <property name="text">
+          <string>Select</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="2">
+        <widget class="QLabel" name="label_GainProgress">
+         <property name="text">
+          <string>Progress:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="3">
+        <widget class="QLineEdit" name="lineEdit_GainProgress">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="2">
+        <widget class="QPushButton" name="pushButton_GainGeneration">
+         <property name="text">
+          <string>Generate</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0" rowspan="8" colspan="2">
+        <widget class="QGraphicsView" name="graphicsView_GainImageView"/>
        </item>
       </layout>
      </widget>

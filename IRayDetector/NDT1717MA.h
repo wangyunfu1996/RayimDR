@@ -88,6 +88,7 @@ private:
 signals:
 	void signalAcqImageReceived(int idx);
 	void signalGainImageReceived(int nCenterValue);
+	void signalGaimImageSelected(int nGainTotalFrames, int nValid);
 
 	void signalStatusChanged(const NDT1717MAStatus& status);
 

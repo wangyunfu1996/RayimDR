@@ -94,12 +94,9 @@ namespace {
 			gn_receviedIdx.store(gn_receviedIdx.load() + 1);
 			// 将图像数据深拷贝到QImage
 			NDT1717MA::Instance().SetReceivedImage(pImg->nWidth, pImg->nHeight, pImageData, nImageSize);
+			emit NDT1717MA::Instance().signalAcqImageReceived(gn_receviedIdx.load());
 
-			if (currentTransaction == Enm_Transaction::Enm_Transaction_Null)
-			{
-				emit NDT1717MA::Instance().signalAcqImageReceived(gn_receviedIdx.load());
-			}
-			else if (currentTransaction == Enm_Transaction::Enm_Transaction_GainGen)
+			if (currentTransaction == Enm_Transaction::Enm_Transaction_GainGen)
 			{
 				emit NDT1717MA::Instance().signalGainImageReceived(nCenterValue);
 			}
@@ -587,13 +584,16 @@ int NDT1717MA::GainSelectAll()
 			nValid = gs_pDetInstance->GetAttrInt(Attr_GainValidFrames);
 			qDebug() << QStringLiteral("nGainTotalFrames: ") << nGainTotalFrames
 				<< QStringLiteral(" nValid: ") << nValid;
-			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
+			emit signalGaimImageSelected(nGainTotalFrames, nValid);
 			if (gs_pDetInstance->GetAttrInt(Attr_CurrentTransaction) != 1)
 			{
 				qDebug() << "亮场校正已退出";
 				break;
 			}
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
 		} while (nValid < nGainTotalFrames);
 		}).detach();
 	return 0;

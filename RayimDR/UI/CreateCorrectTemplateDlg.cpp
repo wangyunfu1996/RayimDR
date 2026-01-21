@@ -2,6 +2,8 @@
 
 #include <qgraphicsscene.h>
 #include <qgraphicsitem.h>
+#include <QtConcurrent/QtConcurrent>
+#include <QFutureWatcher>
 
 #include "../IRayDetector/NDT1717MA.h"
 
@@ -31,9 +33,12 @@ CreateCorrectTemplateDlg::CreateCorrectTemplateDlg(QWidget* parent)
 		QImage rawImage = DET.GetReceivedImage();
 		gainPixmapitem->setPixmap(QPixmap::fromImage(rawImage));
 		});
-	connect(&DET, &NDT1717MA::signalGaimImageSelected, this, [this](int nGainTotalFrames, int nValid) {
+	connect(&DET, &NDT1717MA::signalGainImageSelected, this, [this](int nGainTotalFrames, int nValid) {
 		ui.lineEdit_GainProgress->setText(QString("%1 / %2").arg(nValid).arg(nGainTotalFrames));
 		});
+
+	connect(ui.pushButton_Defect, &QPushButton::clicked, this, &CreateCorrectTemplateDlg::Defect);
+	connect(ui.pushButton_DefectAbort, &QPushButton::clicked, this, &CreateCorrectTemplateDlg::Abort);
 }
 
 CreateCorrectTemplateDlg::~CreateCorrectTemplateDlg()
@@ -61,11 +66,81 @@ bool CreateCorrectTemplateDlg::GainStartAcq()
 
 bool CreateCorrectTemplateDlg::GainSelectAll()
 {
-	return DET.GainSelectAll();
+	// 移到后台线程执行
+	auto future = QtConcurrent::run([this]() {
+		// 启动异步任务
+		auto f = DET.GainSelectAll();
+		// 轮询检查是否完成（非阻塞）
+		while (!DET.IsGainSelectComplete(std::move(f))) {
+			// 做其他事情
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		}
+		});
+
+	// 创建 watcher 监听完成事件
+	auto* watcher = new QFutureWatcher<void>(this);
+	connect(watcher, &QFutureWatcher<void>::finished, this, [this, watcher]() {
+		// 任务完成，恢复按钮可用性
+		qDebug() << "GainSelectAll 采集完成";
+		watcher->deleteLater();
+		});
+	watcher->setFuture(future);
+
+	return true;
 }
 
 bool CreateCorrectTemplateDlg::GainGeneration()
 {
 	return DET.GainGeneration();
+}
+
+bool CreateCorrectTemplateDlg::Defect()
+{
+	ui.pushButton_Defect->setEnabled(false);
+
+	// 移到后台线程执行
+	auto future = QtConcurrent::run([this]() {
+		DET.DefectInit();
+		for (size_t idxGroup = 0; idxGroup < DET.nTotalGroup; idxGroup++)
+		{
+			DET.DefectStartAcq();
+			QThread::msleep(1000);
+			DET.DefectSelectAll(idxGroup);
+			QThread::msleep(1000);
+			DET.DefectForceDarkContinuousAcq(idxGroup);
+		}
+		DET.DefectGeneration();
+	});
+
+	// 创建 watcher 监听完成事件
+	auto* watcher = new QFutureWatcher<void>(this);
+	connect(watcher, &QFutureWatcher<void>::finished, this, [this, watcher]() {
+		// 任务完成，恢复按钮可用性
+		ui.pushButton_Defect->setEnabled(true);
+		watcher->deleteLater();
+	});
+	watcher->setFuture(future);
+
+	return true;
+}
+
+bool CreateCorrectTemplateDlg::DefectInit()
+{
+	return false;
+}
+
+bool CreateCorrectTemplateDlg::DefectStartAcq()
+{
+	return false;
+}
+
+bool CreateCorrectTemplateDlg::DefectSelectAll()
+{
+	return false;
+}
+
+bool CreateCorrectTemplateDlg::DefectGeneration()
+{
+	return false;
 }
 

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>506</width>
-    <height>321</height>
+    <height>303</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="tab_offset">
       <attribute name="title">
@@ -181,6 +181,13 @@
        <item row="1" column="0" rowspan="8" colspan="2">
         <widget class="QGraphicsView" name="graphicsView_GainImageView"/>
        </item>
+       <item row="0" column="2" colspan="2">
+        <widget class="QPushButton" name="pushButton_Gain">
+         <property name="text">
+          <string>一键成成</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="tab_defect">
@@ -188,27 +195,17 @@
        <string>Create Defect</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_6">
-       <item row="7" column="2">
-        <widget class="QLabel" name="label_12">
+       <item row="1" column="2">
+        <widget class="QLabel" name="label_13">
          <property name="text">
-          <string>CurrrentValue</string>
+          <string>Stage:</string>
          </property>
         </widget>
        </item>
-       <item row="9" column="2" colspan="2">
-        <widget class="QPushButton" name="pushButton_15">
+       <item row="3" column="2">
+        <widget class="QLabel" name="label_14">
          <property name="text">
-          <string>Select</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="3">
-        <widget class="QLineEdit" name="lineEdit_7"/>
-       </item>
-       <item row="4" column="2">
-        <widget class="QLabel" name="label_11">
-         <property name="text">
-          <string>Target Current:</string>
+          <string>Expected Value:</string>
          </property>
         </widget>
        </item>
@@ -216,24 +213,30 @@
         <widget class="QSpinBox" name="spinBox_3"/>
        </item>
        <item row="0" column="1">
-        <widget class="QPushButton" name="pushButton_11">
+        <widget class="QPushButton" name="pushButton_DefectAbort">
          <property name="text">
           <string>Cancel</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="3">
-        <widget class="QLineEdit" name="lineEdit_10"/>
-       </item>
        <item row="1" column="0" rowspan="10" colspan="2">
         <widget class="QGraphicsView" name="graphicsView_3"/>
        </item>
-       <item row="1" column="2">
-        <widget class="QLabel" name="label_13">
+       <item row="3" column="3">
+        <widget class="QLineEdit" name="lineEdit_8"/>
+       </item>
+       <item row="7" column="2">
+        <widget class="QLabel" name="label_12">
          <property name="text">
-          <string>Stage:</string>
+          <string>CurrrentValue</string>
          </property>
         </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QLineEdit" name="lineEdit_7"/>
+       </item>
+       <item row="2" column="3">
+        <widget class="QLineEdit" name="lineEdit_10"/>
        </item>
        <item row="2" column="2">
         <widget class="QLabel" name="label_16">
@@ -242,10 +245,10 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="0">
-        <widget class="QPushButton" name="pushButton_14">
+       <item row="4" column="2">
+        <widget class="QLabel" name="label_11">
          <property name="text">
-          <string>Start</string>
+          <string>Target Current:</string>
          </property>
         </widget>
        </item>
@@ -256,6 +259,13 @@
          </property>
         </widget>
        </item>
+       <item row="0" column="0">
+        <widget class="QPushButton" name="pushButton_DefectInit">
+         <property name="text">
+          <string>Start</string>
+         </property>
+        </widget>
+       </item>
        <item row="10" column="2" colspan="2">
         <widget class="QPushButton" name="pushButton_12">
          <property name="text">
@@ -263,25 +273,29 @@
          </property>
         </widget>
        </item>
-       <item row="8" column="2" colspan="2">
-        <widget class="QLabel" name="label_15">
-         <property name="text">
-          <string>TextLabel</string>
-         </property>
-        </widget>
-       </item>
        <item row="7" column="3">
         <widget class="QLineEdit" name="lineEdit_9"/>
        </item>
-       <item row="3" column="2">
-        <widget class="QLabel" name="label_14">
+       <item row="0" column="2" colspan="2">
+        <widget class="QPushButton" name="pushButton_Defect">
          <property name="text">
-          <string>Expected Value:</string>
+          <string>一键生成</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="3">
-        <widget class="QLineEdit" name="lineEdit_8"/>
+       <item row="8" column="2">
+        <widget class="QPushButton" name="pushButton_15">
+         <property name="text">
+          <string>Select</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="3">
+        <widget class="QPushButton" name="pushButton">
+         <property name="text">
+          <string>DarkAcq</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>

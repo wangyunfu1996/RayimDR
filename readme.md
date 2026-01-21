@@ -22,35 +22,39 @@ Cmd_GainGeneration
 Cmd_FinishGenerationProcess
 
 ### Create Defect
-Cmd_DefectInit
+#define Attr_CurrentTransaction	5005
+
+#define Cmd_DefectInit	3007
+#define Attr_DefectTotalFrames	5032
+#define Attr_DefectValidFrames	5033
 
 40kV 期望值 1200
-Cmd_StartAcq
+#define Cmd_StartAcq	1004
 开启射线 等待 nCenterValue 达到期望值
-Cmd_DefectSelectAll 0 5(Attr_GainTotalFrames)
+#define Cmd_DefectSelectAll	3033 (0, 1)
 关闭射线
-Cmd_ForceDarkContinuousAcq
+#define Cmd_ForceDarkContinuousAcq	1010 (1)
 
 60kV 期望值 2000
-Cmd_StartAcq
+#define Cmd_StartAcq	1004
 开启射线 等待 nCenterValue 达到期望值
-Cmd_DefectSelectAll 0 5(Attr_GainTotalFrames)
+#define Cmd_DefectSelectAll	3033 (1, 1)
 关闭射线
-Cmd_ForceDarkContinuousAcq
+#define Cmd_ForceDarkContinuousAcq	1010 (1)
 
 70kV 期望值 4000
-Cmd_StartAcq
+#define Cmd_StartAcq	1004
 开启射线 等待 nCenterValue 达到期望值
-Cmd_DefectSelectAll 0 5(Attr_GainTotalFrames)
+#define Cmd_DefectSelectAll	3033 (2, 1)
 关闭射线
-Cmd_ForceDarkContinuousAcq
+#define Cmd_ForceDarkContinuousAcq	1010 (1)
 
 80kV 期望值 8000
-Cmd_StartAcq
+#define Cmd_StartAcq	1004
 开启射线 等待 nCenterValue 达到期望值
-Cmd_DefectSelectAll 0 5(Attr_GainTotalFrames)
+#define Cmd_DefectSelectAll	3033 (3, 5)
 关闭射线
-Cmd_ForceDarkContinuousAcq
+#define Cmd_ForceDarkContinuousAcq	1010 (5)
 
-Cmd_DefectGeneration
-Cmd_FinishGenerationProcess
+#define Cmd_DefectGeneration	3010
+#define Cmd_FinishGenerationProcess	3015

@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QImage>
 #include <QThread>
+#include <future>
 
 #define DET NDT1717MA::Instance()
 
@@ -69,8 +70,19 @@ public:
 
 	int GainInit();
 	int GainStartAcq();
-	int GainSelectAll();
+	std::future<void> GainSelectAll();
 	int GainGeneration(int timeout = 20000);
+	
+	// 等待 GainSelectAll 完成（阻塞调用）
+	void WaitForGainSelectComplete(std::future<void> f);
+	// 检查 GainSelectAll 是否完成（非阻塞）
+	bool IsGainSelectComplete(std::future<void> f) const;
+
+	int DefectInit();
+	int DefectStartAcq();
+	int DefectSelectAll(int groupIdx);
+	int DefectForceDarkContinuousAcq(int groupIdx);
+	int DefectGeneration();
 
 	int Abort();
 
@@ -82,14 +94,14 @@ public:
 	void StartQueryStatus();
 	void StopQueryStatus();
 
-private:
 	bool CheckBatteryStateOK();
 
 signals:
 	void signalAcqImageReceived(int idx);
 	void signalGainImageReceived(int nCenterValue);
-	void signalGaimImageSelected(int nGainTotalFrames, int nValid);
-
+	void signalGainImageSelected(int nGainTotalFrames, int nValid);
+	void signalDefectImageReceived(int nCenterValue);
+	void signalDefectImageSelected(int nGainTotalFrames, int nValid);
 	void signalStatusChanged(const NDT1717MAStatus& status);
 
 private:
@@ -97,4 +109,12 @@ private:
 	QString m_workDirPath;
 	QImage m_receivedImage;
 	NDT1717MAStatus m_status;
+	
+public:
+	const static size_t nTotalGroup{ 4 };
+	const static int nSuggestedKVs[nTotalGroup];
+	const static int nExpectedGrays[nTotalGroup];
+	const static int nExpectedImageCnts[nTotalGroup];
+	const static int nDefectLightExpectedValids[nTotalGroup];
+	const static int nDefectDarkExpectedValids[nTotalGroup];
 };

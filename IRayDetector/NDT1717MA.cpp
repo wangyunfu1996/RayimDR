@@ -2,6 +2,7 @@
 
 #include <thread>
 #include <mutex>
+#include <limits>
 
 #include <qdebug.h>
 #include <quuid.h>
@@ -12,6 +13,12 @@
 #include "Common/DisplayProgressbar.h"
 
 #pragma warning(disable:4996)
+
+const int NDT1717MA::nSuggestedKVs[nTotalGroup] = { 40, 60, 70, 80 };
+const int NDT1717MA::nExpectedGrays[nTotalGroup] = { 1200, 2000, 4000, 8000 };
+const int NDT1717MA::nExpectedImageCnts[nTotalGroup] = { 1, 1, 1, 5 };
+const int NDT1717MA::nDefectLightExpectedValids[nTotalGroup] = { 1, 3, 5, 11 };
+const int NDT1717MA::nDefectDarkExpectedValids[nTotalGroup] = { 2, 4, 6, 16 };
 
 namespace {
 	static CDetector* gs_pDetInstance = nullptr;
@@ -99,6 +106,10 @@ namespace {
 			if (currentTransaction == Enm_Transaction::Enm_Transaction_GainGen)
 			{
 				emit NDT1717MA::Instance().signalGainImageReceived(nCenterValue);
+			}
+			else if (currentTransaction == Enm_Transaction::Enm_Transaction_DefectGen)
+			{
+				emit NDT1717MA::Instance().signalDefectImageReceived(nCenterValue);
 			}
 			break;
 		}
@@ -325,22 +336,18 @@ int NDT1717MA::SetCorrectOption(int sw_offset, int sw_gain, int sw_defect)
 		nCorrectOption |= Enm_CorrectOp_SW_Defect;
 	}
 
-	int ret;
-	ret = gs_pDetInstance->SyncInvoke(Cmd_SetCorrectOption, nCorrectOption, 5000);
+	int result = gs_pDetInstance->SyncInvoke(Cmd_SetCorrectOption, nCorrectOption, 5000);
+	qDebug() << "result: " << result
+		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
+	return result;
 
-	if (Err_OK != ret)
-	{
-		qDebug() << QStringLiteral("修改探测器校正模式失败！")
-			<< QString::fromStdString(gs_pDetInstance->GetErrorInfo(ret));
-		return ret;
-	}
 
 	qDebug() << QStringLiteral("修改探测器校正模式成功：")
 		<< QStringLiteral(" Enm_CorrectOp_SW_PreOffset: ") << sw_offset
 		<< QStringLiteral(" Enm_CorrectOp_SW_Gain: ") << sw_gain
 		<< QStringLiteral(" Enm_CorrectOp_SW_Defect: ") << sw_defect;
 
-	return ret;
+	return result;
 }
 
 int NDT1717MA::SetPreviewImageEnable(int enable)
@@ -445,7 +452,7 @@ int NDT1717MA::GetDetectorState(int& state)
 {
 	int result = gs_pDetInstance->GetAttr(Attr_State, state);
 	qDebug() << "result: " << result
-		<< gs_pDetInstance->GetErrorInfo(result).c_str();
+		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
 	return result;
 }
 
@@ -459,7 +466,7 @@ void NDT1717MA::ClearAcq()
 
 	int result = gs_pDetInstance->SyncInvoke(Cmd_ClearAcq, 10000);
 	qDebug() << "result: " << result
-		<< gs_pDetInstance->GetErrorInfo(result).c_str();
+		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
 	if (result == Err_OK)
 	{
 		gn_receviedIdx.store(0);
@@ -495,7 +502,7 @@ bool NDT1717MA::StartAcq()
 	qDebug("Sequence acquiring...");
 	int result = gs_pDetInstance->Invoke(Cmd_StartAcq);
 	qDebug() << "result: " << result
-		<< gs_pDetInstance->GetErrorInfo(result).c_str();
+		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
 	if (result == Err_TaskPending)
 	{
 		gn_receviedIdx.store(0);
@@ -509,7 +516,7 @@ void NDT1717MA::StopAcq()
 	qDebug("Stop Sequence acquiring...");
 	int result = gs_pDetInstance->SyncInvoke(Cmd_StopAcq, 2000);
 	qDebug() << "result: " << result
-		<< gs_pDetInstance->GetErrorInfo(result).c_str();
+		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
 }
 
 int NDT1717MA::OffsetGeneration()
@@ -546,7 +553,6 @@ int NDT1717MA::OffsetGeneration()
 int NDT1717MA::GainInit()
 {
 	int result = gs_pDetInstance->SyncInvoke(Cmd_GainInit, 5000);
-
 	qDebug() << "result: " << result
 		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
 	return result;
@@ -558,11 +564,16 @@ int NDT1717MA::GainStartAcq()
 	{
 		return false;
 	}
-
 	int CurrentTransaction = gs_pDetInstance->GetAttrInt(Attr_CurrentTransaction);
+	if (CurrentTransaction != Enm_Transaction_GainGen)
+	{
+		qDebug() << "当前不能进行增益矫正采集";
+		return Err_StateErr;
+	}
+
 	int result = gs_pDetInstance->Invoke(Cmd_StartAcq);
 	qDebug() << "result: " << result
-		<< gs_pDetInstance->GetErrorInfo(result).c_str();
+		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
 
 	if (result == Err_TaskPending)
 	{
@@ -572,12 +583,11 @@ int NDT1717MA::GainStartAcq()
 	return result;
 }
 
-int NDT1717MA::GainSelectAll()
+std::future<void> NDT1717MA::GainSelectAll()
 {
 	int nGainTotalFrames = gs_pDetInstance->GetAttrInt(Attr_GainTotalFrames);
 	int result = gs_pDetInstance->Invoke(Cmd_GainSelectAll, 0, nGainTotalFrames);
-
-	std::thread([this, nGainTotalFrames]() {
+	std::future<void> gainSelectFuture = std::async(std::launch::async, [this, nGainTotalFrames]() {
 		int nValid{ 0 };
 		do
 		{
@@ -585,8 +595,8 @@ int NDT1717MA::GainSelectAll()
 			qDebug() << QStringLiteral("nGainTotalFrames: ") << nGainTotalFrames
 				<< QStringLiteral(" nValid: ") << nValid;
 
-			emit signalGaimImageSelected(nGainTotalFrames, nValid);
-			if (gs_pDetInstance->GetAttrInt(Attr_CurrentTransaction) != 1)
+			emit signalGainImageSelected(nGainTotalFrames, nValid);
+			if (gs_pDetInstance->GetAttrInt(Attr_CurrentTransaction) != Enm_Transaction_GainGen)
 			{
 				qDebug() << "亮场校正已退出";
 				break;
@@ -595,8 +605,29 @@ int NDT1717MA::GainSelectAll()
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
 		} while (nValid < nGainTotalFrames);
-		}).detach();
-	return 0;
+		});
+
+	return gainSelectFuture;
+}
+
+void NDT1717MA::WaitForGainSelectComplete(std::future<void> f)
+{
+	if (f.valid())
+	{
+		qDebug() << "等待 GainSelectAll 完成...";
+		f.wait();
+		qDebug() << "GainSelectAll 已完成";
+	}
+}
+
+bool NDT1717MA::IsGainSelectComplete(std::future<void> f) const
+{
+	if (!f.valid())
+	{
+		return true; // 没有运行中的任务
+	}
+
+	return f.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
 }
 
 int NDT1717MA::GainGeneration(int timeout)
@@ -610,6 +641,135 @@ int NDT1717MA::GainGeneration(int timeout)
 	qDebug() << "result: " << result
 		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
 
+	return result;
+}
+
+int NDT1717MA::DefectInit()
+{
+	int result = gs_pDetInstance->SyncInvoke(Cmd_DefectInit, INT_MAX);
+	qDebug() << "result: " << result
+		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
+	return result;
+}
+
+int NDT1717MA::DefectStartAcq()
+{
+	if (!CheckBatteryStateOK())
+	{
+		return false;
+	}
+
+	int CurrentTransaction = gs_pDetInstance->GetAttrInt(Attr_CurrentTransaction);
+	if (CurrentTransaction != Enm_Transaction_DefectGen)
+	{
+		qDebug() << "当前不能进行增益矫正采集";
+		return Err_StateErr;
+	}
+
+	int result = gs_pDetInstance->Invoke(Cmd_StartAcq);
+	qDebug() << "result: " << result
+		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
+
+	if (result == Err_TaskPending)
+	{
+		gn_receviedIdx.store(0);
+	}
+
+	return result;
+}
+
+int NDT1717MA::DefectSelectAll(int groupIdx)
+{
+	int nExpectedImageCnt = nExpectedImageCnts[groupIdx];
+	int nExpectedValid = nDefectLightExpectedValids[groupIdx];
+	int result = gs_pDetInstance->Invoke(Cmd_DefectSelectAll, groupIdx, nExpectedImageCnt);
+	qDebug() << "result: " << result
+		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
+
+	if (result != Err_OK &&
+		result != Err_TaskPending)
+	{
+		return result;
+	}
+
+	int nValid{ 0 };
+	std::async(std::launch::async, [this, groupIdx, nExpectedValid, &nValid]() {
+		do
+		{
+			nValid = gs_pDetInstance->GetAttrInt(Attr_DefectValidFrames);
+			qDebug() << "nExpectedValid: " << nExpectedValid
+				<< " nValid: " << nValid;
+
+			emit signalDefectImageSelected(nExpectedValid, nValid);
+			if (gs_pDetInstance->GetAttrInt(Attr_CurrentTransaction) != Enm_Transaction_DefectGen)
+			{
+				qDebug() << "缺陷校正已退出";
+				break;
+			}
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+		} while (nValid < nExpectedValid);
+		}
+	).wait();
+
+	qDebug() << "groupIdx: " << groupIdx
+		<< " nValid: " << nValid
+		<< " nExpectedValid: " << nExpectedValid;
+
+	return Err_OK;
+}
+
+int NDT1717MA::DefectForceDarkContinuousAcq(int groupIdx)
+{
+	int nExpectedImageCnt = nExpectedImageCnts[groupIdx];
+	int nExpectedValid = nDefectDarkExpectedValids[groupIdx];
+	int result = gs_pDetInstance->Invoke(Cmd_ForceDarkContinuousAcq, nExpectedImageCnt);
+	qDebug() << "result: " << result
+		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
+
+	if (result != Err_OK &&
+		result != Err_TaskPending)
+	{
+		return result;
+	}
+
+	int nValid{ 0 };
+	std::async(std::launch::async, [this, groupIdx, nExpectedValid, &nValid]() {
+		do
+		{
+			nValid = gs_pDetInstance->GetAttrInt(Attr_DefectValidFrames);
+			qDebug() << "nExpectedValid: " << nExpectedValid
+				<< " nValid: " << nValid;
+
+			emit signalDefectImageSelected(nExpectedValid, nValid);
+			if (gs_pDetInstance->GetAttrInt(Attr_CurrentTransaction) != Enm_Transaction_DefectGen)
+			{
+				qDebug() << "缺陷校正已退出";
+				break;
+			}
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+		} while (nValid < nExpectedValid);
+		}
+	).wait();
+
+	qDebug() << "groupIdx: " << groupIdx
+		<< " nValid: " << nValid
+		<< " nExpectedValid: " << nExpectedValid;
+	return Err_OK;
+}
+
+int NDT1717MA::DefectGeneration()
+{
+	int result = gs_pDetInstance->SyncInvoke(Cmd_DefectGeneration, INT_MAX);
+	qDebug() << "result: " << result
+		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
+
+	result = gs_pDetInstance->SyncInvoke(Cmd_FinishGenerationProcess, INT_MAX);
+	qDebug() << "result: " << result
+		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
 	return result;
 }
 
@@ -677,7 +837,6 @@ void NDT1717MA::SetReceivedImage(int width, int height, const unsigned short* pD
 
 QImage NDT1717MA::GetReceivedImage() const
 {
-	qDebug() << "获取图像";
 	return m_receivedImage;
 }
 

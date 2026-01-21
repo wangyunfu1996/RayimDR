@@ -22,6 +22,12 @@ private:
 	bool GainSelectAll();
 	bool GainGeneration();
 
+	bool Defect();
+	bool DefectInit();
+	bool DefectStartAcq();
+	bool DefectSelectAll();
+	bool DefectGeneration();
+
 private:
 	Ui::CreateCorrectTemplateDlgClass ui;
 };

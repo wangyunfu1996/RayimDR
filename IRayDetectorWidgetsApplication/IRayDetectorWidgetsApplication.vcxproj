@@ -115,9 +115,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <QtRcc Include="IRayDetectorWidgetsApplication.qrc" />
-    <QtUic Include="IRayDetectorWidgetsApplication.ui" />
-    <QtMoc Include="IRayDetectorWidgetsApplication.h" />
-    <ClCompile Include="IRayDetectorWidgetsApplication.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

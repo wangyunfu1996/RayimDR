@@ -31,6 +31,8 @@ public:
 
 	int Initialize();
 	void DeInitialize();
+	bool Initialized() const;
+	bool CanModifyCfg() const;
 
 	int GetAttr(int nAttrID, int& nVal);
 	int GetAttr(int nAttrID, float& fVal);
@@ -64,8 +66,12 @@ public:
 	void StopAcq();
 
 	int OffsetGeneration();
-	int GainGeneration();
-	void StopGainGeneration();
+
+	int GainInit();
+	int GainStartAcq();
+	int GainSelectAll();
+	int GainGeneration(int timeout = 20000);
+
 	int Abort();
 
 	// 图像数据操作
@@ -81,6 +87,8 @@ private:
 
 signals:
 	void signalAcqImageReceived(int idx);
+	void signalGainImageReceived(int nCenterValue);
+
 	void signalStatusChanged(const NDT1717MAStatus& status);
 
 private:

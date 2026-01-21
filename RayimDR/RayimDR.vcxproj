@@ -26,6 +26,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="UI\AppCfgDialog.cpp" />
     <ClCompile Include="UI\CommonConfigUI.cpp" />
+    <ClCompile Include="UI\CreateCorrectTemplateDlg.cpp" />
     <ClCompile Include="UI\DetCfgDialog.cpp" />
     <ClCompile Include="UI\MainWindow.cpp" />
     <ClCompile Include="UI\MultiAcqCfgDialog.cpp" />
@@ -42,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Components\XGlobal.h" />
+    <QtMoc Include="UI\CreateCorrectTemplateDlg.h" />
     <QtMoc Include="ImageRender\XWindowLevelManager.h" />
     <QtMoc Include="ElaUIHepler.h" />
     <QtMoc Include="ImageRender\XImageHelper.h" />
@@ -62,6 +64,7 @@
   <ItemGroup>
     <QtUic Include="UI\AppCfgDialog.ui" />
     <QtUic Include="UI\CommonConfigUI.ui" />
+    <QtUic Include="UI\CreateCorrectTemplateDlg.ui" />
     <QtUic Include="UI\DetCfgDialog.ui" />
     <QtUic Include="UI\MultiAcqCfgDialog.ui" />
     <QtUic Include="UI\XRayCfgDialog.ui" />

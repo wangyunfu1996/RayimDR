@@ -67,46 +67,42 @@ namespace {
 			int nAvgValue = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_AvgValue);
 			int nCenterValue = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_CenterValue);
 
-			IRayVariantMapItem* pItem = pImg->propList.pItems;
-			int nItemCnt = pImg->propList.nItemCount;
-			while (nItemCnt--)
-			{
-				qDebug() << "pItem->nMapKey: " << pItem->nMapKey
-					<< " Enm_ImageTag: " << QString("0x%1").arg(pItem->nMapKey, 4, 16, QChar('0')).toUpper()
-					<< " pItem->varMapVal.vt: " << pItem->varMapVal.vt
-					<< " pItem->varMapVal.val.nVal: " << pItem->varMapVal.val.nVal
-					<< " pItem->varMapVal.val.fVal: " << pItem->varMapVal.val.fVal
-					<< " pItem->varMapVal.val.strVal: " << pItem->varMapVal.val.strVal;
-				pItem++;
-			}
+			//IRayVariantMapItem* pItem = pImg->propList.pItems;
+			//int nItemCnt = pImg->propList.nItemCount;
+			//while (nItemCnt--)
+			//{
+			//	qDebug() << "pItem->nMapKey: " << pItem->nMapKey
+			//		<< " Enm_ImageTag: " << QString("0x%1").arg(pItem->nMapKey, 4, 16, QChar('0')).toUpper()
+			//		<< " pItem->varMapVal.vt: " << pItem->varMapVal.vt
+			//		<< " pItem->varMapVal.val.nVal: " << pItem->varMapVal.val.nVal
+			//		<< " pItem->varMapVal.val.fVal: " << pItem->varMapVal.val.fVal
+			//		<< " pItem->varMapVal.val.strVal: " << pItem->varMapVal.val.strVal;
+			//	pItem++;
+			//}
 
-			//qDebug() << "pImg->nWidth: " << pImg->nWidth
-			//	<< " pImg->nHeight: " << pImg->nHeight
-			//	<< " pImg->nBytesPerPixel: " << pImg->nBytesPerPixel
-			//	<< " nImageSize: " << nImageSize
-			//	<< " nFrameNo: " << nFrameNo
-			//	<< " nImageID: " << nImageID
-			//	<< " nAvgValue: " << nAvgValue
-			//	<< " nCenterValue: " << nCenterValue;
+			int currentTransaction = gs_pDetInstance->GetAttrInt(Attr_CurrentTransaction);
+			qDebug() << "Attr_CurrentTransaction: " << currentTransaction
+				<< " pImg->nWidth: " << pImg->nWidth
+				<< " pImg->nHeight: " << pImg->nHeight
+				<< " pImg->nBytesPerPixel: " << pImg->nBytesPerPixel
+				<< " nImageSize: " << nImageSize
+				<< " nFrameNo: " << nFrameNo
+				<< " nImageID: " << nImageID
+				<< " nAvgValue: " << nAvgValue
+				<< " nCenterValue: " << nCenterValue;
 
 			gn_receviedIdx.store(gn_receviedIdx.load() + 1);
 			// 将图像数据深拷贝到QImage
 			NDT1717MA::Instance().SetReceivedImage(pImg->nWidth, pImg->nHeight, pImageData, nImageSize);
 
-			if (gs_pDetInstance->GetAttrInt(Attr_CurrentTransaction) == Enm_Transaction::Enm_Transaction_GainGen)
+			if (currentTransaction == Enm_Transaction::Enm_Transaction_Null)
 			{
-				qDebug() << "Enm_Transaction_GainGen";
-			}
-			else if (gs_pDetInstance->GetAttrInt(Attr_CurrentTransaction) == Enm_Transaction::Enm_Transaction_DefectGen)
-			{
-				qDebug() << "Enm_Transaction_DefectGen";
-			}
-			else
-			{
-				qDebug() << "Normal Acq Image";
 				emit NDT1717MA::Instance().signalAcqImageReceived(gn_receviedIdx.load());
 			}
-
+			else if (currentTransaction == Enm_Transaction::Enm_Transaction_GainGen)
+			{
+				emit NDT1717MA::Instance().signalGainImageReceived(nCenterValue);
+			}
 			break;
 		}
 		case Evt_TaskResult_Succeed:
@@ -184,34 +180,33 @@ int NDT1717MA::Initialize()
 	else
 		qDebug() << "[Yes]";
 
+	//ret = UpdateMode("Mode5");
+	//int sw_offset{ -1 };
+	//int sw_gain{ -1 };
+	//int sw_defect{ -1 };
+	//ret = GetCurrentCorrectOption(sw_offset, sw_gain, sw_defect);
+	//if (Err_OK != ret)
+	//{
+	//	qDebug() << "[No ] - error:" << QString::fromStdString(gs_pDetInstance->GetErrorInfo(ret));
+	//	return ret;
+	//}
 
-	ret = UpdateMode("Mode5");
-	int sw_offset{ -1 };
-	int sw_gain{ -1 };
-	int sw_defect{ -1 };
-	ret = GetCurrentCorrectOption(sw_offset, sw_gain, sw_defect);
-	if (Err_OK != ret)
-	{
-		qDebug() << "[No ] - error:" << QString::fromStdString(gs_pDetInstance->GetErrorInfo(ret));
-		return ret;
-	}
+	//sw_offset = 1;
+	//sw_gain = 1;
+	//sw_defect = 1;
+	//ret = SetCorrectOption(sw_offset, sw_gain, sw_defect);
+	//if (Err_OK != ret)
+	//{
+	//	qDebug() << "[No ] - error:" << QString::fromStdString(gs_pDetInstance->GetErrorInfo(ret));
+	//	return ret;
+	//}
 
-	sw_offset = 1;
-	sw_gain = 1;
-	sw_defect = 1;
-	ret = SetCorrectOption(sw_offset, sw_gain, sw_defect);
-	if (Err_OK != ret)
-	{
-		qDebug() << "[No ] - error:" << QString::fromStdString(gs_pDetInstance->GetErrorInfo(ret));
-		return ret;
-	}
-
-	ret = SetPreviewImageEnable(0);
-	if (Err_OK != ret)
-	{
-		qDebug() << "[No ] - error:" << QString::fromStdString(gs_pDetInstance->GetErrorInfo(ret));
-		return ret;
-	}
+	//ret = SetPreviewImageEnable(0);
+	//if (Err_OK != ret)
+	//{
+	//	qDebug() << "[No ] - error:" << QString::fromStdString(gs_pDetInstance->GetErrorInfo(ret));
+	//	return ret;
+	//}
 
 	return ret;
 }
@@ -225,6 +220,21 @@ void NDT1717MA::DeInitialize()
 		delete gs_pDetInstance;
 		gs_pDetInstance = NULL;
 	}
+}
+
+bool NDT1717MA::Initialized() const
+{
+	return (nullptr != gs_pDetInstance && gs_pDetInstance->Initilized());
+}
+
+bool NDT1717MA::CanModifyCfg() const
+{
+	if (!Initialized())
+	{
+		return false;
+	}
+
+	return true;
 }
 
 int NDT1717MA::GetAttr(int nAttrID, int& nVal)
@@ -450,10 +460,6 @@ void NDT1717MA::ClearAcq()
 		return;
 	}
 
-	//int result = gs_pDetInstance->SyncInvoke(Cmd_ActivePanel, 20000);
-	//qDebug() << "result: " << result
-	//	<< gs_pDetInstance->GetErrorInfo(result).c_str();
-
 	int result = gs_pDetInstance->SyncInvoke(Cmd_ClearAcq, 10000);
 	qDebug() << "result: " << result
 		<< gs_pDetInstance->GetErrorInfo(result).c_str();
@@ -484,9 +490,10 @@ bool NDT1717MA::StartAcq()
 		}
 	} while (state != Enm_State_Ready && retryTimes);
 
-	//int result = gs_pDetInstance->SyncInvoke(Cmd_ActivePanel, 20000);
-	//qDebug() << "result: " << result
-	//	<< gs_pDetInstance->GetErrorInfo(result).c_str();
+	if (state != Enm_State_Ready)
+	{
+		return Err_FPD_Busy;
+	}
 
 	qDebug("Sequence acquiring...");
 	int result = gs_pDetInstance->Invoke(Cmd_StartAcq);
@@ -506,10 +513,6 @@ void NDT1717MA::StopAcq()
 	int result = gs_pDetInstance->SyncInvoke(Cmd_StopAcq, 2000);
 	qDebug() << "result: " << result
 		<< gs_pDetInstance->GetErrorInfo(result).c_str();
-
-	//result = gs_pDetInstance->SyncInvoke(Cmd_DeactivePanel, 2000);
-	//qDebug() << "result: " << result
-	//	<< gs_pDetInstance->GetErrorInfo(result).c_str();
 }
 
 int NDT1717MA::OffsetGeneration()
@@ -543,69 +546,78 @@ int NDT1717MA::OffsetGeneration()
 	return Err_OK;
 }
 
-int NDT1717MA::GainGeneration()
+int NDT1717MA::GainInit()
 {
-	qDebug() << QStringLiteral("Generate gain...");
-	int result;
-	result = gs_pDetInstance->SyncInvoke(Cmd_GainInit, 5000);
+	int result = gs_pDetInstance->SyncInvoke(Cmd_GainInit, 5000);
 
-	if (Err_OK != result)
+	qDebug() << "result: " << result
+		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
+	return result;
+}
+
+int NDT1717MA::GainStartAcq()
+{
+	if (!CheckBatteryStateOK())
 	{
-		qDebug() << QStringLiteral("GainInit failed! err=") << QString::fromStdString(gs_pDetInstance->GetErrorInfo(result));
-		return result;
+		return false;
 	}
 
-	// 获取参数
-	int nGainTotalFrames = gs_pDetInstance->GetAttrInt(Attr_GainTotalFrames);
-
-	// 等待射线源就绪
-
-	// 采集亮场图像
-	result = gs_pDetInstance->Invoke(Cmd_StartAcq);
+	int CurrentTransaction = gs_pDetInstance->GetAttrInt(Attr_CurrentTransaction);
+	int result = gs_pDetInstance->Invoke(Cmd_StartAcq);
+	qDebug() << "result: " << result
+		<< gs_pDetInstance->GetErrorInfo(result).c_str();
 
 	if (result == Err_TaskPending)
 	{
-		std::thread t([this, nGainTotalFrames]() {
-			int nValid{ 0 };
-			do
-			{
-				nValid = gs_pDetInstance->GetAttrInt(Attr_GainValidFrames);
-				qDebug() << QStringLiteral("nGainTotalFrames: ") << nGainTotalFrames
-					<< QStringLiteral(" nValid: ") << nValid;
-				std::this_thread::sleep_for(std::chrono::milliseconds(100));
-			} while (nValid < nGainTotalFrames);
-
-			int ret;
-			ret = gs_pDetInstance->Invoke(Cmd_GainGeneration);
-
-			if (ret != Err_OK)
-			{
-				qDebug() << QStringLiteral("Generate gain map failed! err=") << QString::fromStdString(gs_pDetInstance->GetErrorInfo(ret));
-			}
-			else
-			{
-				qDebug() << QStringLiteral("Generate gain done...");
-			}
-			});
-		t.detach();
+		gn_receviedIdx.store(0);
 	}
-	return Err_OK;
+
+	return result;
 }
 
-void NDT1717MA::StopGainGeneration()
+int NDT1717MA::GainSelectAll()
+{
+	int nGainTotalFrames = gs_pDetInstance->GetAttrInt(Attr_GainTotalFrames);
+	int result = gs_pDetInstance->Invoke(Cmd_GainSelectAll, 0, nGainTotalFrames);
+
+	std::thread([this, nGainTotalFrames]() {
+		int nValid{ 0 };
+		do
+		{
+			nValid = gs_pDetInstance->GetAttrInt(Attr_GainValidFrames);
+			qDebug() << QStringLiteral("nGainTotalFrames: ") << nGainTotalFrames
+				<< QStringLiteral(" nValid: ") << nValid;
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+			if (gs_pDetInstance->GetAttrInt(Attr_CurrentTransaction) != 1)
+			{
+				qDebug() << "亮场校正已退出";
+				break;
+			}
+		} while (nValid < nGainTotalFrames);
+		}).detach();
+	return 0;
+}
+
+int NDT1717MA::GainGeneration(int timeout)
 {
 	int result;
-	result = gs_pDetInstance->SyncInvoke(Cmd_FinishGenerationProcess, 3000);
-
+	result = gs_pDetInstance->SyncInvoke(Cmd_GainGeneration, timeout);
 	qDebug() << "result: " << result
-		<< gs_pDetInstance->GetErrorInfo(result).c_str();
+		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
+
+	result = gs_pDetInstance->SyncInvoke(Cmd_FinishGenerationProcess, timeout);
+	qDebug() << "result: " << result
+		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
+
+	return result;
 }
 
 int NDT1717MA::Abort()
 {
 	int result = gs_pDetInstance->Abort();
 	qDebug() << "result: " << result
-		<< gs_pDetInstance->GetErrorInfo(result).c_str();
+		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
 	return result;
 }
 

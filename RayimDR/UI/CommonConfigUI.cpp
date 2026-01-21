@@ -96,21 +96,25 @@ void CommonConfigUI::initUIConnect()
 		{
 			xGlobal.MAX_FPS.store(1);
 			ui.spinBox_fps->setMaximum(1);
+			emit signalChangeDetMode("Mode5");
 		}
 		else if ("2x2" == text)
 		{
 			xGlobal.MAX_FPS.store(4);
 			ui.spinBox_fps->setMaximum(4);
+			emit signalChangeDetMode("Mode6");
 		}
 		else if ("3x3" == text)
 		{
 			xGlobal.MAX_FPS.store(10);
 			ui.spinBox_fps->setMaximum(10);
+			emit signalChangeDetMode("Mode7");
 		}
 		else if ("4x4" == text)
 		{
 			xGlobal.MAX_FPS.store(16);
 			ui.spinBox_fps->setMaximum(16);
+			emit signalChangeDetMode("Mode8");
 		}
 		});
 }

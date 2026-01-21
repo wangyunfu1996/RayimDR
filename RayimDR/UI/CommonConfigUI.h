@@ -20,6 +20,9 @@ private:
 	void onThemeChanged(ElaThemeType::ThemeMode themeMode);
 	void initUIConnect();
 
+signals:
+	void signalChangeDetMode(std::string mode);
+
 private:
 	Ui::CommonConfigUIClass ui;
 

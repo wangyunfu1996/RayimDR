@@ -36,10 +36,12 @@
 
 #include "UI/XRayCfgDialog.h"
 #include "UI/DetCfgDialog.h"
+#include "UI/CreateCorrectTemplateDlg.h"
 #include "UI/AppCfgDialog.h"
 #include "UI/MultiAcqCfgDialog.h"
 
 #include "../IRayDetector/NDT1717MA.h"
+#include "../IRayDetector/IRayDetectorWidget.h"
 
 MainWindow::MainWindow(QWidget* parent)
 	: ElaWindow(parent)
@@ -69,6 +71,8 @@ MainWindow::MainWindow(QWidget* parent)
 	_closeDialog->setRightButtonText("确认");
 
 	connect(_closeDialog, &ElaContentDialog::rightButtonClicked, this, [this]() {
+		DET.StopQueryStatus();
+		DET.DeInitialize();
 		this->close();
 		});
 
@@ -93,6 +97,29 @@ MainWindow::MainWindow(QWidget* parent)
 	_XGraphicsView = new XGraphicsView(mainWidget);
 	_XImageAdjustTool = new XImageAdjustTool(mainWidget);
 	_CommonConfigUI = new CommonConfigUI(mainWidget);
+	connect(_CommonConfigUI, &CommonConfigUI::signalChangeDetMode, this, [this](std::string mode) {
+
+		if (!DET.Initialized())
+		{
+			emit xSignaHelper.signalShowErrorMessageBar("探测器未连接！");
+			return;
+		}
+
+		if (!DET.CanModifyCfg())
+		{
+			emit xSignaHelper.signalShowErrorMessageBar("当前不允许修改参数！");
+			return;
+		}
+
+		if (0 != DET.UpdateMode(mode))
+		{
+			emit xSignaHelper.signalShowErrorMessageBar("修改探测器模式失败！");
+		}
+		else
+		{
+			emit xSignaHelper.signalShowSuccessMessageBar("修改探测器模式成功！");
+		}
+		});
 
 	initMenuBar();
 
@@ -157,8 +184,6 @@ MainWindow::MainWindow(QWidget* parent)
 MainWindow::~MainWindow()
 {
 	qDebug() << "主窗口析构";
-	DET.StopQueryStatus();
-	DET.DeInitialize();
 }
 
 void MainWindow::updateStatusText(const QString& msg)
@@ -344,6 +369,20 @@ void MainWindow::initMenuBar()
 		dialog.exec();
 		});
 
+	action = configMenu->addAction("探测器校正");
+	connect(action, &QAction::triggered, this, [this]() {
+		if (!DET.Initialized())
+		{
+			emit xSignaHelper.signalShowErrorMessageBar("探测器未连接!");
+			return;
+		}
+
+		CreateCorrectTemplateDlg* dialog = new CreateCorrectTemplateDlg;
+		dialog->show();
+
+		//CreateCorrectTemplateDlg dialog;
+		//dialog.exec();
+		});
 
 	fileMenu->addSeparator();
 	action = configMenu->addAction("软件配置");
@@ -516,6 +555,9 @@ void MainWindow::connectToDet()
 		emit xSignaHelper.signalUpdateStatusInfo("探测器已连接");
 		emit xSignaHelper.signalShowSuccessMessageBar("探测器已连接");
 		DET.StartQueryStatus();
+
+		IRayDetectorWidget* pIRayDetectorWidget = new IRayDetectorWidget;
+		pIRayDetectorWidget->showNormal();
 	}
 
 	//QFuture<int> future = QtConcurrent::run([this]() {

@@ -67,6 +67,9 @@
     <ClCompile Include="ImageRender\XWindowLevelManager.cpp">
       <Filter>ImageRender</Filter>
     </ClCompile>
+    <ClCompile Include="UI\CreateCorrectTemplateDlg.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Components\AcqTask.h">
@@ -123,6 +126,9 @@
     <QtMoc Include="ImageRender\XWindowLevelManager.h">
       <Filter>ImageRender</Filter>
     </QtMoc>
+    <QtMoc Include="UI\CreateCorrectTemplateDlg.h">
+      <Filter>UI</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Components\XGlobal.h">
@@ -143,6 +149,9 @@
       <Filter>UI</Filter>
     </QtUic>
     <QtUic Include="UI\XRayCfgDialog.ui">
+      <Filter>UI</Filter>
+    </QtUic>
+    <QtUic Include="UI\CreateCorrectTemplateDlg.ui">
       <Filter>UI</Filter>
     </QtUic>
   </ItemGroup>

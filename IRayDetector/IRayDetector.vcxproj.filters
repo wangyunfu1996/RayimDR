@@ -64,6 +64,9 @@
     <ClCompile Include="QtLogger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="IRayDetectorWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="NDT1717MA.h">
@@ -72,5 +75,13 @@
     <QtMoc Include="TiffHelper.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="IRayDetectorWidget.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="IRayDetectorWidget.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
   </ItemGroup>
 </Project>

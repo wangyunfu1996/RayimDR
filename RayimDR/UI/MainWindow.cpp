@@ -97,30 +97,6 @@ MainWindow::MainWindow(QWidget* parent)
 	_XGraphicsView = new XGraphicsView(mainWidget);
 	_XImageAdjustTool = new XImageAdjustTool(mainWidget);
 	_CommonConfigUI = new CommonConfigUI(mainWidget);
-	connect(_CommonConfigUI, &CommonConfigUI::signalChangeDetMode, this, [this](std::string mode) {
-
-		if (!DET.Initialized())
-		{
-			emit xSignaHelper.signalShowErrorMessageBar("探测器未连接！");
-			return;
-		}
-
-		if (!DET.CanModifyCfg())
-		{
-			emit xSignaHelper.signalShowErrorMessageBar("当前不允许修改参数！");
-			return;
-		}
-
-		if (0 != DET.UpdateMode(mode))
-		{
-			emit xSignaHelper.signalShowErrorMessageBar("修改探测器模式失败！");
-		}
-		else
-		{
-			emit xSignaHelper.signalShowSuccessMessageBar("修改探测器模式成功！");
-		}
-		});
-
 	initMenuBar();
 
 	initToolBar();

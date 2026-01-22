@@ -19,9 +19,8 @@ public:
 private:
 	void onThemeChanged(ElaThemeType::ThemeMode themeMode);
 	void initUIConnect();
-
-signals:
-	void signalChangeDetMode(std::string mode);
+	void changeMode(const QString& modeText);
+	void setUIEnable(bool enable);
 
 private:
 	Ui::CommonConfigUIClass ui;

@@ -14,6 +14,8 @@
 
 #pragma warning(disable:4996)
 
+#define dbgResult(code) qDebug() << QString::number(code) << code << " msg: " << gs_pDetInstance->GetErrorInfo(code).c_str()
+
 const int NDT1717MA::nSuggestedKVs[nTotalGroup] = { 40, 60, 70, 80 };
 const int NDT1717MA::nExpectedGrays[nTotalGroup] = { 1200, 2000, 4000, 8000 };
 const int NDT1717MA::nExpectedImageCnts[nTotalGroup] = { 1, 1, 1, 5 };
@@ -237,12 +239,7 @@ bool NDT1717MA::Initialized() const
 
 bool NDT1717MA::CanModifyCfg() const
 {
-	if (!Initialized())
-	{
-		return false;
-	}
-
-	return true;
+	return Initialized();
 }
 
 int NDT1717MA::GetAttr(int nAttrID, int& nVal)
@@ -260,41 +257,39 @@ int NDT1717MA::GetAttr(int nAttrID, std::string& strVal)
 	return gs_pDetInstance->GetAttr(nAttrID, strVal);
 }
 
-int NDT1717MA::UpdateMode(std::string mode)
+bool NDT1717MA::UpdateMode(std::string mode)
 {
 	std::string current_mode;
-	int ret = gs_pDetInstance->GetAttr(Attr_CurrentSubset, current_mode);
+	int result = gs_pDetInstance->GetAttr(Attr_CurrentSubset, current_mode);
+	dbgResult(result);
 	if (current_mode == mode)
 	{
 		qDebug() << QStringLiteral("目标模式与当前模式相同，当前模式") << QString::fromStdString(current_mode);
-		return Err_OK;
+		return true;
 	}
 
-	ret = gs_pDetInstance->SyncInvoke(Cmd_SetCaliSubset, mode, 50000);
+	result = gs_pDetInstance->SyncInvoke(Cmd_SetCaliSubset, mode, INT_MAX);
+	dbgResult(result);
 
-	if (Err_OK != ret)
+	if (Err_OK != result)
 	{
 		qDebug() << QStringLiteral("修改探测器工作模式失败！");
-		return ret;
+		return false;
 	}
 
-	int w{ -1 };
-	gs_pDetInstance->GetAttr(Attr_Width, w);
-	int h{ -1 };
-	gs_pDetInstance->GetAttr(Attr_Height, h);
-	int bin{ -1 };
-	gs_pDetInstance->GetAttr(Attr_AcqParam_Binning_W, bin);
-	int zoom{ -1 };
-	gs_pDetInstance->GetAttr(Attr_AcqParam_Zoom_W, zoom);
+	int w = gs_pDetInstance->GetAttrInt(Attr_Width);
+	int h = gs_pDetInstance->GetAttrInt(Attr_Height);
+	int binning = gs_pDetInstance->GetAttrInt(Attr_AcqParam_Binning_W);
+	int zoom = gs_pDetInstance->GetAttrInt(Attr_AcqParam_Zoom_W);
 
 	qDebug() << QStringLiteral("修改探测器工作模式成功，")
 		<< QStringLiteral(" 当前工作模式：") << QString::fromStdString(mode)
 		<< QStringLiteral(" Attr_Width: ") << w
 		<< QStringLiteral(" Attr_Height: ") << h
-		<< QStringLiteral(" Attr_AcqParam_Binning_W: ") << bin
+		<< QStringLiteral(" Attr_AcqParam_Binning_W: ") << binning
 		<< QStringLiteral(" Attr_AcqParam_Zoom_W: ") << zoom;
 
-	return Err_OK;
+	return true;
 }
 
 int NDT1717MA::GetCurrentCorrectOption(int& sw_offset, int& sw_gain, int& sw_defect)
@@ -336,18 +331,17 @@ int NDT1717MA::SetCorrectOption(int sw_offset, int sw_gain, int sw_defect)
 		nCorrectOption |= Enm_CorrectOp_SW_Defect;
 	}
 
-	int result = gs_pDetInstance->SyncInvoke(Cmd_SetCorrectOption, nCorrectOption, 5000);
-	qDebug() << "result: " << result
-		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
-	return result;
+	int result = gs_pDetInstance->SyncInvoke(Cmd_SetCorrectOption, nCorrectOption, INT_MAX);
+	dbgResult(result);
 
+	int CurrentCorrectOption = gs_pDetInstance->GetAttrInt(Attr_CurrentCorrectOption);
 
-	qDebug() << QStringLiteral("修改探测器校正模式成功：")
-		<< QStringLiteral(" Enm_CorrectOp_SW_PreOffset: ") << sw_offset
-		<< QStringLiteral(" Enm_CorrectOp_SW_Gain: ") << sw_gain
-		<< QStringLiteral(" Enm_CorrectOp_SW_Defect: ") << sw_defect;
+	qDebug() << " Enm_CorrectOp_SW_PreOffset: " << ((CurrentCorrectOption & Enm_CorrectOp_SW_PreOffset) ? 1 : 0)
+		<< " Enm_CorrectOp_SW_PostOffset: " << ((CurrentCorrectOption & Enm_CorrectOp_SW_PostOffset) ? 1 : 0)
+		<< " Enm_CorrectOp_SW_Gain: " << ((CurrentCorrectOption & Enm_CorrectOp_SW_Gain) ? 1 : 0)
+		<< " Enm_CorrectOp_SW_Defect: " << ((CurrentCorrectOption & Enm_CorrectOp_SW_Defect) ? 1 : 0);
 
-	return result;
+	return result == Err_OK;
 }
 
 int NDT1717MA::SetPreviewImageEnable(int enable)
@@ -372,7 +366,10 @@ int NDT1717MA::SyncInvoke(int nCmdId, int timeout)
 		return Err_NotInitialized;
 	}
 
-	return gs_pDetInstance->SyncInvoke(nCmdId, timeout);
+	int result = gs_pDetInstance->SyncInvoke(nCmdId, timeout);
+	dbgResult(result);
+
+	return result;
 }
 
 int NDT1717MA::SyncInvoke(int nCmdId, int nParam1, int timeout)
@@ -387,7 +384,10 @@ int NDT1717MA::SyncInvoke(int nCmdId, int nParam1, int timeout)
 		return Err_NotInitialized;
 	}
 
-	return gs_pDetInstance->SyncInvoke(nCmdId, nParam1, timeout);
+	int result = gs_pDetInstance->SyncInvoke(nCmdId, nParam1, timeout);
+	dbgResult(result);
+
+	return result;
 }
 
 int NDT1717MA::SyncInvoke(int nCmdId, int nParam1, int nParam2, int timeout)
@@ -403,7 +403,10 @@ int NDT1717MA::SyncInvoke(int nCmdId, int nParam1, int nParam2, int timeout)
 		return Err_NotInitialized;
 	}
 
-	return gs_pDetInstance->SyncInvoke(nCmdId, nParam1, nParam2, timeout);
+	int result = gs_pDetInstance->SyncInvoke(nCmdId, nParam1, nParam2, timeout);
+	dbgResult(result);
+
+	return result;
 }
 
 int NDT1717MA::Invoke(int nCmdId)
@@ -416,7 +419,10 @@ int NDT1717MA::Invoke(int nCmdId)
 		return Err_NotInitialized;
 	}
 
-	return gs_pDetInstance->Invoke(nCmdId);
+	int result = gs_pDetInstance->Invoke(nCmdId);
+	dbgResult(result);
+
+	return result;
 }
 
 int NDT1717MA::Invoke(int nCmdId, int nParam1)
@@ -430,7 +436,10 @@ int NDT1717MA::Invoke(int nCmdId, int nParam1)
 		return Err_NotInitialized;
 	}
 
-	return gs_pDetInstance->Invoke(nCmdId, nParam1);
+	int result = gs_pDetInstance->Invoke(nCmdId, nParam1);
+	dbgResult(result);
+
+	return result;
 }
 
 int NDT1717MA::Invoke(int nCmdId, int nParam1, int nParam2)
@@ -445,14 +454,17 @@ int NDT1717MA::Invoke(int nCmdId, int nParam1, int nParam2)
 		return Err_NotInitialized;
 	}
 
-	return gs_pDetInstance->Invoke(nCmdId, nParam1, nParam2);
+	int result = gs_pDetInstance->Invoke(nCmdId, nParam1, nParam2);
+	dbgResult(result);
+
+	return result;
 }
 
 int NDT1717MA::GetDetectorState(int& state)
 {
 	int result = gs_pDetInstance->GetAttr(Attr_State, state);
-	qDebug() << "result: " << result
-		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
+	dbgResult(result);
+
 	return result;
 }
 
@@ -464,9 +476,9 @@ void NDT1717MA::ClearAcq()
 		return;
 	}
 
-	int result = gs_pDetInstance->SyncInvoke(Cmd_ClearAcq, 10000);
-	qDebug() << "result: " << result
-		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
+	int result = gs_pDetInstance->SyncInvoke(Cmd_ClearAcq, INT_MAX);
+	dbgResult(result);
+
 	if (result == Err_OK)
 	{
 		gn_receviedIdx.store(0);
@@ -499,10 +511,9 @@ bool NDT1717MA::StartAcq()
 		return Err_FPD_Busy;
 	}
 
-	qDebug("Sequence acquiring...");
 	int result = gs_pDetInstance->Invoke(Cmd_StartAcq);
-	qDebug() << "result: " << result
-		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
+	dbgResult(result);
+
 	if (result == Err_TaskPending)
 	{
 		gn_receviedIdx.store(0);
@@ -513,10 +524,8 @@ bool NDT1717MA::StartAcq()
 
 void NDT1717MA::StopAcq()
 {
-	qDebug("Stop Sequence acquiring...");
 	int result = gs_pDetInstance->SyncInvoke(Cmd_StopAcq, 2000);
-	qDebug() << "result: " << result
-		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
+	dbgResult(result);
 }
 
 int NDT1717MA::OffsetGeneration()
@@ -525,10 +534,10 @@ int NDT1717MA::OffsetGeneration()
 	int nIntervalTimeOfEachFrame = gs_pDetInstance->GetAttrInt(Attr_UROM_SequenceIntervalTime);
 	qDebug("Generate offset...");
 	int timeout = (nOffsetTotalFrames + 10) * nIntervalTimeOfEachFrame + 5000;
-	int ret;
-	ret = gs_pDetInstance->Invoke(Cmd_OffsetGeneration);
+	int result = gs_pDetInstance->Invoke(Cmd_OffsetGeneration);
+	dbgResult(result);
 
-	if (ret == Err_TaskPending)
+	if (result == Err_TaskPending)
 	{
 		s_bOffsetGenerationSucceedOrFailed.store(false);
 		std::thread t([this, nOffsetTotalFrames, timeout]() {
@@ -550,12 +559,11 @@ int NDT1717MA::OffsetGeneration()
 	return Err_OK;
 }
 
-int NDT1717MA::GainInit()
+bool NDT1717MA::GainInit()
 {
 	int result = gs_pDetInstance->SyncInvoke(Cmd_GainInit, 5000);
-	qDebug() << "result: " << result
-		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
-	return result;
+	dbgResult(result);
+	return result == Err_OK;
 }
 
 int NDT1717MA::GainStartAcq()
@@ -572,8 +580,7 @@ int NDT1717MA::GainStartAcq()
 	}
 
 	int result = gs_pDetInstance->Invoke(Cmd_StartAcq);
-	qDebug() << "result: " << result
-		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
+	dbgResult(result);
 
 	if (result == Err_TaskPending)
 	{
@@ -632,27 +639,24 @@ bool NDT1717MA::IsGainSelectComplete(std::future<void> f) const
 
 int NDT1717MA::GainGeneration(int timeout)
 {
-	int result;
-	result = gs_pDetInstance->SyncInvoke(Cmd_GainGeneration, timeout);
-	qDebug() << "result: " << result
-		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
+	int result = gs_pDetInstance->SyncInvoke(Cmd_GainGeneration, timeout);
+	dbgResult(result);
 
 	result = gs_pDetInstance->SyncInvoke(Cmd_FinishGenerationProcess, timeout);
-	qDebug() << "result: " << result
-		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
+	dbgResult(result);
 
 	return result;
 }
 
-int NDT1717MA::DefectInit()
+bool NDT1717MA::DefectInit()
 {
 	int result = gs_pDetInstance->SyncInvoke(Cmd_DefectInit, INT_MAX);
-	qDebug() << "result: " << result
-		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
-	return result;
+	dbgResult(result);
+
+	return result == Err_OK || result == Err_TaskPending;
 }
 
-int NDT1717MA::DefectStartAcq()
+bool NDT1717MA::DefectStartAcq()
 {
 	if (!CheckBatteryStateOK())
 	{
@@ -662,34 +666,33 @@ int NDT1717MA::DefectStartAcq()
 	int CurrentTransaction = gs_pDetInstance->GetAttrInt(Attr_CurrentTransaction);
 	if (CurrentTransaction != Enm_Transaction_DefectGen)
 	{
-		qDebug() << "当前不能进行增益矫正采集";
-		return Err_StateErr;
+		qDebug() << "当前不能进行缺陷矫正采集"
+			<< " Attr_CurrentTransaction: " << CurrentTransaction;
+		return false;
 	}
 
 	int result = gs_pDetInstance->Invoke(Cmd_StartAcq);
-	qDebug() << "result: " << result
-		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
+	dbgResult(result);
 
 	if (result == Err_TaskPending)
 	{
 		gn_receviedIdx.store(0);
 	}
 
-	return result;
+	return result == Err_TaskPending;
 }
 
-int NDT1717MA::DefectSelectAll(int groupIdx)
+bool NDT1717MA::DefectSelectAll(int groupIdx)
 {
 	int nExpectedImageCnt = nExpectedImageCnts[groupIdx];
 	int nExpectedValid = nDefectLightExpectedValids[groupIdx];
 	int result = gs_pDetInstance->Invoke(Cmd_DefectSelectAll, groupIdx, nExpectedImageCnt);
-	qDebug() << "result: " << result
-		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
+	dbgResult(result);
 
 	if (result != Err_OK &&
 		result != Err_TaskPending)
 	{
-		return result;
+		return false;
 	}
 
 	int nValid{ 0 };
@@ -717,21 +720,20 @@ int NDT1717MA::DefectSelectAll(int groupIdx)
 		<< " nValid: " << nValid
 		<< " nExpectedValid: " << nExpectedValid;
 
-	return Err_OK;
+	return nValid == nExpectedValid;
 }
 
-int NDT1717MA::DefectForceDarkContinuousAcq(int groupIdx)
+bool NDT1717MA::DefectForceDarkContinuousAcq(int groupIdx)
 {
 	int nExpectedImageCnt = nExpectedImageCnts[groupIdx];
 	int nExpectedValid = nDefectDarkExpectedValids[groupIdx];
 	int result = gs_pDetInstance->Invoke(Cmd_ForceDarkContinuousAcq, nExpectedImageCnt);
-	qDebug() << "result: " << result
-		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
+	dbgResult(result);
 
 	if (result != Err_OK &&
 		result != Err_TaskPending)
 	{
-		return result;
+		return false;
 	}
 
 	int nValid{ 0 };
@@ -758,26 +760,25 @@ int NDT1717MA::DefectForceDarkContinuousAcq(int groupIdx)
 	qDebug() << "groupIdx: " << groupIdx
 		<< " nValid: " << nValid
 		<< " nExpectedValid: " << nExpectedValid;
-	return Err_OK;
+
+	return nValid == nExpectedValid;
 }
 
-int NDT1717MA::DefectGeneration()
+bool NDT1717MA::DefectGeneration()
 {
 	int result = gs_pDetInstance->SyncInvoke(Cmd_DefectGeneration, INT_MAX);
-	qDebug() << "result: " << result
-		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
+	dbgResult(result);
 
 	result = gs_pDetInstance->SyncInvoke(Cmd_FinishGenerationProcess, INT_MAX);
-	qDebug() << "result: " << result
-		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
-	return result;
+	dbgResult(result);
+
+	return result == Err_OK;
 }
 
 int NDT1717MA::Abort()
 {
 	int result = gs_pDetInstance->Abort();
-	qDebug() << "result: " << result
-		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str();
+	dbgResult(result);
 	return result;
 }
 

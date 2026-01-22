@@ -39,7 +39,7 @@ public:
 	int GetAttr(int nAttrID, float& fVal);
 	int GetAttr(int nAttrID, std::string& strVal);
 
-	int UpdateMode(std::string mode);
+	bool UpdateMode(std::string mode);
 	int GetCurrentCorrectOption(int& sw_offset, int& sw_gain, int& sw_defect);
 	int SetCorrectOption(int sw_offset, int sw_gain, int sw_defect);
 	int SetPreviewImageEnable(int enable);
@@ -68,7 +68,7 @@ public:
 
 	int OffsetGeneration();
 
-	int GainInit();
+	bool GainInit();
 	int GainStartAcq();
 	std::future<void> GainSelectAll();
 	int GainGeneration(int timeout = 20000);
@@ -78,11 +78,11 @@ public:
 	// 检查 GainSelectAll 是否完成（非阻塞）
 	bool IsGainSelectComplete(std::future<void> f) const;
 
-	int DefectInit();
-	int DefectStartAcq();
-	int DefectSelectAll(int groupIdx);
-	int DefectForceDarkContinuousAcq(int groupIdx);
-	int DefectGeneration();
+	bool DefectInit();
+	bool DefectStartAcq();
+	bool DefectSelectAll(int groupIdx);
+	bool DefectForceDarkContinuousAcq(int groupIdx);
+	bool DefectGeneration();
 
 	int Abort();
 

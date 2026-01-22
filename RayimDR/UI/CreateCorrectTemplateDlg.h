@@ -17,12 +17,13 @@ private:
 
 	bool OffsetGeneration();
 
+	void Gain();	// 一键生成Gain
 	bool GainInit();
 	bool GainStartAcq();
 	bool GainSelectAll();
 	bool GainGeneration();
 
-	bool Defect();
+	void Defect();	// 一键生成Defect
 	bool DefectInit();
 	bool DefectStartAcq();
 	bool DefectSelectAll();

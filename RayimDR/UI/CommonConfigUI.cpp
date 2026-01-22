@@ -1,10 +1,17 @@
 #include "CommonConfigUI.h"
 
+#include <QtConcurrent/QtConcurrent>
+
 #include "ElaTheme.h"
 #include "ElaDoubleSpinBox.h"
 
 #include "Components/XSignalsHelper.h"
 #include "ElaUIHepler.h"
+
+#if DET_TYPE == DET_TYPE_VIRTUAL
+#elif DET_TYPE == DET_TYPE_IRAY
+#include "../IRayDetector/NDT1717MA.h"
+#endif // DET_TYPE
 
 CommonConfigUI::CommonConfigUI(QWidget* parent)
 	: QWidget(parent)
@@ -91,31 +98,81 @@ void CommonConfigUI::onThemeChanged(ElaThemeType::ThemeMode themeMode)
 void CommonConfigUI::initUIConnect()
 {
 	// 模式改变 帧率的最大值上线相应发生改变
-	connect(ui.comboBox_mode, &QComboBox::currentTextChanged, this, [this](const QString& text) {
-		if ("1x1" == text)
+	connect(ui.comboBox_mode, &QComboBox::currentTextChanged, this, &CommonConfigUI::changeMode);
+}
+
+void CommonConfigUI::changeMode(const QString& modeText)
+{
+	setUIEnable(false);
+
+	std::string mode;
+	if (modeText.contains("1x1"))
+	{
+		xGlobal.MAX_FPS.store(1);
+		ui.spinBox_fps->setMaximum(1);
+		mode = "Mode5";
+	}
+	else if (modeText.contains("2x2"))
+	{
+		xGlobal.MAX_FPS.store(4);
+		ui.spinBox_fps->setMaximum(4);
+		mode = "Mode6";
+	}
+	else if (modeText.contains("3x3"))
+	{
+		xGlobal.MAX_FPS.store(10);
+		ui.spinBox_fps->setMaximum(10);
+		mode = "Mode7";
+	}
+	else if (modeText.contains("4x4"))
+	{
+		xGlobal.MAX_FPS.store(16);
+		ui.spinBox_fps->setMaximum(16);
+		mode = "Mode8";
+	}
+
+	// 移到后台线程执行
+	auto future = QtConcurrent::run([this, mode]() {
+		bool bRet{ true };
+
+		if (!DET.Initialized())
 		{
-			xGlobal.MAX_FPS.store(1);
-			ui.spinBox_fps->setMaximum(1);
-			emit signalChangeDetMode("Mode5");
+			emit xSignaHelper.signalShowErrorMessageBar("探测器未连接！");
+			return false;
 		}
-		else if ("2x2" == text)
+
+		if (!DET.CanModifyCfg())
 		{
-			xGlobal.MAX_FPS.store(4);
-			ui.spinBox_fps->setMaximum(4);
-			emit signalChangeDetMode("Mode6");
+			emit xSignaHelper.signalShowErrorMessageBar("当前不允许修改参数！");
+			return false;
 		}
-		else if ("3x3" == text)
-		{
-			xGlobal.MAX_FPS.store(10);
-			ui.spinBox_fps->setMaximum(10);
-			emit signalChangeDetMode("Mode7");
-		}
-		else if ("4x4" == text)
-		{
-			xGlobal.MAX_FPS.store(16);
-			ui.spinBox_fps->setMaximum(16);
-			emit signalChangeDetMode("Mode8");
-		}
+
+		return DET.UpdateMode(mode);
 		});
+
+	auto* watcher = new QFutureWatcher<bool>(this);
+	connect(watcher, &QFutureWatcher<bool>::finished, this, [this, watcher]() {
+		bool bRet = watcher->future().result();
+		qDebug() << "修改探测器模式结束，执行结果：" << watcher->future().result();
+		if (!bRet)
+		{
+			emit xSignaHelper.signalShowErrorMessageBar("修改探测器模式失败！");
+		}
+		else
+		{
+			emit xSignaHelper.signalShowSuccessMessageBar("修改探测器模式成功！");
+		}
+		watcher->deleteLater();
+		setUIEnable(true);
+		});
+	watcher->setFuture(future);
+
+}
+
+void CommonConfigUI::setUIEnable(bool enable)
+{
+	ui.comboBox_mode->setEnabled(enable);
+	ui.spinBox_fps->setEnabled(enable);
+	ui.spinBox_add->setEnabled(enable);
 }
 

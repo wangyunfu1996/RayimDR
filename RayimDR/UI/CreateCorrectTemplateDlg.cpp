@@ -18,8 +18,6 @@ CreateCorrectTemplateDlg::CreateCorrectTemplateDlg(QWidget* parent)
 	this->resize(800, 400);
 	this->moveToCenter();
 
-	ui.stackedWidget->setCurrentIndex(0);
-
 	auto scene = new QGraphicsScene(ui.graphicsView_GainImageView);
 	gainPixmapItem = new QGraphicsPixmapItem();
 	scene->addItem(gainPixmapItem);
@@ -87,6 +85,24 @@ CreateCorrectTemplateDlg::CreateCorrectTemplateDlg(QWidget* parent)
 	ui.spinBox_DefectVoltage->setEnabled(false);
 	ui.spinBox_DefectCurrent->setEnabled(false);
 	ui.lineEdit_DefectProgress->setEnabled(false);
+
+	ui.label_Stage->setEnabled(false);
+	connect(ui.stackedWidget, &QStackedWidget::currentChanged, this, [this](int idx) {
+		if (idx == 0)
+		{
+			ui.label_Stage->setText("当前流程：暗场校正");
+		}
+		else if (idx == 1)
+		{
+			ui.label_Stage->setText("当前流程：亮场校正");
+		}
+		else if (idx == 2)
+		{
+			ui.label_Stage->setText("当前流程：缺陷校正");
+		}
+		});
+	ui.stackedWidget->setCurrentIndex(0);
+
 }
 
 CreateCorrectTemplateDlg::~CreateCorrectTemplateDlg()
@@ -119,7 +135,7 @@ void CreateCorrectTemplateDlg::Offset()
 		qDebug() << "暗场校正流程结束，执行结果：" << bRet;
 		if (bRet)
 		{
-			emit this->signalTipsChanged("亮场校正完成，请进行下一步校正");
+			emit this->signalTipsChanged("暗场校正完成，请进行下一步校正");
 			ui.pushButton_ToGain->setEnabled(true);
 		}
 		disconnect(&DET, &NDT1717MA::signalAcqImageReceived, this, &CreateCorrectTemplateDlg::onGainAcqImageReceived);

@@ -6,52 +6,39 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>506</width>
-    <height>329</height>
+    <width>492</width>
+    <height>272</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>CreateCorrectTemplateDlg</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <item row="1" column="0">
+    <widget class="ElaText" name="label_Tips">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
    <item row="0" column="0">
-    <widget class="QTabWidget" name="tabWidget">
+    <widget class="QStackedWidget" name="stackedWidget">
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QWidget" name="tab_offset">
-      <attribute name="title">
-       <string>暗场校正</string>
-      </attribute>
-      <layout class="QGridLayout" name="gridLayout_2">
-       <item row="1" column="1">
-        <widget class="QPushButton" name="pushButton_OffsetGenerationStart">
+     <widget class="QWidget" name="page_Offset">
+      <layout class="QGridLayout" name="gridLayout_2" columnstretch="1,1,1,1">
+       <item row="2" column="1">
+        <widget class="ElaText" name="label_OffsetProgress">
          <property name="text">
-          <string>执行暗场校正</string>
+          <string>采集进度</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
          </property>
         </widget>
        </item>
-       <item row="1" column="3">
-        <spacer name="horizontalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="2" column="1" colspan="2">
-        <widget class="QPushButton" name="pushButton_2">
-         <property name="text">
-          <string>下一步</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
+       <item row="2" column="0">
         <spacer name="horizontalSpacer">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -64,7 +51,7 @@
          </property>
         </spacer>
        </item>
-       <item row="3" column="1">
+       <item row="4" column="2">
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -77,14 +64,37 @@
          </property>
         </spacer>
        </item>
+       <item row="1" column="1">
+        <widget class="ElaPushButton" name="pushButton_OffsetGenerationStart">
+         <property name="text">
+          <string>执行暗场校正</string>
+         </property>
+        </widget>
+       </item>
        <item row="1" column="2">
-        <widget class="QPushButton" name="pushButton_OffsetGenerationAbort">
+        <widget class="ElaPushButton" name="pushButton_OffsetGenerationAbort">
          <property name="text">
           <string>取消</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
+       <item row="2" column="2">
+        <widget class="ElaLineEdit" name="lineEdit_OffsetProgress"/>
+       </item>
+       <item row="2" column="3">
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="0" column="2">
         <spacer name="verticalSpacer_2">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -97,63 +107,63 @@
          </property>
         </spacer>
        </item>
+       <item row="3" column="1" colspan="2">
+        <widget class="ElaPushButton" name="pushButton_ToGain">
+         <property name="text">
+          <string>下一步</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_gain">
-      <attribute name="title">
-       <string>增益校正</string>
-      </attribute>
-      <layout class="QGridLayout" name="gridLayout_3" columnstretch="8,1,1">
+     <widget class="QWidget" name="page_Gain">
+      <layout class="QGridLayout" name="gridLayout_3" columnstretch="6,2,2">
+       <item row="0" column="0" rowspan="7">
+        <widget class="QGraphicsView" name="graphicsView_GainImageView"/>
+       </item>
        <item row="0" column="1">
-        <widget class="QPushButton" name="pushButton_Gain">
+        <widget class="ElaPushButton" name="pushButton_Gain">
          <property name="text">
           <string>一键成成</string>
          </property>
         </widget>
        </item>
        <item row="0" column="2">
-        <widget class="QPushButton" name="pushButton_GainAbort">
+        <widget class="ElaPushButton" name="pushButton_GainAbort">
          <property name="text">
           <string>取消</string>
          </property>
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QLabel" name="label_GainSuggestedKV">
+        <widget class="ElaText" name="label_GainSuggestedKV">
          <property name="text">
           <string>当前电压:</string>
          </property>
         </widget>
        </item>
        <item row="1" column="2">
-        <widget class="QLineEdit" name="lineEdit_GainSuggestedKV">
-         <property name="text">
-          <string>70</string>
-         </property>
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
+        <widget class="ElaSpinBox" name="spinBox_GainVoltage"/>
        </item>
        <item row="2" column="1">
-        <widget class="QLabel" name="label_GainTargetCurrent">
+        <widget class="ElaText" name="label_GainTargetCurrent">
          <property name="text">
           <string>当前电流：</string>
          </property>
         </widget>
        </item>
        <item row="2" column="2">
-        <widget class="QSpinBox" name="spinBox_GainTargetCurrent"/>
+        <widget class="ElaSpinBox" name="spinBox_GainCurrent"/>
        </item>
        <item row="3" column="1">
-        <widget class="QLabel" name="label_GainExceptedValue">
+        <widget class="ElaText" name="label_GainExceptedValue">
          <property name="text">
           <string>期望灰度：</string>
          </property>
         </widget>
        </item>
        <item row="3" column="2">
-        <widget class="QLineEdit" name="lineEdit_GainExceptedValue">
+        <widget class="ElaLineEdit" name="lineEdit_GainExceptedValue">
          <property name="text">
           <string>12000</string>
          </property>
@@ -163,166 +173,171 @@
         </widget>
        </item>
        <item row="4" column="1">
-        <widget class="QLabel" name="label_GainCenterValue">
+        <widget class="ElaText" name="label_GainCenterValue">
          <property name="text">
           <string>当前灰度：</string>
          </property>
         </widget>
        </item>
        <item row="4" column="2">
-        <widget class="QLineEdit" name="lineEdit_GainCenterValue">
+        <widget class="ElaLineEdit" name="lineEdit_GainCenterValue">
          <property name="readOnly">
           <bool>true</bool>
          </property>
         </widget>
        </item>
        <item row="5" column="1">
-        <widget class="QLabel" name="label_GainProgress">
+        <widget class="ElaText" name="label_GainProgress">
          <property name="text">
           <string>采集进度：</string>
          </property>
         </widget>
        </item>
        <item row="5" column="2">
-        <widget class="QLineEdit" name="lineEdit_GainProgress">
+        <widget class="ElaLineEdit" name="lineEdit_GainProgress">
          <property name="readOnly">
           <bool>true</bool>
          </property>
         </widget>
        </item>
-       <item row="6" column="1" colspan="2">
-        <widget class="QPushButton" name="pushButton_ToDefect">
+       <item row="6" column="1">
+        <widget class="ElaPushButton" name="pushButton_ToOffset">
+         <property name="text">
+          <string>上一步</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="2">
+        <widget class="ElaPushButton" name="pushButton_ToDefect">
          <property name="text">
           <string>下一步</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="0" rowspan="7">
-        <widget class="QGraphicsView" name="graphicsView_GainImageView"/>
-       </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_defect">
-      <attribute name="title">
-       <string>缺陷校正</string>
-      </attribute>
-      <layout class="QGridLayout" name="gridLayout_6">
-       <item row="0" column="0">
-        <widget class="QPushButton" name="pushButton_DefectInit">
+     <widget class="QWidget" name="page_Defect">
+      <layout class="QGridLayout" name="gridLayout_4" columnstretch="6,2,2">
+       <item row="2" column="1">
+        <widget class="ElaText" name="label_14">
          <property name="text">
-          <string>Start</string>
+          <string>期望灰度：</string>
          </property>
         </widget>
        </item>
-       <item row="9" column="3">
-        <widget class="QPushButton" name="pushButton">
+       <item row="5" column="1">
+        <widget class="ElaText" name="label_11">
          <property name="text">
-          <string>DarkAcq</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="2" colspan="2">
-        <widget class="QPushButton" name="pushButton_13">
-         <property name="text">
-          <string>Start Acq</string>
-         </property>
-        </widget>
-       </item>
-       <item row="11" column="2" colspan="2">
-        <widget class="QPushButton" name="pushButton_12">
-         <property name="text">
-          <string>Generate</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="3">
-        <widget class="QSpinBox" name="spinBox_3"/>
-       </item>
-       <item row="8" column="2">
-        <widget class="QLabel" name="label_12">
-         <property name="text">
-          <string>CurrrentValue</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="2">
-        <widget class="QLabel" name="label_14">
-         <property name="text">
-          <string>Expected Value:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="9" column="2">
-        <widget class="QPushButton" name="pushButton_15">
-         <property name="text">
-          <string>Select</string>
+          <string>当前电流：</string>
          </property>
         </widget>
        </item>
        <item row="5" column="2">
-        <widget class="QLabel" name="label_11">
-         <property name="text">
-          <string>Target Current:</string>
-         </property>
-        </widget>
+        <widget class="ElaSpinBox" name="spinBox_DefectCurrent"/>
        </item>
-       <item row="2" column="2">
-        <widget class="QLabel" name="label_13">
-         <property name="text">
-          <string>Stage:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="3">
-        <widget class="QLineEdit" name="lineEdit_9"/>
-       </item>
-       <item row="4" column="3">
-        <widget class="QLineEdit" name="lineEdit_8"/>
-       </item>
-       <item row="3" column="2">
-        <widget class="QLabel" name="label_16">
-         <property name="text">
-          <string>Suggested KV:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="2" colspan="2">
-        <widget class="QPushButton" name="pushButton_Defect">
+       <item row="0" column="1">
+        <widget class="ElaPushButton" name="pushButton_Defect">
          <property name="text">
           <string>一键生成</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="3">
-        <widget class="QLineEdit" name="lineEdit_7"/>
-       </item>
-       <item row="3" column="3">
-        <widget class="QLineEdit" name="lineEdit_10"/>
-       </item>
-       <item row="0" column="1">
-        <widget class="QPushButton" name="pushButton_DefectAbort">
+       <item row="0" column="2">
+        <widget class="ElaPushButton" name="pushButton_DefectAbort">
          <property name="text">
-          <string>Cancel</string>
+          <string>取消</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="0" rowspan="11" colspan="2">
-        <widget class="QGraphicsView" name="graphicsView_3"/>
+       <item row="4" column="2">
+        <widget class="ElaSpinBox" name="spinBox_DefectVoltage"/>
+       </item>
+       <item row="6" column="2">
+        <widget class="ElaLineEdit" name="lineEdit_DefectProgress"/>
+       </item>
+       <item row="1" column="1">
+        <widget class="ElaText" name="label_13">
+         <property name="text">
+          <string>校正组：</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="2">
+        <widget class="ElaLineEdit" name="lineEdit_DefectCurrentGray"/>
+       </item>
+       <item row="6" column="1">
+        <widget class="ElaText" name="label">
+         <property name="text">
+          <string>采集进度：</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="ElaLineEdit" name="lineEdit_DefectExceptedGray"/>
+       </item>
+       <item row="4" column="1">
+        <widget class="ElaText" name="label_16">
+         <property name="text">
+          <string>当前电压：</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="ElaText" name="label_12">
+         <property name="text">
+          <string>当前灰度：</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="ElaLineEdit" name="lineEdit_DefectGroup"/>
+       </item>
+       <item row="7" column="1">
+        <widget class="ElaPushButton" name="pushButton_ReturnToGain">
+         <property name="text">
+          <string>上一步</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="2">
+        <widget class="ElaPushButton" name="pushButton_Done">
+         <property name="text">
+          <string>结束</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0" rowspan="8">
+        <widget class="QGraphicsView" name="graphicsView_DefectImageView"/>
        </item>
       </layout>
      </widget>
     </widget>
    </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="label_Tips">
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>ElaText</class>
+   <extends>QLabel</extends>
+   <header>ElaText.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ElaPushButton</class>
+   <extends>QPushButton</extends>
+   <header>ElaPushButton.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ElaSpinBox</class>
+   <extends>QSpinBox</extends>
+   <header>ElaSpinBox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ElaLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>ElaLineEdit.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

@@ -16,9 +16,10 @@
 
 #define dbgResult(code) qDebug() << QString::number(code) << code << " msg: " << gs_pDetInstance->GetErrorInfo(code).c_str()
 
-const int NDT1717MA::nSuggestedKVs[nTotalGroup] = { 40, 60, 70, 80 };
-const int NDT1717MA::nExpectedGrays[nTotalGroup] = { 1200, 2000, 4000, 8000 };
-const int NDT1717MA::nExpectedImageCnts[nTotalGroup] = { 1, 1, 1, 5 };
+const int NDT1717MA::nDefectVoltages[nTotalGroup] = { 40, 60, 70, 80 };
+const int NDT1717MA::nDefectBeginCurrents[nTotalGroup] = { 100, 200, 300, 400 };
+const int NDT1717MA::nDefectExpectedGrays[nTotalGroup] = { 1200, 2000, 4000, 8000 };
+const int NDT1717MA::nDefectExpectedImageCnts[nTotalGroup] = { 1, 1, 1, 5 };
 const int NDT1717MA::nDefectLightExpectedValids[nTotalGroup] = { 1, 3, 5, 11 };
 const int NDT1717MA::nDefectDarkExpectedValids[nTotalGroup] = { 2, 4, 6, 16 };
 
@@ -27,7 +28,8 @@ namespace {
 	static IRayTimer s_timer;
 	static int s_nExpWindow = 0;
 
-	static std::atomic_bool s_bOffsetGenerationSucceedOrFailed{ false };
+	static std::atomic_bool s_bOffsetFinished{ false };
+	static std::atomic_bool s_bOffsetSucceed{ false };
 	std::atomic<int> gn_receviedIdx{ 0 };
 	std::atomic_bool gb_StatusQueryFlag{ false };
 
@@ -102,17 +104,8 @@ namespace {
 
 			gn_receviedIdx.store(gn_receviedIdx.load() + 1);
 			// 将图像数据深拷贝到QImage
-			NDT1717MA::Instance().SetReceivedImage(pImg->nWidth, pImg->nHeight, pImageData, nImageSize);
+			NDT1717MA::Instance().SetReceivedImage(pImg->nWidth, pImg->nHeight, pImageData, nImageSize, nCenterValue);
 			emit NDT1717MA::Instance().signalAcqImageReceived(gn_receviedIdx.load());
-
-			if (currentTransaction == Enm_Transaction::Enm_Transaction_GainGen)
-			{
-				emit NDT1717MA::Instance().signalGainImageReceived(nCenterValue);
-			}
-			else if (currentTransaction == Enm_Transaction::Enm_Transaction_DefectGen)
-			{
-				emit NDT1717MA::Instance().signalDefectImageReceived(nCenterValue);
-			}
 			break;
 		}
 		case Evt_TaskResult_Succeed:
@@ -120,7 +113,8 @@ namespace {
 			if (nParam1 == Cmd_OffsetGeneration)
 			{
 				qDebug("Offset template generated - {%s}", gs_pDetInstance->GetErrorInfo(nParam2).c_str());
-				s_bOffsetGenerationSucceedOrFailed.store(true);
+				s_bOffsetFinished.store(true);
+				s_bOffsetSucceed.store(nParam2 == 0);
 			}
 			qDebug() << gs_pDetInstance->GetErrorInfo(nParam2).c_str();
 			break;
@@ -291,6 +285,8 @@ bool NDT1717MA::UpdateMode(std::string mode)
 	m_status.Height = gs_pDetInstance->GetAttrInt(Attr_Height);
 	m_status.AcqParam_Binning_W = gs_pDetInstance->GetAttrInt(Attr_AcqParam_Binning_W);
 	m_status.AcqParam_Zoom_W = gs_pDetInstance->GetAttrInt(Attr_AcqParam_Zoom_W);
+	// 尝试开启校正
+	SetCorrectOption(1, 1, 1);
 
 	GetCurrentCorrectOption(m_status.SW_PreOffset, m_status.SW_Gain, m_status.SW_Defect);
 
@@ -348,7 +344,6 @@ int NDT1717MA::SetCorrectOption(int sw_offset, int sw_gain, int sw_defect)
 	int CurrentCorrectOption = gs_pDetInstance->GetAttrInt(Attr_CurrentCorrectOption);
 
 	qDebug() << " Enm_CorrectOp_SW_PreOffset: " << ((CurrentCorrectOption & Enm_CorrectOp_SW_PreOffset) ? 1 : 0)
-		<< " Enm_CorrectOp_SW_PostOffset: " << ((CurrentCorrectOption & Enm_CorrectOp_SW_PostOffset) ? 1 : 0)
 		<< " Enm_CorrectOp_SW_Gain: " << ((CurrentCorrectOption & Enm_CorrectOp_SW_Gain) ? 1 : 0)
 		<< " Enm_CorrectOp_SW_Defect: " << ((CurrentCorrectOption & Enm_CorrectOp_SW_Defect) ? 1 : 0);
 
@@ -519,7 +514,7 @@ bool NDT1717MA::StartAcq()
 
 	if (state != Enm_State_Ready)
 	{
-		return Err_FPD_Busy;
+		return false;
 	}
 
 	int result = gs_pDetInstance->Invoke(Cmd_StartAcq);
@@ -539,35 +534,46 @@ void NDT1717MA::StopAcq()
 	dbgResult(result);
 }
 
-int NDT1717MA::OffsetGeneration()
+bool NDT1717MA::OffsetGeneration()
 {
 	int nOffsetTotalFrames = gs_pDetInstance->GetAttrInt(Attr_OffsetTotalFrames);
 	int nIntervalTimeOfEachFrame = gs_pDetInstance->GetAttrInt(Attr_UROM_SequenceIntervalTime);
 	qDebug("Generate offset...");
-	int timeout = (nOffsetTotalFrames + 10) * nIntervalTimeOfEachFrame + 5000;
 	int result = gs_pDetInstance->Invoke(Cmd_OffsetGeneration);
 	dbgResult(result);
 
-	if (result == Err_TaskPending)
+	if (result != Err_TaskPending)
 	{
-		s_bOffsetGenerationSucceedOrFailed.store(false);
-		std::thread t([this, nOffsetTotalFrames, timeout]() {
-			int nValid{ 0 };
-			do
-			{
-				nValid = gs_pDetInstance->GetAttrInt(Attr_OffsetValidFrames);
-				qDebug() << "nOffsetTotalFrames: " << nOffsetTotalFrames
-					<< " nValid: " << nValid;
-				std::this_thread::sleep_for(std::chrono::milliseconds(100));
-			} while (!s_bOffsetGenerationSucceedOrFailed.load());
-
-			gs_pDetInstance->WaitEvent(timeout);
-			qDebug() << "Generate offset done...";
-			});
-		t.detach();
+		return false;
 	}
 
-	return Err_OK;
+	s_bOffsetFinished.store(false);
+
+	return std::async(std::launch::async, [this, nOffsetTotalFrames]() {
+		int nValid{ 0 };
+		do
+		{
+			nValid = gs_pDetInstance->GetAttrInt(Attr_OffsetValidFrames);
+			qDebug() << "nOffsetTotalFrames: " << nOffsetTotalFrames
+				<< " nValid: " << nValid;
+			emit this->signalOffsetImageSelected(nOffsetTotalFrames, nValid);
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		} while (!s_bOffsetFinished.load());
+
+		qDebug() << "Generate offset done...";
+
+		if (s_bOffsetSucceed.load())
+		{
+			emit this->signalOffsetImageSelected(nOffsetTotalFrames, nOffsetTotalFrames);
+		}
+
+		return s_bOffsetSucceed.load();
+		}).get();
+}
+
+bool NDT1717MA::OffsetValid()
+{
+	return gs_pDetInstance->GetAttrInt(Attr_OffsetValidityState) == 1;
 }
 
 bool NDT1717MA::GainInit()
@@ -642,6 +648,11 @@ bool NDT1717MA::GainGeneration(int timeout)
 	return result == Err_OK;
 }
 
+bool NDT1717MA::GainValid()
+{
+	return gs_pDetInstance->GetAttrInt(Attr_GainValidityState) == 1;
+}
+
 bool NDT1717MA::DefectInit()
 {
 	int result = gs_pDetInstance->SyncInvoke(Cmd_DefectInit, INT_MAX);
@@ -678,8 +689,9 @@ bool NDT1717MA::DefectStartAcq()
 
 bool NDT1717MA::DefectSelectAll(int groupIdx)
 {
-	int nExpectedImageCnt = nExpectedImageCnts[groupIdx];
+	int nExpectedImageCnt = nDefectExpectedImageCnts[groupIdx];
 	int nExpectedValid = nDefectLightExpectedValids[groupIdx];
+	int nDefectAllExceptedVliad = gs_pDetInstance->GetAttrInt(Attr_DefectTotalFrames);
 	int result = gs_pDetInstance->Invoke(Cmd_DefectSelectAll, groupIdx, nExpectedImageCnt);
 	dbgResult(result);
 
@@ -690,14 +702,14 @@ bool NDT1717MA::DefectSelectAll(int groupIdx)
 	}
 
 	int nValid{ 0 };
-	std::async(std::launch::async, [this, groupIdx, nExpectedValid, &nValid]() {
+	std::async(std::launch::async, [this, groupIdx, nExpectedValid, nDefectAllExceptedVliad, &nValid]() {
 		do
 		{
 			nValid = gs_pDetInstance->GetAttrInt(Attr_DefectValidFrames);
 			qDebug() << "nExpectedValid: " << nExpectedValid
 				<< " nValid: " << nValid;
 
-			emit signalDefectImageSelected(nExpectedValid, nValid);
+			emit signalDefectImageSelected(nDefectAllExceptedVliad, nValid);
 			if (gs_pDetInstance->GetAttrInt(Attr_CurrentTransaction) != Enm_Transaction_DefectGen)
 			{
 				qDebug() << "缺陷校正已退出";
@@ -719,7 +731,7 @@ bool NDT1717MA::DefectSelectAll(int groupIdx)
 
 bool NDT1717MA::DefectForceDarkContinuousAcq(int groupIdx)
 {
-	int nExpectedImageCnt = nExpectedImageCnts[groupIdx];
+	int nExpectedImageCnt = nDefectExpectedImageCnts[groupIdx];
 	int nExpectedValid = nDefectDarkExpectedValids[groupIdx];
 	int result = gs_pDetInstance->Invoke(Cmd_ForceDarkContinuousAcq, nExpectedImageCnt);
 	dbgResult(result);
@@ -769,6 +781,11 @@ bool NDT1717MA::DefectGeneration()
 	return result == Err_OK;
 }
 
+bool NDT1717MA::DefectValid()
+{
+	return gs_pDetInstance->GetAttrInt(Attr_DefectValidityState) == 1;
+}
+
 int NDT1717MA::Abort()
 {
 	int result = gs_pDetInstance->Abort();
@@ -776,9 +793,10 @@ int NDT1717MA::Abort()
 	return result;
 }
 
-void NDT1717MA::SetReceivedImage(int width, int height, const unsigned short* pData, int nDataSize)
+void NDT1717MA::SetReceivedImage(int width, int height, const unsigned short* pData, int nDataSize, int nGray)
 {
 	qDebug() << "进行图像拷贝，receviedIdx：" << gn_receviedIdx.load();
+	m_nGray = nGray;
 	// 参数验证
 	if (width <= 0 || height <= 0 || !pData || nDataSize <= 0)
 	{
@@ -833,6 +851,11 @@ void NDT1717MA::SetReceivedImage(int width, int height, const unsigned short* pD
 QImage NDT1717MA::GetReceivedImage() const
 {
 	return m_receivedImage;
+}
+
+int NDT1717MA::GetGrayOfReceivedImage() const
+{
+	return m_nGray;
 }
 
 void NDT1717MA::QueryStatus()

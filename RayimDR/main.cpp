@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
 
 	qDebug() << "程序运行，当前时间：" << QDateTime::currentDateTime();
 	MainWindow w;
-	w.setGeometry(QApplication::screens().first()->availableGeometry());
+	w.setGeometry(QApplication::screens().last()->availableGeometry());
 	w.showMaximized();
 
 	return a.exec();

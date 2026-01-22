@@ -149,76 +149,46 @@ NDT1717MA& NDT1717MA::Instance()
 	return iRayDetector;
 }
 
-int NDT1717MA::Initialize()
+bool NDT1717MA::Initialize()
 {
 	if (gs_pDetInstance &&
 		gs_pDetInstance->Initilized())
 	{
-		return Err_OK;
+		return true;
 	}
 
 	gs_pDetInstance = new CDetector();
 	qDebug() << "Load libray";
-	int ret = gs_pDetInstance->LoadIRayLibrary();
-	if (Err_OK != ret)
+	int result = gs_pDetInstance->LoadIRayLibrary();
+	dbgResult(result);
+	if (Err_OK != result)
 	{
-		qDebug() << "[No ]";
-		return ret;
+		return false;
 	}
-	else
-		qDebug() << "[Yes]";
 
 	qDebug() << "Create instance";
-	ret = gs_pDetInstance->Create("D:\\NDT1717MA", SDKCallbackHandler);
-	if (Err_OK != ret)
+	result = gs_pDetInstance->Create("D:\\NDT1717MA", SDKCallbackHandler);
+	dbgResult(result);
+	if (Err_OK != result)
 	{
-		qDebug() << "[No ] - error:" << QString::fromStdString(gs_pDetInstance->GetErrorInfo(ret));
-		return ret;
+		return false;
 	}
-	else
-		qDebug() << "[Yes]";
 
 	qDebug() << "Connect device";
 	int timeout = 10000;
-	ret = gs_pDetInstance->SyncInvoke(Cmd_Connect, timeout);
-
-	if (Err_OK != ret)
+	result = gs_pDetInstance->SyncInvoke(Cmd_Connect, timeout);
+	dbgResult(result);
+	if (Err_OK != result)
 	{
-		qDebug() << "[No ] - error:" << QString::fromStdString(gs_pDetInstance->GetErrorInfo(ret));
-		return ret;
+		return false;
 	}
-	else
-		qDebug() << "[Yes]";
 
-	//ret = UpdateMode("Mode5");
-	//int sw_offset{ -1 };
-	//int sw_gain{ -1 };
-	//int sw_defect{ -1 };
-	//ret = GetCurrentCorrectOption(sw_offset, sw_gain, sw_defect);
-	//if (Err_OK != ret)
-	//{
-	//	qDebug() << "[No ] - error:" << QString::fromStdString(gs_pDetInstance->GetErrorInfo(ret));
-	//	return ret;
-	//}
+	qDebug() << "Query attrs";
+	gs_pDetInstance->GetAttr(Attr_CurrentSubset, m_status.Mode);
+	GetCurrentCorrectOption(m_status.SW_PreOffset, m_status.SW_Gain, m_status.SW_Defect);
 
-	//sw_offset = 1;
-	//sw_gain = 1;
-	//sw_defect = 1;
-	//ret = SetCorrectOption(sw_offset, sw_gain, sw_defect);
-	//if (Err_OK != ret)
-	//{
-	//	qDebug() << "[No ] - error:" << QString::fromStdString(gs_pDetInstance->GetErrorInfo(ret));
-	//	return ret;
-	//}
-
-	//ret = SetPreviewImageEnable(0);
-	//if (Err_OK != ret)
-	//{
-	//	qDebug() << "[No ] - error:" << QString::fromStdString(gs_pDetInstance->GetErrorInfo(ret));
-	//	return ret;
-	//}
-
-	return ret;
+	emit signalStatusChanged();
+	return true;
 }
 
 void NDT1717MA::DeInitialize()
@@ -257,6 +227,46 @@ int NDT1717MA::GetAttr(int nAttrID, std::string& strVal)
 	return gs_pDetInstance->GetAttr(nAttrID, strVal);
 }
 
+bool NDT1717MA::GetMode(std::string& mode)
+{
+	if (!Initialized())
+		return false;
+
+	int result = gs_pDetInstance->GetAttr(Attr_CurrentSubset, mode);
+	dbgResult(result);
+	return result == Err_OK;
+}
+
+int NDT1717MA::GetModeMaxFrameRate(std::string mode)
+{
+	qDebug() << "mode:" << mode.c_str();
+	if (mode == "Mode5")
+	{
+		return 1;
+	}
+	else if (mode == "Mode6")
+	{
+		return 4;
+	}
+	else if (mode == "Mode7")
+	{
+		return 10;
+	}
+	else if (mode == "Mode8")
+	{
+		return 16;
+	}
+	else
+	{
+		return 1;
+	}
+}
+
+int NDT1717MA::GetMaxStackedNum()
+{
+	return 10;
+}
+
 bool NDT1717MA::UpdateMode(std::string mode)
 {
 	std::string current_mode;
@@ -277,40 +287,41 @@ bool NDT1717MA::UpdateMode(std::string mode)
 		return false;
 	}
 
-	int w = gs_pDetInstance->GetAttrInt(Attr_Width);
-	int h = gs_pDetInstance->GetAttrInt(Attr_Height);
-	int binning = gs_pDetInstance->GetAttrInt(Attr_AcqParam_Binning_W);
-	int zoom = gs_pDetInstance->GetAttrInt(Attr_AcqParam_Zoom_W);
+	m_status.Width = gs_pDetInstance->GetAttrInt(Attr_Width);
+	m_status.Height = gs_pDetInstance->GetAttrInt(Attr_Height);
+	m_status.AcqParam_Binning_W = gs_pDetInstance->GetAttrInt(Attr_AcqParam_Binning_W);
+	m_status.AcqParam_Zoom_W = gs_pDetInstance->GetAttrInt(Attr_AcqParam_Zoom_W);
 
-	qDebug() << QStringLiteral("修改探测器工作模式成功，")
-		<< QStringLiteral(" 当前工作模式：") << QString::fromStdString(mode)
-		<< QStringLiteral(" Attr_Width: ") << w
-		<< QStringLiteral(" Attr_Height: ") << h
-		<< QStringLiteral(" Attr_AcqParam_Binning_W: ") << binning
-		<< QStringLiteral(" Attr_AcqParam_Zoom_W: ") << zoom;
+	GetCurrentCorrectOption(m_status.SW_PreOffset, m_status.SW_Gain, m_status.SW_Defect);
+
+	qDebug() << "修改探测器工作模式成功，"
+		<< " 当前工作模式：" << QString::fromStdString(mode)
+		<< " Attr_Width: " << m_status.Width
+		<< " Attr_Height: " << m_status.Height
+		<< " Attr_AcqParam_Binning_W: " << m_status.AcqParam_Binning_W
+		<< " Attr_AcqParam_Zoom_W: " << m_status.AcqParam_Zoom_W
+		<< " SW_PreOffset: " << m_status.SW_PreOffset
+		<< " SW_Gain: " << m_status.SW_Gain
+		<< " SW_Defect: " << m_status.SW_Defect;
 
 	return true;
 }
 
-int NDT1717MA::GetCurrentCorrectOption(int& sw_offset, int& sw_gain, int& sw_defect)
+bool NDT1717MA::GetCurrentCorrectOption(int& sw_offset, int& sw_gain, int& sw_defect)
 {
-	if (nullptr == gs_pDetInstance)
-	{
-		return Err_NotInitialized;
-	}
-
 	int nCurrentCorrectOption{ -1 };
-	int ret = gs_pDetInstance->GetAttr(Attr_CurrentCorrectOption, nCurrentCorrectOption);
-	if (Err_OK != ret)
+	int result = gs_pDetInstance->GetAttr(Attr_CurrentCorrectOption, nCurrentCorrectOption);
+	dbgResult(result);
+	if (Err_OK != result)
 	{
-		return ret;
+		return false;
 	}
 
 	sw_offset = (nCurrentCorrectOption & Enm_CorrectOp_SW_PreOffset) ? 1 : 0;
 	sw_gain = (nCurrentCorrectOption & Enm_CorrectOp_SW_Gain) ? 1 : 0;
 	sw_defect = (nCurrentCorrectOption & Enm_CorrectOp_SW_Defect) ? 1 : 0;
 
-	return Err_OK;
+	return true;
 }
 
 int NDT1717MA::SetCorrectOption(int sw_offset, int sw_gain, int sw_defect)
@@ -566,17 +577,18 @@ bool NDT1717MA::GainInit()
 	return result == Err_OK;
 }
 
-int NDT1717MA::GainStartAcq()
+bool NDT1717MA::GainStartAcq()
 {
 	if (!CheckBatteryStateOK())
 	{
 		return false;
 	}
+
 	int CurrentTransaction = gs_pDetInstance->GetAttrInt(Attr_CurrentTransaction);
 	if (CurrentTransaction != Enm_Transaction_GainGen)
 	{
 		qDebug() << "当前不能进行增益矫正采集";
-		return Err_StateErr;
+		return false;
 	}
 
 	int result = gs_pDetInstance->Invoke(Cmd_StartAcq);
@@ -587,14 +599,14 @@ int NDT1717MA::GainStartAcq()
 		gn_receviedIdx.store(0);
 	}
 
-	return result;
+	return result == Err_TaskPending;
 }
 
-std::future<void> NDT1717MA::GainSelectAll()
+std::future<bool> NDT1717MA::GainSelectAll()
 {
 	int nGainTotalFrames = gs_pDetInstance->GetAttrInt(Attr_GainTotalFrames);
 	int result = gs_pDetInstance->Invoke(Cmd_GainSelectAll, 0, nGainTotalFrames);
-	std::future<void> gainSelectFuture = std::async(std::launch::async, [this, nGainTotalFrames]() {
+	std::future<bool> gainSelectFuture = std::async(std::launch::async, [this, nGainTotalFrames]() {
 		int nValid{ 0 };
 		do
 		{
@@ -612,32 +624,14 @@ std::future<void> NDT1717MA::GainSelectAll()
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
 		} while (nValid < nGainTotalFrames);
+
+		return nValid == nGainTotalFrames;
 		});
 
 	return gainSelectFuture;
 }
 
-void NDT1717MA::WaitForGainSelectComplete(std::future<void> f)
-{
-	if (f.valid())
-	{
-		qDebug() << "等待 GainSelectAll 完成...";
-		f.wait();
-		qDebug() << "GainSelectAll 已完成";
-	}
-}
-
-bool NDT1717MA::IsGainSelectComplete(std::future<void> f) const
-{
-	if (!f.valid())
-	{
-		return true; // 没有运行中的任务
-	}
-
-	return f.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
-}
-
-int NDT1717MA::GainGeneration(int timeout)
+bool NDT1717MA::GainGeneration(int timeout)
 {
 	int result = gs_pDetInstance->SyncInvoke(Cmd_GainGeneration, timeout);
 	dbgResult(result);
@@ -645,7 +639,7 @@ int NDT1717MA::GainGeneration(int timeout)
 	result = gs_pDetInstance->SyncInvoke(Cmd_FinishGenerationProcess, timeout);
 	dbgResult(result);
 
-	return result;
+	return result == Err_OK;
 }
 
 bool NDT1717MA::DefectInit()
@@ -850,23 +844,6 @@ void NDT1717MA::QueryStatus()
 
 	try
 	{
-		//// 查询电池状态
-		//int state = gs_pDetInstance->GetAttrInt(Attr_State);
-		//if (state != Enm_DetectorState::Enm_State_Ready || 0 != gs_pDetInstance->GetAttrInt(Attr_CurrentTask))
-		//{
-		//	qDebug() << "探测器状态未就绪，当前状态：" << state
-		//		<< " 当前任务：" << gs_pDetInstance->GetAttrInt(Attr_CurrentTask);
-		//	//return;
-		//}
-
-		//int result = gs_pDetInstance->Invoke(Cmd_ReadBatteryStatus);
-		////int result = gs_pDetInstance->SyncInvoke(Cmd_ReadBatteryStatus, 5000);
-		//if (result != Err_OK && result != Err_TaskPending)
-		//{
-		//	qWarning() << "状态查询失败，错误码：" << result;
-		//	return;
-		//}
-
 		m_status.Battery_ExternalPower = gs_pDetInstance->GetAttrInt(Attr_Battery_ExternalPower);
 		m_status.Battery_Exist = gs_pDetInstance->GetAttrInt(Attr_Battery_Exist);
 		m_status.Battery_Remaining = gs_pDetInstance->GetAttrInt(Attr_Battery_Remaining);
@@ -878,8 +855,6 @@ void NDT1717MA::QueryStatus()
 		//	<< " Attr_Battery_Remaining: " << m_status.Battery_Remaining
 		//	<< " Attr_Battery_ChargingStatus: " << m_status.Battery_ChargingStatus
 		//	<< " Attr_Battery_PowerWarnStatus: " << m_status.Battery_ExternalPower;
-
-		emit DET.signalStatusChanged(m_status);
 	}
 	catch (const std::exception& ex)
 	{
@@ -924,6 +899,11 @@ void NDT1717MA::StopQueryStatus()
 
 	// 设置标志位为 false
 	gb_StatusQueryFlag.store(false);
+}
+
+const NDT1717MAStatus& NDT1717MA::Status() const
+{
+	return m_status;
 }
 
 bool NDT1717MA::CheckBatteryStateOK()

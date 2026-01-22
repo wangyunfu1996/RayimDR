@@ -16,7 +16,7 @@ struct AcqCondition
 	int frameRate{ 10 };
 	int frame{ 10 };			// 帧数 可以理解为角度数
 	int stackedFrame{ 0 };		// 叠加帧数
-	int detMode{ 1 };			// 1x1 2x2 3x3 4x4
+	std::string mode{ "Mode5"};	// 1x1 2x2 3x3 4x4
 
 	bool saveToFiles{ false };
 	QString savePath;
@@ -40,9 +40,6 @@ inline QDebug operator<<(QDebug debug, const AcqCondition& cond)
 		break;
 	}
 
-	// 将探测器模式转换为可读格式
-	QString detModeStr = QString("%1x%1").arg(cond.detMode);
-
 	// 格式化输出
 	QDebugStateSaver saver(debug);  // 保存debug状态，确保自动恢复格式
 	debug.nospace() << "AcqCondition("
@@ -52,7 +49,7 @@ inline QDebug operator<<(QDebug debug, const AcqCondition& cond)
 		<< ", FrameRate=" << cond.frameRate << "fps"
 		<< ", Frames=" << cond.frame
 		<< ", StackedFrames=" << cond.stackedFrame
-		<< ", DetMode=" << detModeStr
+		<< ", DetMode=" << cond.mode.c_str()
 		<< ")";
 
 	return debug;
@@ -109,7 +106,5 @@ public:
 
 	int SPEED_MAX{ 10 };
 	int SPEED_MIN{ -10 };
-
-	std::atomic<int> MAX_FPS{ 1 };
 };
 

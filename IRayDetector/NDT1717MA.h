@@ -17,6 +17,20 @@ struct NDT1717MAStatus
 	int Battery_Remaining{ 0 };
 	int Battery_ChargingStatus{ 0 };
 	int Battery_PowerWarnStatus{ 0 };
+
+	int SW_PreOffset{ 0 };
+	int SW_Gain{ 0 };
+	int SW_Defect{ 0 };
+
+	bool connected{ false };
+
+	std::string Mode{ "Mode5" };
+	int Max_FrameRate{ 1 };
+	int Width{ 0 };
+	int Height{ 0 };
+	int AcqParam_Binning_W{ 0 };
+	int AcqParam_Zoom_W{ 0 };
+	
 };
 
 class IRAYDETECTOR_EXPORT NDT1717MA : public QObject
@@ -30,7 +44,7 @@ private:
 public:
 	static NDT1717MA& Instance();
 
-	int Initialize();
+	bool Initialize();
 	void DeInitialize();
 	bool Initialized() const;
 	bool CanModifyCfg() const;
@@ -38,9 +52,12 @@ public:
 	int GetAttr(int nAttrID, int& nVal);
 	int GetAttr(int nAttrID, float& fVal);
 	int GetAttr(int nAttrID, std::string& strVal);
+	bool GetMode(std::string& mode);
+	static int GetModeMaxFrameRate(std::string mode);
+	static int GetMaxStackedNum();
 
 	bool UpdateMode(std::string mode);
-	int GetCurrentCorrectOption(int& sw_offset, int& sw_gain, int& sw_defect);
+	bool GetCurrentCorrectOption(int& sw_offset, int& sw_gain, int& sw_defect);
 	int SetCorrectOption(int sw_offset, int sw_gain, int sw_defect);
 	int SetPreviewImageEnable(int enable);
 
@@ -69,14 +86,9 @@ public:
 	int OffsetGeneration();
 
 	bool GainInit();
-	int GainStartAcq();
-	std::future<void> GainSelectAll();
-	int GainGeneration(int timeout = 20000);
-	
-	// 等待 GainSelectAll 完成（阻塞调用）
-	void WaitForGainSelectComplete(std::future<void> f);
-	// 检查 GainSelectAll 是否完成（非阻塞）
-	bool IsGainSelectComplete(std::future<void> f) const;
+	bool GainStartAcq();
+	std::future<bool> GainSelectAll();
+	bool GainGeneration(int timeout = 20000);
 
 	bool DefectInit();
 	bool DefectStartAcq();
@@ -93,6 +105,7 @@ public:
 	void QueryStatus();
 	void StartQueryStatus();
 	void StopQueryStatus();
+	const NDT1717MAStatus& Status() const;
 
 	bool CheckBatteryStateOK();
 
@@ -102,7 +115,7 @@ signals:
 	void signalGainImageSelected(int nGainTotalFrames, int nValid);
 	void signalDefectImageReceived(int nCenterValue);
 	void signalDefectImageSelected(int nGainTotalFrames, int nValid);
-	void signalStatusChanged(const NDT1717MAStatus& status);
+	void signalStatusChanged();
 
 private:
 	QString m_uuid;
@@ -117,4 +130,10 @@ public:
 	const static int nExpectedImageCnts[nTotalGroup];
 	const static int nDefectLightExpectedValids[nTotalGroup];
 	const static int nDefectDarkExpectedValids[nTotalGroup];
+
+	const static int nGainSuggestedKV{ 70 };
+	const static int nGainExpectedGray{ 12000 };
+	const static int nGainCurrentStart{ 100 };
+	const static int nGainCurrentEnd{ 500 };
+	const static int nGainCurrentStep{ 100 };
 };

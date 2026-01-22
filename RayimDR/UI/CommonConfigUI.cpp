@@ -8,10 +8,7 @@
 #include "Components/XSignalsHelper.h"
 #include "ElaUIHepler.h"
 
-#if DET_TYPE == DET_TYPE_VIRTUAL
-#elif DET_TYPE == DET_TYPE_IRAY
 #include "../IRayDetector/NDT1717MA.h"
-#endif // DET_TYPE
 
 CommonConfigUI::CommonConfigUI(QWidget* parent)
 	: QWidget(parent)
@@ -21,6 +18,11 @@ CommonConfigUI::CommonConfigUI(QWidget* parent)
 	onThemeChanged(ElaThemeType::Dark);
 	connect(eTheme, &ElaTheme::themeModeChanged, this, &CommonConfigUI::onThemeChanged);
 	ElaUIHepler::ChangeToNormalStyle(this);
+
+	for (int i(0); i < DET.GetMaxStackedNum(); i++)
+	{
+		ui.comboBox_stakcedNum->addItem(QString::number(i + 1));
+	}
 
 	initUIConnect();
 }
@@ -55,9 +57,9 @@ bool CommonConfigUI::checkInputValid()
 AcqCondition CommonConfigUI::getAcqCondition()
 {
 	AcqCondition acqCond;
-	acqCond.detMode = ui.comboBox_mode->currentIndex() + 1;
-	acqCond.frameRate = ui.spinBox_fps->value();
-	acqCond.stackedFrame = ui.spinBox_add->value();
+	acqCond.mode = getModeFromUI();
+	acqCond.frameRate = ui.comboBox_frameRate->currentText().toInt();
+	acqCond.stackedFrame = ui.comboBox_stakcedNum->currentText().toInt();
 	return acqCond;
 }
 
@@ -99,38 +101,16 @@ void CommonConfigUI::initUIConnect()
 {
 	// 模式改变 帧率的最大值上线相应发生改变
 	connect(ui.comboBox_mode, &QComboBox::currentTextChanged, this, &CommonConfigUI::changeMode);
+	connect(&DET, &NDT1717MA::signalStatusChanged, this, [this]() {
+		auto status = DET.Status();
+		updateUIFromMode(status.Mode);
+		});
 }
 
 void CommonConfigUI::changeMode(const QString& modeText)
 {
 	setUIEnable(false);
-
-	std::string mode;
-	if (modeText.contains("1x1"))
-	{
-		xGlobal.MAX_FPS.store(1);
-		ui.spinBox_fps->setMaximum(1);
-		mode = "Mode5";
-	}
-	else if (modeText.contains("2x2"))
-	{
-		xGlobal.MAX_FPS.store(4);
-		ui.spinBox_fps->setMaximum(4);
-		mode = "Mode6";
-	}
-	else if (modeText.contains("3x3"))
-	{
-		xGlobal.MAX_FPS.store(10);
-		ui.spinBox_fps->setMaximum(10);
-		mode = "Mode7";
-	}
-	else if (modeText.contains("4x4"))
-	{
-		xGlobal.MAX_FPS.store(16);
-		ui.spinBox_fps->setMaximum(16);
-		mode = "Mode8";
-	}
-
+	std::string mode = getModeFromUI();
 	// 移到后台线程执行
 	auto future = QtConcurrent::run([this, mode]() {
 		bool bRet{ true };
@@ -151,7 +131,7 @@ void CommonConfigUI::changeMode(const QString& modeText)
 		});
 
 	auto* watcher = new QFutureWatcher<bool>(this);
-	connect(watcher, &QFutureWatcher<bool>::finished, this, [this, watcher]() {
+	connect(watcher, &QFutureWatcher<bool>::finished, this, [this, watcher, mode]() {
 		bool bRet = watcher->future().result();
 		qDebug() << "修改探测器模式结束，执行结果：" << watcher->future().result();
 		if (!bRet)
@@ -163,16 +143,58 @@ void CommonConfigUI::changeMode(const QString& modeText)
 			emit xSignaHelper.signalShowSuccessMessageBar("修改探测器模式成功！");
 		}
 		watcher->deleteLater();
+
+		updateUIFromMode(mode);
 		setUIEnable(true);
 		});
 	watcher->setFuture(future);
 
 }
 
+std::string CommonConfigUI::getModeFromUI()
+{
+	if (ui.comboBox_mode->currentText().contains("1x1"))
+		return "Mode5";
+	else if (ui.comboBox_mode->currentText().contains("2x2"))
+		return "Mode6";
+	else if (ui.comboBox_mode->currentText().contains("3x3"))
+		return "Mode7";
+	else if (ui.comboBox_mode->currentText().contains("4x4"))
+		return "Mode8";
+	else
+		return "Mode5";
+}
+
 void CommonConfigUI::setUIEnable(bool enable)
 {
 	ui.comboBox_mode->setEnabled(enable);
-	ui.spinBox_fps->setEnabled(enable);
-	ui.spinBox_add->setEnabled(enable);
+	ui.comboBox_frameRate->setEnabled(enable);
+	ui.comboBox_stakcedNum->setEnabled(enable);
+}
+
+void CommonConfigUI::updateUIFromMode(std::string mode)
+{
+	qDebug() << "mode: " << mode.c_str();
+	ui.comboBox_mode->blockSignals(true);
+	ui.comboBox_frameRate->blockSignals(true);
+
+	if (mode == "Mode5")
+		ui.comboBox_mode->setCurrentText("1x1");
+	else if (mode == "Mode6")
+		ui.comboBox_mode->setCurrentText("2x2");
+	else if (mode == "Mode7")
+		ui.comboBox_mode->setCurrentText("3x3");
+	else if (mode == "Mode8")
+		ui.comboBox_mode->setCurrentText("4x4");
+
+	ui.comboBox_frameRate->clear();
+	int maxFrameRate = DET.GetModeMaxFrameRate(mode);
+	for (int i(0); i < maxFrameRate; i++)
+	{
+		ui.comboBox_frameRate->addItem(QString::number(i + 1));
+	}
+
+	ui.comboBox_mode->blockSignals(false);
+	ui.comboBox_frameRate->blockSignals(false);
 }
 

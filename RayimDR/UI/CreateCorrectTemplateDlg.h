@@ -12,7 +12,6 @@ public:
 	~CreateCorrectTemplateDlg();
 
 private:
-
 	void Abort();
 
 	bool OffsetGeneration();
@@ -29,7 +28,16 @@ private:
 	bool DefectSelectAll();
 	bool DefectGeneration();
 
+	void ShowTips(const QString& msg);
+	void MidifyGainVoltageCurrent(int voltage, int current);
+
+signals:
+	void signalTipsChanged(const QString& msg);
+	void signalGainVoltageCurrentChanged(int voltage, int current);
+
 private:
 	Ui::CreateCorrectTemplateDlgClass ui;
+	int nCurrentGray{ 0 };
+	class QGraphicsPixmapItem* gainPixmapItem{ nullptr };
 };
 

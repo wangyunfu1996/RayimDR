@@ -521,7 +521,7 @@ void MainWindow::connectToDet()
 	emit xSignaHelper.signalUpdateStatusInfo("探测器已连接");
 #elif DET_TYPE == DET_TYPE_IRAY
 
-	if (0 != DET.Initialize())
+	if (!DET.Initialize())
 	{
 		DET.DeInitialize();
 		emit xSignaHelper.signalShowErrorMessageBar("探测器连接失败！");

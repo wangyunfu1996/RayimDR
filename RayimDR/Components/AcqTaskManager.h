@@ -30,7 +30,7 @@ public:
 	void updateAcqFrameRate(int frameRate);
 	void updateAcqFrame(int frame);
 	void updateAcqStackedFrame(int stackedFrame);
-	void updateAcqDetMode(int detMode);
+	void updateAcqDetMode(std::string mode);
 	QImage receivedImage(int idx);
 
 signals:

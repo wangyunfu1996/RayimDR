@@ -116,9 +116,9 @@ void AcqTaskManager::updateAcqStackedFrame(int stackedFrame)
 	acqCondition->stackedFrame = stackedFrame;
 }
 
-void AcqTaskManager::updateAcqDetMode(int detMode)
+void AcqTaskManager::updateAcqDetMode(std::string mode)
 {
-	acqCondition->detMode = detMode;
+	acqCondition->mode = mode;
 }
 
 QImage AcqTaskManager::receivedImage(int idx)

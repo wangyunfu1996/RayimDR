@@ -17,7 +17,7 @@ IRayDetectorWidget::IRayDetectorWidget(QWidget* parent)
 	ui->setupUi(this);
 
 	connect(ui->pushButton_connect, &QPushButton::clicked, this, [this]() {
-		if (DET.Initialize() != 0)
+		if (!DET.Initialize())
 		{
 			qDebug() << "探测器初始化失败！";
 			DET.DeInitialize();

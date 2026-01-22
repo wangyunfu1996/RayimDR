@@ -20,7 +20,9 @@ private:
 	void onThemeChanged(ElaThemeType::ThemeMode themeMode);
 	void initUIConnect();
 	void changeMode(const QString& modeText);
+	std::string getModeFromUI();
 	void setUIEnable(bool enable);
+	void updateUIFromMode(std::string mode);
 
 private:
 	Ui::CommonConfigUIClass ui;

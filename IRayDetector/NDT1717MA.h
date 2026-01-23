@@ -119,6 +119,7 @@ signals:
 	void signalGainImageSelected(int nTotal, int nValid);
 	void signalDefectImageSelected(int nTotal, int nValid);
 	void signalStatusChanged();
+	void signalModeChanged();
 
 private:
 	QString m_uuid;

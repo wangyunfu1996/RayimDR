@@ -36,9 +36,6 @@
     <ClCompile Include="UI\CommonConfigUI.cpp">
       <Filter>UI</Filter>
     </ClCompile>
-    <ClCompile Include="UI\DetCfgDialog.cpp">
-      <Filter>UI</Filter>
-    </ClCompile>
     <ClCompile Include="UI\MainWindow.cpp">
       <Filter>UI</Filter>
     </ClCompile>
@@ -96,9 +93,6 @@
     <QtMoc Include="UI\CommonConfigUI.h">
       <Filter>UI</Filter>
     </QtMoc>
-    <QtMoc Include="UI\DetCfgDialog.h">
-      <Filter>UI</Filter>
-    </QtMoc>
     <QtMoc Include="UI\MainWindow.h">
       <Filter>UI</Filter>
     </QtMoc>
@@ -140,9 +134,6 @@
       <Filter>UI</Filter>
     </QtUic>
     <QtUic Include="UI\CommonConfigUI.ui">
-      <Filter>UI</Filter>
-    </QtUic>
-    <QtUic Include="UI\DetCfgDialog.ui">
       <Filter>UI</Filter>
     </QtUic>
     <QtUic Include="UI\MultiAcqCfgDialog.ui">

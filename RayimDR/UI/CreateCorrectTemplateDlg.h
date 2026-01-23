@@ -20,6 +20,7 @@ private:
 	void ShowTips(const QString& msg);
 	void ModifyGainVoltageCurrent(int voltage, int current);
 	void ModifyDefectVoltageCurrent(int voltage, int current);
+	void ModifyMode(int modeIdx);
 
 private:
 	void onOffsetImageSelected(int nTotal, int nValid);

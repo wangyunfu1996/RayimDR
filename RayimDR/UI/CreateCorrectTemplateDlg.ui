@@ -7,31 +7,24 @@
     <x>0</x>
     <y>0</y>
     <width>492</width>
-    <height>272</height>
+    <height>300</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>CreateCorrectTemplateDlg</string>
   </property>
   <layout class="QGridLayout" name="gridLayout" columnstretch="1,4">
-   <item row="1" column="1">
-    <widget class="ElaText" name="label_Tips">
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
+   <item row="2" column="0">
     <widget class="ElaText" name="label_Stage">
      <property name="text">
       <string/>
      </property>
     </widget>
    </item>
-   <item row="0" column="0" colspan="2">
+   <item row="1" column="0" colspan="2">
     <widget class="QStackedWidget" name="stackedWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="page_Offset">
       <layout class="QGridLayout" name="gridLayout_2" columnstretch="1,1,1,1">
@@ -320,6 +313,23 @@
      </widget>
     </widget>
    </item>
+   <item row="2" column="1">
+    <widget class="ElaText" name="label_Tips">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="ElaComboBox" name="comboBox_mode"/>
+   </item>
+   <item row="0" column="0">
+    <widget class="ElaText" name="label_mode">
+     <property name="text">
+      <string>模式</string>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
@@ -343,6 +353,11 @@
    <class>ElaLineEdit</class>
    <extends>QLineEdit</extends>
    <header>ElaLineEdit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ElaComboBox</class>
+   <extends>QComboBox</extends>
+   <header>ElaComboBox.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

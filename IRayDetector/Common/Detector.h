@@ -132,12 +132,18 @@ public:
 	int GetAttr(int nAttrID, float& retV);
 	int GetAttr(int nAttrID, std::string& retV);
 
-	//int CDetector::GetAttrInt(int nAttrID)
 	int GetAttrInt(int nAttrID)
 	{
 		int nValue = 0;
 		GetAttr(nAttrID, nValue);
 		return nValue;
+	}
+
+	std::string GetAttrStr(int nAttrID)
+	{
+		std::string strValue;
+		GetAttr(nAttrID, strValue);
+		return strValue;
 	}
 
 	FPDRESULT Invoke(int nCmdId)

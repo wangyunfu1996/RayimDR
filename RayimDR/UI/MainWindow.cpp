@@ -35,7 +35,6 @@
 #include "UI/CommonConfigUI.h"
 
 #include "UI/XRayCfgDialog.h"
-#include "UI/DetCfgDialog.h"
 #include "UI/CreateCorrectTemplateDlg.h"
 #include "UI/AppCfgDialog.h"
 #include "UI/MultiAcqCfgDialog.h"
@@ -336,12 +335,6 @@ void MainWindow::initMenuBar()
 	action = configMenu->addAction("射线源设置");
 	connect(action, &QAction::triggered, this, [this]() {
 		XRayCfgDialog dialog;
-		dialog.exec();
-		});
-
-	action = configMenu->addAction("探测器设置");
-	connect(action, &QAction::triggered, this, [this]() {
-		DetCfgDialog dialog;
 		dialog.exec();
 		});
 

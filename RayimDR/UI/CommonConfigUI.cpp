@@ -21,7 +21,7 @@ CommonConfigUI::CommonConfigUI(QWidget* parent)
 
 	for (int i(0); i < DET.GetMaxStackedNum(); i++)
 	{
-		ui.comboBox_stakcedNum->addItem(QString::number(i + 1));
+		ui.comboBox_stakcedNum->addItem(QString::number(i));
 	}
 
 	initUIConnect();
@@ -148,7 +148,6 @@ void CommonConfigUI::changeMode(const QString& modeText)
 		setUIEnable(true);
 		});
 	watcher->setFuture(future);
-
 }
 
 std::string CommonConfigUI::getModeFromUI()

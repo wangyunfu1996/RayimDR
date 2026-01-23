@@ -103,6 +103,12 @@ CreateCorrectTemplateDlg::CreateCorrectTemplateDlg(QWidget* parent)
 		});
 	ui.stackedWidget->setCurrentIndex(0);
 
+	ui.comboBox_mode->addItem("1x1");
+	ui.comboBox_mode->addItem("2x2");
+	ui.comboBox_mode->addItem("3x3");
+	ui.comboBox_mode->addItem("4x4");
+
+	connect(ui.comboBox_mode, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &CreateCorrectTemplateDlg::ModifyMode);
 }
 
 CreateCorrectTemplateDlg::~CreateCorrectTemplateDlg()
@@ -359,6 +365,51 @@ void CreateCorrectTemplateDlg::ModifyDefectVoltageCurrent(int voltage, int curre
 {
 	ui.spinBox_DefectVoltage->setValue(voltage);
 	ui.spinBox_DefectCurrent->setValue(current);
+}
+
+void CreateCorrectTemplateDlg::ModifyMode(int modeIdx)
+{
+	modeIdx += 5;
+
+	std::string mode = "Mode" + std::to_string(modeIdx);
+	qDebug() << "modeIdx: " << modeIdx
+		<< " mode: " << mode.c_str();
+
+	// 移到后台线程执行
+	auto future = QtConcurrent::run([this, mode]() {
+		bool bRet{ true };
+
+		if (!DET.Initialized())
+		{
+			emit signalTipsChanged("探测器未连接！");
+			return false;
+		}
+
+		if (!DET.CanModifyCfg())
+		{
+			emit signalTipsChanged("当前不允许修改参数！");
+			return false;
+		}
+
+		return DET.UpdateMode(mode);
+		});
+
+	auto* watcher = new QFutureWatcher<bool>(this);
+	connect(watcher, &QFutureWatcher<bool>::finished, this, [this, watcher]() {
+		bool bRet = watcher->future().result();
+		qDebug() << "修改探测器模式结束，执行结果：" << watcher->future().result();
+		if (!bRet)
+		{
+			emit signalTipsChanged("修改探测器模式失败！");
+		}
+		else
+		{
+			emit signalTipsChanged("修改探测器模式成功！");
+		}
+		watcher->deleteLater();
+
+		});
+	watcher->setFuture(future);
 }
 
 void CreateCorrectTemplateDlg::onOffsetImageSelected(int nTotal, int nValid)

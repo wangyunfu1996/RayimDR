@@ -7,7 +7,8 @@
 #include <qdebug.h>
 #include <quuid.h>
 #include <qtimer.h>
-#include <QMetaObject>
+#include <qmetaobject.h>
+#include <qdir.h>
 
 #include "Common/Detector.h"
 #include "Common/DisplayProgressbar.h"
@@ -203,7 +204,19 @@ bool NDT1717MA::Initialized() const
 
 bool NDT1717MA::CanModifyCfg() const
 {
-	return Initialized();
+	if (!Initialized())
+	{
+		return false;
+	}
+
+	if (gs_pDetInstance->GetAttrInt(Attr_State) != Enm_State_Ready ||
+		gs_pDetInstance->GetAttrInt(Attr_CurrentTask) != 0 ||
+		gs_pDetInstance->GetAttrInt(Attr_CurrentTransaction) != Enm_Transaction_Null)
+	{
+		return false;
+	}
+
+	return true;
 }
 
 int NDT1717MA::GetAttr(int nAttrID, int& nVal)
@@ -263,6 +276,7 @@ int NDT1717MA::GetMaxStackedNum()
 
 bool NDT1717MA::UpdateMode(std::string mode)
 {
+	qDebug() << "mode: " << mode.c_str();
 	std::string current_mode;
 	int result = gs_pDetInstance->GetAttr(Attr_CurrentSubset, current_mode);
 	dbgResult(result);
@@ -285,9 +299,32 @@ bool NDT1717MA::UpdateMode(std::string mode)
 	m_status.Height = gs_pDetInstance->GetAttrInt(Attr_Height);
 	m_status.AcqParam_Binning_W = gs_pDetInstance->GetAttrInt(Attr_AcqParam_Binning_W);
 	m_status.AcqParam_Zoom_W = gs_pDetInstance->GetAttrInt(Attr_AcqParam_Zoom_W);
-	// 尝试开启校正
-	SetCorrectOption(1, 1, 1);
 
+	// 检查是否存在校正文件，如果存在，则开启校正
+	// "D:\NDT1717MA\"
+	auto WorkDir = gs_pDetInstance->GetAttrStr(Attr_WorkDir);
+	// "Mode7"
+	auto CurrentSubset = gs_pDetInstance->GetAttrStr(Attr_CurrentSubset);
+
+	// 检查 WorkDir/Correct/CurrentSubset/ 下是否存在 offset_*.off gain_*.gn defect_*.dft
+	QString calibPath = QString::fromStdString(WorkDir) + "Correct\\" + QString::fromStdString(CurrentSubset);
+	QDir calibDir(calibPath);
+	
+	bool hasOffset = !calibDir.entryList(QStringList() << "offset_*.off", QDir::Files).isEmpty();
+	bool hasGain = !calibDir.entryList(QStringList() << "gain_*.gn", QDir::Files).isEmpty();
+	bool hasDefect = !calibDir.entryList(QStringList() << "defect_*.dft", QDir::Files).isEmpty();
+	
+	qDebug() << "校正文件检查 - 路径:" << calibPath
+		<< " Offset:" << hasOffset
+		<< " Gain:" << hasGain
+		<< " Defect:" << hasDefect;
+	
+	// 根据校正文件存在情况设置校正选项
+	if (hasOffset || hasGain || hasDefect)
+	{
+		SetCorrectOption(hasOffset ? 1 : 0, hasGain ? 1 : 0, hasDefect ? 1 : 0);
+	}
+	
 	GetCurrentCorrectOption(m_status.SW_PreOffset, m_status.SW_Gain, m_status.SW_Defect);
 
 	qDebug() << "修改探测器工作模式成功，"
@@ -299,6 +336,8 @@ bool NDT1717MA::UpdateMode(std::string mode)
 		<< " SW_PreOffset: " << m_status.SW_PreOffset
 		<< " SW_Gain: " << m_status.SW_Gain
 		<< " SW_Defect: " << m_status.SW_Defect;
+
+	emit signalModeChanged();
 
 	return true;
 }

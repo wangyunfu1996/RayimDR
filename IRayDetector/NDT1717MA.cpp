@@ -103,10 +103,10 @@ namespace {
 				<< " nAvgValue: " << nAvgValue
 				<< " nCenterValue: " << nCenterValue;
 
-			gn_receviedIdx.store(gn_receviedIdx.load() + 1);
 			// 将图像数据深拷贝到QImage
 			NDT1717MA::Instance().SetReceivedImage(pImg->nWidth, pImg->nHeight, pImageData, nImageSize, nCenterValue);
-			emit NDT1717MA::Instance().signalAcqImageReceived(gn_receviedIdx.load());
+			emit NDT1717MA::Instance().signalAcqImageReceived(DET.GetReceivedImage(), gn_receviedIdx.load());
+			gn_receviedIdx.store(gn_receviedIdx.load() + 1);
 			break;
 		}
 		case Evt_TaskResult_Succeed:
@@ -342,16 +342,17 @@ bool NDT1717MA::UpdateMode(std::string mode)
 	if (current_mode == mode)
 	{
 		qDebug() << QStringLiteral("目标模式与当前模式相同，当前模式") << QString::fromStdString(current_mode);
-		return true;
 	}
-
-	int result = gs_pDetInstance->SyncInvoke(Cmd_SetCaliSubset, mode, INT_MAX);
-	dbgResult(result);
-
-	if (Err_OK != result)
+	else
 	{
-		qDebug() << QStringLiteral("修改探测器工作模式失败！");
-		return false;
+		int result = gs_pDetInstance->SyncInvoke(Cmd_SetCaliSubset, mode, INT_MAX);
+		dbgResult(result);
+
+		if (Err_OK != result)
+		{
+			qDebug() << QStringLiteral("修改探测器工作模式失败！");
+			return false;
+		}
 	}
 
 	m_status.Width = gs_pDetInstance->GetAttrInt(Attr_Width);
@@ -363,8 +364,7 @@ bool NDT1717MA::UpdateMode(std::string mode)
 
 	GetCurrentCorrectOption(m_status.SW_PreOffset, m_status.SW_Gain, m_status.SW_Defect);
 
-	qDebug() << "修改探测器工作模式成功，"
-		<< " 当前工作模式：" << QString::fromStdString(mode)
+	qDebug()  << " 当前工作模式：" << QString::fromStdString(mode)
 		<< " Attr_Width: " << m_status.Width
 		<< " Attr_Height: " << m_status.Height
 		<< " Attr_AcqParam_Binning_W: " << m_status.AcqParam_Binning_W
@@ -1035,9 +1035,7 @@ bool NDT1717MA::CheckBatteryStateOK()
 void NDT1717MA::TryOpenCorrection()
 {
 	// 检查是否存在校正文件，如果存在，则开启校正
-// "D:\NDT1717MA\"
 	auto WorkDir = gs_pDetInstance->GetAttrStr(Attr_WorkDir);
-	// "Mode7"
 	auto CurrentSubset = gs_pDetInstance->GetAttrStr(Attr_CurrentSubset);
 
 	// 检查 WorkDir/Correct/CurrentSubset/ 下是否存在 offset_*.off gain_*.gn defect_*.dft
@@ -1058,5 +1056,4 @@ void NDT1717MA::TryOpenCorrection()
 	{
 		SetCorrectOption(hasOffset ? 1 : 0, hasGain ? 1 : 0, hasDefect ? 1 : 0);
 	}
-
 }

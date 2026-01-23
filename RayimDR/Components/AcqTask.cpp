@@ -12,8 +12,8 @@
 #include "../IRayDetector/NDT1717MA.h"
 #include "../IRayDetector/TiffHelper.h"
 
-AcqTask::AcqTask(QObject* parent)
-	: QObject(parent)
+AcqTask::AcqTask(AcqCondition acqCond, QObject* parent)
+	: QThread(parent), acqCondition(acqCond)
 {
 	qDebug() << "构造采集任务";
 }
@@ -26,20 +26,17 @@ AcqTask::~AcqTask()
 }
 
 // Helper function to process stacked frames and save results
-void AcqTask::processStackedFrames(const QVector<QImage>& imagesToStack, const AcqCondition& acqCondition, int receivedIdx)
+void AcqTask::processStackedFrames(const QVector<QImage>& imagesToStack)
 {
-	int vecIdx = receivedIdx % IMAGE_BUFFER_SIZE;
+	int vecIdx = nProcessedStacekd.load() % IMAGE_BUFFER_SIZE;
 
 	// Execute stacking in background thread
-	QtConcurrent::run([this, imagesToStack, acqCondition, receivedIdx, vecIdx]() {
+	QtConcurrent::run([this, imagesToStack, vecIdx]() {
 		QImage stackedImage = stackImages(imagesToStack);
 		AcqTaskManager::Instance().receivedImageList[vecIdx] = stackedImage;
-		qDebug() << "Stacking completed (background thread), receivedIdx:" << receivedIdx;
 
 		if (acqCondition.stackedFrame > 0)
 			onProgressChanged("数据叠加完成");
-
-		emit AcqTaskManager::Instance().signalAcqTaskReceivedIdxChanged(acqCondition, receivedIdx);
 
 		// Save files if specified
 		if (acqCondition.saveToFiles && acqCondition.frame != INT_MAX)
@@ -48,24 +45,29 @@ void AcqTask::processStackedFrames(const QVector<QImage>& imagesToStack, const A
 			{
 				QString fileName = QString("%1/Image%2_%3x%4.raw")
 					.arg(acqCondition.savePath)
-					.arg(receivedIdx)
-					.arg(DET_WIDTH)
-					.arg(DET_HEIGHT);
+					.arg(nProcessedStacekd.load())
+					.arg(stackedImage.width())
+					.arg(stackedImage.height());
 				XImageHelper::Instance().saveImageU16Raw(stackedImage, fileName);
 			}
 			else if (acqCondition.saveType == ".TIFF")
 			{
 				QString fileName = QString("%1/Image%2.tif")
 					.arg(acqCondition.savePath)
-					.arg(receivedIdx);
+					.arg(nProcessedStacekd.load());
 				TiffHelper::SaveImage(stackedImage, fileName.toStdString());
 			}
 		}
+
+		qDebug() << "数据叠加完成";
+		emit AcqTaskManager::Instance().signalAcqTaskReceivedIdxChanged(acqCondition, nProcessedStacekd.load());
+		nProcessedStacekd.fetch_add(1);
 		});
 }
 
 void AcqTask::onErrorOccurred(const QString& msg)
 {
+	bStopRequested.store(true);
 	emit AcqTaskManager::Instance().signalAcqStatusMsg(msg, 1);
 }
 
@@ -74,107 +76,128 @@ void AcqTask::onProgressChanged(const QString& msg)
 	emit AcqTaskManager::Instance().signalAcqStatusMsg(msg, 0);
 }
 
-void AcqTask::startAcq(AcqCondition acqCondition)
+void AcqTask::startAcq()
 {
 	qDebug() << "开启采集任务，当前线程：" << QThread::currentThreadId();
 	qDebug() << acqCondition;
 
-	QPointer<AcqTask> weakThis(this);
 	AcqTaskManager::Instance().stackedImageList.clear();
-	rawFrameCount.store(0);
-	receivedIdx.store(0);
+	nReceivedIdx.store(0);
+	nProcessedStacekd.store(0);
 	// Calculate total frames to stack: stackedFrame=0 means 1 frame, stackedFrame=n means 1+n frames
 	int totalStackFrames = (acqCondition.stackedFrame == 0) ? 1 : (1 + acqCondition.stackedFrame);
 	qDebug() << "Stack configuration: stackedFrame=" << acqCondition.stackedFrame << ", need to collect" << totalStackFrames << "frames";
 
 #if DET_TYPE == DET_TYPE_VIRTUAL
-	while (!stopRequested.load())
+	int width{ 0 };
+	int height{ 0 };
+	if (acqCondition.mode == "Mode5")
 	{
-		int currentRawCount = weakThis->rawFrameCount.fetch_add(1) + 1;
-		QImage rawImage = XImageHelper::generateRandomGaussianGrayImage(DET_WIDTH, DET_HEIGHT);
-		AcqTaskManager::Instance().stackedImageList.append(rawImage);
-		qDebug() << "Received raw frame" << currentRawCount << ", stack buffer current frames:" << AcqTaskManager::Instance().stackedImageList.size();
+		width = DET_WIDTH_1X1;
+		height = DET_HEIGHT_1X1;
+	}
+	else if (acqCondition.mode == "Mode6")
+	{
+		width = DET_WIDTH_2X2;
+		height = DET_HEIGHT_2X2;
+	}
 
-		// When buffer reaches required frame count, process stacking
-		if (AcqTaskManager::Instance().stackedImageList.size() == totalStackFrames)
-		{
-			int currentReceivedIdx = weakThis->receivedIdx.fetch_add(1) + 1;
-			// Copy data and clear buffer
-			QVector<QImage> imagesToStack = AcqTaskManager::Instance().stackedImageList;
-			AcqTaskManager::Instance().stackedImageList.clear();
-
-			// Process stacked frames using common helper
-			processStackedFrames(imagesToStack, acqCondition, currentReceivedIdx);
-
-			if (currentReceivedIdx == acqCondition.frame)
-			{
-				stopAcq();
-			}
-		}
-
-		QThread::msleep(10); // Prevent high CPU usage
+	while (!bStopRequested.load())
+	{
+		QImage image = XImageHelper::generateRandomGaussianGrayImage(width, height);
+		onImageReceived(image, nReceivedIdx.load());
+		nReceivedIdx.fetch_add(1);
+		QThread::msleep(1000);
 	}
 #elif DET_TYPE == DET_TYPE_IRAY
-	connect(&DET, &NDT1717MA::signalAcqImageReceived, this, [this, weakThis, acqCondition, totalStackFrames](int detectorFrameIdx) {
-		if (!weakThis || weakThis->stopRequested.load())
-		{
-			qDebug() << "Received detector data, but acquisition task has been stopped";
-			return;
-		}
 
-		QImage rawImage = DET.GetReceivedImage();
-		AcqTaskManager::Instance().stackedImageList.append(rawImage);
-		int currentRawCount = weakThis->rawFrameCount.fetch_add(1) + 1;
-		qDebug() << "Received raw frame" << currentRawCount << ", stack buffer current frames:" << AcqTaskManager::Instance().stackedImageList.size();
+	// 先尝试修改探测器的工作模式和帧率等
+	if (!DET.UpdateMode(acqCondition.mode))
+	{
+		this->onErrorOccurred("修改探测器的工作模式失败!");
+		qDebug() << "修改探测器的工作模式失败!";
+		return;
+	}
 
-		if (acqCondition.stackedFrame > 0)
-		{
-			this->onProgressChanged(QString("叠加数据 %1/%2 已接收").arg(AcqTaskManager::Instance().stackedImageList.size()).arg(acqCondition.stackedFrame + 1));
-		}
-
-		// When buffer reaches required frame count, process stacking
-		if (AcqTaskManager::Instance().stackedImageList.size() == totalStackFrames)
-		{
-			int currentReceivedIdx = weakThis->receivedIdx.fetch_add(1) + 1;
-			if (currentReceivedIdx == acqCondition.frame)
-			{
-				qDebug() << "Sufficient data collected, stopping acquisition";
-				weakThis->stopAcq();
-			}
-
-			// Copy data and clear buffer
-			QVector<QImage> imagesToStack = AcqTaskManager::Instance().stackedImageList;
-			AcqTaskManager::Instance().stackedImageList.clear();
-
-			qDebug() << "Starting async stacking, currentReceivedIdx:" << currentReceivedIdx;
-			if (acqCondition.stackedFrame > 0)
-				this->onProgressChanged("开始进行数据叠加");
-
-			// Process stacked frames using common helper
-			weakThis->processStackedFrames(imagesToStack, acqCondition, currentReceivedIdx);
-		}
-		});
-
-	connect(&DET, &NDT1717MA::signalErrorOccurred, this, &AcqTask::onErrorOccurred);
+	connect(&DET, &NDT1717MA::signalErrorOccurred, this, &AcqTask::onErrorOccurred, Qt::ConnectionType::UniqueConnection);
+	connect(&DET, &NDT1717MA::signalAcqImageReceived, this, &AcqTask::onImageReceived, Qt::ConnectionType::UniqueConnection);
 	
 	if (!DET.StartAcq())
 	{
 		this->onErrorOccurred("采集失败, 请重试!");
-		stopAcq();
+		qDebug() << "采集失败!";
+		bStopRequested.store(true);
 	}
+
+	do
+	{
+		qDebug() << "等待任务线程结束";
+		QThread::msleep(500);
+	} while (!bStopRequested.load());
+
 	return;
 #endif // DET_TYPE
 }
 
 void AcqTask::stopAcq()
 {
-	stopRequested.store(true);
+	bStopRequested.store(true);
 
 #if DET_TYPE == DET_TYPE_IRAY
 	DET.StopAcq();
 #endif
+}
 
-	emit AcqTaskManager::Instance().signalAcqTaskStopped();
+void AcqTask::run()
+{
+	startAcq();
+}
+
+void AcqTask::onImageReceived(QImage image, int idx)
+{
+	if (bStopRequested.load())
+	{
+		qDebug() << "Received detector data, but acquisition task has been stopped";
+		return;
+	}
+
+	if (nProcessedStacekd.load() == acqCondition.frame)
+	{
+		bStopRequested.store(true);
+#if DET_TYPE == DET_TYPE_VIRTUAL
+#elif DET_TYPE == DET_TYPE_IRAY
+		DET.StopAcq();
+#endif // DET_TYPE
+		qDebug() << "已采集足够数量的数据";
+		return;
+	}
+
+	AcqTaskManager::Instance().stackedImageList.append(image);
+	nReceivedIdx.fetch_add(1);
+	qDebug() << "Received frame" << nReceivedIdx
+		<< ", stack buffer current frames:" << AcqTaskManager::Instance().stackedImageList.size()
+		<< ", width:" << image.width()
+		<< ", height:" << image.height()
+		<< ", idxInDet:" << idx;
+
+	if (acqCondition.stackedFrame > 0)
+	{
+		this->onProgressChanged(QString("%1 叠加数据 %2/%3 已接收").arg(nProcessedStacekd.load() + 1).arg(AcqTaskManager::Instance().stackedImageList.size()).arg(acqCondition.stackedFrame + 1));
+	}
+
+	// When buffer reaches required frame count, process stacking
+	if (AcqTaskManager::Instance().stackedImageList.size() == (acqCondition.stackedFrame + 1))
+	{
+		// Copy data and clear buffer
+		QVector<QImage> imagesToStack = AcqTaskManager::Instance().stackedImageList;
+		AcqTaskManager::Instance().stackedImageList.clear();
+
+		if (acqCondition.stackedFrame > 0)
+			this->onProgressChanged("开始进行数据叠加");
+
+		// Process stacked frames using common helper
+		this->processStackedFrames(imagesToStack);
+	}
 }
 
 QImage AcqTask::stackImages(const QVector<QImage>& images)
@@ -190,7 +213,7 @@ QImage AcqTask::stackImages(const QVector<QImage>& images)
 	if (images.size() == 1)
 	{
 		qint64 elapsedTime = QDateTime::currentMSecsSinceEpoch() - startTime;
-		qDebug() << "[性能] 单帧无需叠加，耗时：" << elapsedTime << "ms";
+		qDebug() << "单帧无需叠加，耗时：" << elapsedTime << "ms";
 		return images[0];
 	}
 

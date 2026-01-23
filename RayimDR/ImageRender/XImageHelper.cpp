@@ -99,10 +99,16 @@ QPixmap XImageHelper::generateGaussianGrayPixmap(int w, int h)
 
 QImage XImageHelper::generateRandomGaussianGrayImage(int w, int h, QImage::Format format)
 {
-	if (QImage::Format::Format_Grayscale8 != format && QImage::Format::Format_Grayscale16 != format)
+	qDebug() << "w: " << w
+		<< " h: " << h
+		<< " format: " << format;
+
+	if (QImage::Format::Format_Grayscale8 != format && 
+		QImage::Format::Format_Grayscale16 != format)
 	{
 		format = QImage::Format::Format_Grayscale8;
 	}
+
 	QImage image(w, h, format);
 
 	std::random_device rd;

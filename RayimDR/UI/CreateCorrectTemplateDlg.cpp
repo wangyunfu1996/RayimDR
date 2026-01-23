@@ -417,10 +417,9 @@ void CreateCorrectTemplateDlg::onOffsetImageSelected(int nTotal, int nValid)
 	ui.lineEdit_OffsetProgress->setText(QString("%1 / %2").arg(nValid).arg(nTotal));
 }
 
-void CreateCorrectTemplateDlg::onGainAcqImageReceived(int idx)
+void CreateCorrectTemplateDlg::onGainAcqImageReceived(QImage image, int idx)
 {
-	QImage rawImage = DET.GetReceivedImage();
-	gainPixmapItem->setPixmap(QPixmap::fromImage(rawImage).scaled(ui.graphicsView_GainImageView->width() - 5,
+	gainPixmapItem->setPixmap(QPixmap::fromImage(image).scaled(ui.graphicsView_GainImageView->width() - 5,
 		ui.graphicsView_GainImageView->height() - 5));
 	int nGray = DET.GetGrayOfReceivedImage();
 	ui.lineEdit_GainCenterValue->setText(QString::number(nGray));
@@ -431,10 +430,9 @@ void CreateCorrectTemplateDlg::onGainImageSelected(int nTotal, int nValid)
 	ui.lineEdit_GainProgress->setText(QString("%1 / %2").arg(nValid).arg(nTotal));
 }
 
-void CreateCorrectTemplateDlg::onDefectAcqImageReceived(int idx)
+void CreateCorrectTemplateDlg::onDefectAcqImageReceived(QImage image, int idx)
 {
-	QImage rawImage = DET.GetReceivedImage();
-	defectPixmapItem->setPixmap(QPixmap::fromImage(rawImage).scaled(ui.graphicsView_DefectImageView->width() - 5,
+	defectPixmapItem->setPixmap(QPixmap::fromImage(image).scaled(ui.graphicsView_DefectImageView->width() - 5,
 		ui.graphicsView_DefectImageView->height() - 5));
 	int nGray = DET.GetGrayOfReceivedImage();
 	ui.lineEdit_DefectCurrentGray->setText(QString::number(nGray));

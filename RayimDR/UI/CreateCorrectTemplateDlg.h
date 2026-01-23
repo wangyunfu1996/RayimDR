@@ -24,9 +24,9 @@ private:
 
 private:
 	void onOffsetImageSelected(int nTotal, int nValid);
-	void onGainAcqImageReceived(int idx);
+	void onGainAcqImageReceived(QImage image, int idx);
 	void onGainImageSelected(int nTotal, int nValid);
-	void onDefectAcqImageReceived(int idx);
+	void onDefectAcqImageReceived(QImage image, int idx);
 	void onDefectGroupChanged(int groupIdx, int nTotalGroup);
 	void onDefectImageSelected(int nTotal, int nValid);
 

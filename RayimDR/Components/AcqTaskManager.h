@@ -41,7 +41,6 @@ signals:
 private:
 	std::atomic_bool acquiring{ false };
 	AcqCondition* acqCondition{ nullptr };
-	QThread* acqThread{ nullptr };
 	AcqTask* acqTask{ nullptr };
 
 	QVector<QImage> receivedImageList;

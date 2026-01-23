@@ -14,7 +14,7 @@ struct AcqCondition
 	int voltage{ 40 };			// kV
 	int current{ 100 };			// mA
 	int frameRate{ 10 };
-	int frame{ 10 };			// 帧数 可以理解为角度数
+	int frame{ 10 };			// 帧数
 	int stackedFrame{ 0 };		// 叠加帧数
 	std::string mode{ "Mode5"};	// 1x1 2x2 3x3 4x4
 
@@ -55,15 +55,17 @@ inline QDebug operator<<(QDebug debug, const AcqCondition& cond)
 	return debug;
 }
 
-const static int DET_WIDTH{ 4300 };
-const static int DET_HEIGHT{ 4300 };
+const static int DET_WIDTH_1X1{ 4300 };
+const static int DET_HEIGHT_1X1{ 4300 };
+const static int DET_WIDTH_2X2{ 2133 };
+const static int DET_HEIGHT_2X2{ 2133 };
 
 const static int IMAGE_BUFFER_SIZE{ 10 };
 
 #define DET_TYPE_VIRTUAL 0
 #define DET_TYPE_IRAY 1
 
-#define DET_TYPE DET_TYPE_IRAY
+#define DET_TYPE DET_TYPE_VIRTUAL
 
 #if DET_TYPE == DET_TYPE_VIRTUAL
 #elif DET_TYPE == DET_TYPE_IRAY
@@ -95,7 +97,7 @@ public:
 public:
 	bool CONFIG_BEFORE_ACQ{ false };
 
-	int VOLTAGE_MAX{ 160 };
+	int VOLTAGE_MAX{ 120 };
 	int VOLTAGE_MIN{ 40 };
 
 	int CURRENT_MAX{ 1000 };
@@ -103,8 +105,5 @@ public:
 
 	int POWER_MAX{ 0 };
 	int POWER_MIN{ 50 };
-
-	int SPEED_MAX{ 10 };
-	int SPEED_MIN{ -10 };
 };
 

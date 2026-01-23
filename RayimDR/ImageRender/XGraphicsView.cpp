@@ -85,7 +85,9 @@ void XGraphicsView::updateImage(QImage image, bool adjustWL)
 	int min = -1;
 	XImageHelper::calculateMaxMinValue(image, max, min);
 	emit signalMinMaxValueChanged(min, max);
-	qDebug() << "min max of srcU16Image: " << min << max;
+	qDebug() << "min max of srcU16Image: " << min << max
+		<< " width: " << image.width()
+		<< " height: " << image.height();
 
 	if (adjustWL || autoWL || bIsFirstImage)
 	{
@@ -250,7 +252,7 @@ void XGraphicsView::openImage()
 	}
 	else if (filePath.endsWith(".raw", Qt::CaseInsensitive))
 	{
-		image = XImageHelper::openImageU16Raw(filePath, DET_WIDTH, DET_HEIGHT);
+		image = XImageHelper::openImageU16Raw(filePath, DET_WIDTH_1X1, DET_HEIGHT_1X1);
 		if (image.isNull())
 		{
 			emit xSignaHelper.signalShowErrorMessageBar("RAW文件读取失败: " + filePath);
@@ -334,7 +336,7 @@ void XGraphicsView::openImageFolder()
 			
 			if (isRawFormat)
 			{
-				image = XImageHelper::openImageU16Raw(fileInfo.absoluteFilePath(), DET_WIDTH, DET_HEIGHT);
+				image = XImageHelper::openImageU16Raw(fileInfo.absoluteFilePath(), DET_WIDTH_1X1, DET_HEIGHT_1X1);
 			}
 			else  // TIFF format
 			{

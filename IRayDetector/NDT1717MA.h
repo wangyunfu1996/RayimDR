@@ -126,7 +126,7 @@ private:
 	void TryOpenCorrection();
 
 signals:
-	void signalAcqImageReceived(int idx);
+	void signalAcqImageReceived(QImage image, int idx);
 	void signalOffsetImageSelected(int nTotal, int nValid);
 	void signalGainImageSelected(int nTotal, int nValid);
 	void signalDefectImageSelected(int nTotal, int nValid);

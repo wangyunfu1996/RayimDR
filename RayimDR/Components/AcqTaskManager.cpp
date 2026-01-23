@@ -8,8 +8,9 @@
 #include "XSignalsHelper.h"
 #include "XGlobal.h"
 
-#include "../IRayDetector/NDT1717MA.h"
 #include "AcqTask.h"
+
+#include "../IRayDetector/NDT1717MA.h"
 
 AcqTaskManager::AcqTaskManager(QObject* parent)
 	: QObject(parent), acqCondition(new AcqCondition())
@@ -42,27 +43,17 @@ void AcqTaskManager::startAcq()
 	}
 
 	acquiring.store(true);
-	acqThread = new QThread();
-	acqTask = new AcqTask();
-	acqTask->moveToThread(acqThread);
+	acqTask = new AcqTask(*acqCondition);
 
-	connect(acqThread, &QThread::started, acqTask, [this]() {
-		acqTask->startAcq(*acqCondition);
-		});
-
-	// 连接采集停止信号：先让线程退出
-	connect(this, &AcqTaskManager::signalAcqTaskStopped, acqThread, &QThread::quit);
-
-	// 线程结束后清理资源：先删除 task 再删除 thread
-	connect(acqThread, &QThread::finished, acqTask, &QObject::deleteLater);
-	connect(acqThread, &QThread::finished, acqThread, &QObject::deleteLater);
-	connect(acqThread, &QThread::finished, this, [this]() {
+	// 线程结束后清理资源
+	connect(acqTask, &QThread::finished, this, [this]() {
 		acquiring.store(false);
+		delete acqTask;
 		acqTask = nullptr;
-		acqThread = nullptr;
+		emit AcqTaskManager::Instance().signalAcqTaskStopped();
 		});
 
-	acqThread->start();
+	acqTask->start();
 }
 
 void AcqTaskManager::stopAcq()

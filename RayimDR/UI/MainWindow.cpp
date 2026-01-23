@@ -209,7 +209,7 @@ void MainWindow::onAcqStopped()
 
 void MainWindow::onAcqImageReceived(AcqCondition condition, int receivedIdx)
 {
-	qDebug() << "展示第 " << receivedIdx << "帧数据。采集条件：" << condition;
+	qDebug() << "展示第 " << receivedIdx << "帧数据 采集条件：" << condition;
 
 	if (condition.acqType == AcqType::DR)
 	{

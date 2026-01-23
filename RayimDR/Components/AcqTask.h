@@ -1,29 +1,34 @@
 #pragma once
 
-#include <QObject>
+#include <QThread>
 #include <QPointer>
 
 #include "XGlobal.h"
 
-class AcqTask : public QObject
+class AcqTask : public QThread
 {
 	Q_OBJECT
 
 public:
-	AcqTask(QObject* parent = nullptr);
+	AcqTask(AcqCondition acqCond, QObject* parent = nullptr);
 	~AcqTask();
 
-	void startAcq(AcqCondition acqCondition);
+	void startAcq();
 	void stopAcq();
 
+protected:
+	virtual void run() override;
+
 private:
+	void onImageReceived(QImage image, int idx);
 	QImage stackImages(const QVector<QImage>& images);
-	void processStackedFrames(const QVector<QImage>& imagesToStack, const AcqCondition& acqCondition, int receivedIdx);
+	void processStackedFrames(const QVector<QImage>& imagesToStack);
 	void onErrorOccurred(const QString& msg);
 	void onProgressChanged(const QString& msg);
 
-	std::atomic_bool stopRequested{ false };
-	std::atomic_int rawFrameCount{ 0 };
-	std::atomic_int receivedIdx{ 0 };
+	AcqCondition acqCondition;
+	std::atomic_bool bStopRequested{ false };
+	std::atomic_int nReceivedIdx{ 0 };
+	std::atomic_int nProcessedStacekd{ 0 };
 };
 

@@ -114,7 +114,7 @@ public:
 	void Abort();
 
 	// 图像数据操作
-	void SetReceivedImage(int width, int height, const unsigned short* pData, int nDataSize);
+	bool SetReceivedImage(int width, int height, const unsigned short* pData, int nDataSize);
 	QSharedPointer<QImage> GetReceivedImage() const;
 
 	void QueryStatus();

@@ -104,7 +104,11 @@ namespace {
 				<< " nCenterValue: " << nCenterValue;
 
 			// 将图像数据深拷贝到QImage
-			NDT1717MA::Instance().SetReceivedImage(pImg->nWidth, pImg->nHeight, pImageData, nImageSize);
+			if (!NDT1717MA::Instance().SetReceivedImage(pImg->nWidth, pImg->nHeight, pImageData, nImageSize))
+			{
+				qWarning() << "Failed to set received image, skip emitting signal";
+				break;
+			}
 			QSharedPointer<QImage> receivedImage = DET.GetReceivedImage();
 			if (receivedImage && !receivedImage.isNull())
 			{
@@ -904,7 +908,7 @@ void NDT1717MA::Abort()
 	dbgResult(result);
 }
 
-void NDT1717MA::SetReceivedImage(int width, int height, const unsigned short* pData, int nDataSize)
+bool NDT1717MA::SetReceivedImage(int width, int height, const unsigned short* pData, int nDataSize)
 {
 	qDebug() << "进行图像拷贝，receviedIdx：" << gn_receviedIdx.load();
 
@@ -914,7 +918,7 @@ void NDT1717MA::SetReceivedImage(int width, int height, const unsigned short* pD
 		qWarning() << "Invalid image parameters: width=" << width
 			<< " height=" << height
 			<< " dataSize=" << nDataSize;
-		return;
+		return false;
 	}
 
 	// 检查数据大小是否匹配
@@ -923,7 +927,7 @@ void NDT1717MA::SetReceivedImage(int width, int height, const unsigned short* pD
 	{
 		qWarning() << "Image data size mismatch. Expected: " << expectedSize
 			<< " Actual: " << nDataSize;
-		return;
+		return false;
 	}
 
 	// 创建临时QImage，完全成功后再替换（减少互斥锁持有时间）
@@ -939,7 +943,7 @@ void NDT1717MA::SetReceivedImage(int width, int height, const unsigned short* pD
 			if (!destLine)
 			{
 				qWarning() << "Failed to get scan line at row " << y;
-				return;
+				return false;
 			}
 
 			// 计算源数据在当前行的位置
@@ -955,6 +959,7 @@ void NDT1717MA::SetReceivedImage(int width, int height, const unsigned short* pD
 
 		qDebug() << "Image deep copied successfully: " << width << "x" << height
 			<< " (" << nDataSize << " bytes)";
+		return true;
 	}
 	catch (const std::exception& e)
 	{
@@ -962,6 +967,7 @@ void NDT1717MA::SetReceivedImage(int width, int height, const unsigned short* pD
 		// 异常情况下加锁清空
 		QMutexLocker locker(&m_imageDataMutex);
 		m_receivedImage = QSharedPointer<QImage>();
+		return false;
 	}
 }
 

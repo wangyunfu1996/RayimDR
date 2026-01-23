@@ -108,7 +108,8 @@ void AcqTask::startAcq()
 			XImageHelper::generateRandomGaussianGrayImage(width, height)
 		);
 		qDebug() << "[Virtual Mode] Calling onImageReceived with idx=" << nReceivedIdx.load();
-		onImageReceived(image, nReceivedIdx.load());
+		int grayValue = 400 + (qrand() % 100);  // 生成随机灰度值
+		onImageReceived(image, nReceivedIdx.load(), grayValue);
 		nReceivedIdx.fetch_add(1);
 		QThread::msleep(1000 / acqCondition.frameRate);
 	} while (!bStopRequested.load());

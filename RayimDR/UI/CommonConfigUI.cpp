@@ -59,6 +59,7 @@ AcqCondition CommonConfigUI::getAcqCondition()
 	AcqCondition acqCond;
 	acqCond.mode = getModeFromUI();
 	acqCond.frameRate = ui.comboBox_frameRate->currentText().toInt();
+	acqCond.frameRate = acqCond.frameRate > 0 ? acqCond.frameRate : 1;
 	acqCond.stackedFrame = ui.comboBox_stakcedNum->currentText().toInt();
 	return acqCond;
 }

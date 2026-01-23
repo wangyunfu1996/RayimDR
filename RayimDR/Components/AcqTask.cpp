@@ -102,13 +102,14 @@ void AcqTask::startAcq()
 		height = DET_HEIGHT_2X2;
 	}
 
-	while (!bStopRequested.load())
+	do
 	{
 		QImage image = XImageHelper::generateRandomGaussianGrayImage(width, height);
 		onImageReceived(image, nReceivedIdx.load());
 		nReceivedIdx.fetch_add(1);
-		QThread::msleep(1000);
-	}
+		QThread::msleep(1000 / acqCondition.frameRate);
+	} while (!bStopRequested.load());
+
 #elif DET_TYPE == DET_TYPE_IRAY
 
 	// 先尝试修改探测器的工作模式和帧率等
@@ -182,7 +183,7 @@ void AcqTask::onImageReceived(QImage image, int idx)
 
 	if (acqCondition.stackedFrame > 0)
 	{
-		this->onProgressChanged(QString("%1 叠加数据 %2/%3 已接收").arg(nProcessedStacekd.load() + 1).arg(AcqTaskManager::Instance().stackedImageList.size()).arg(acqCondition.stackedFrame + 1));
+		this->onProgressChanged(QString("第 %1 帧 叠加数据 %2/%3 已接收").arg(nProcessedStacekd.load() + 1).arg(AcqTaskManager::Instance().stackedImageList.size()).arg(acqCondition.stackedFrame + 1));
 	}
 
 	// When buffer reaches required frame count, process stacking

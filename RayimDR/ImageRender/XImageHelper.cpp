@@ -195,7 +195,6 @@ QImage XImageHelper::generateRandomGaussianGrayImage(int w, int h, QImage::Forma
 		}
 	}
 
-	qDebug() << image.format();
 	return image;
 }
 

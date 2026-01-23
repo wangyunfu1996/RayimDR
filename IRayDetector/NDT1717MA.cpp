@@ -380,6 +380,10 @@ bool NDT1717MA::UpdateMode(std::string mode)
 
 bool NDT1717MA::UpdateSequenceIntervalTime(int nIntervalTime)
 {
+	if (!Initialized())
+	{
+		return false;
+	}
 	qDebug() << "nIntervalTime: " << nIntervalTime;
 	SetAttr(Attr_UROM_SequenceIntervalTime_W, nIntervalTime);
 	return WriteUserROM();

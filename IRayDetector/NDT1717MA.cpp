@@ -180,8 +180,9 @@ bool NDT1717MA::Initialize()
 
 	qDebug() << "Query attrs";
 	gs_pDetInstance->GetAttr(Attr_CurrentSubset, m_status.Mode);
-	GetCurrentCorrectOption(m_status.SW_PreOffset, m_status.SW_Gain, m_status.SW_Defect);
 
+	TryOpenCorrection();
+	GetCurrentCorrectOption(m_status.SW_PreOffset, m_status.SW_Gain, m_status.SW_Defect);
 	emit signalStatusChanged();
 	return true;
 }
@@ -219,19 +220,80 @@ bool NDT1717MA::CanModifyCfg() const
 	return true;
 }
 
-int NDT1717MA::GetAttr(int nAttrID, int& nVal)
+bool NDT1717MA::GetAttr(int nAttrID, int& nVal)
 {
-	return gs_pDetInstance->GetAttr(nAttrID, nVal);
+	int result = gs_pDetInstance->GetAttr(nAttrID, nVal);
+	qDebug() << "nAttrID: " << nAttrID
+		<< " result: " << result
+		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str()
+		<< " nVal: " << nVal;
+	return  result == Err_OK;
 }
 
-int NDT1717MA::GetAttr(int nAttrID, float& fVal)
+bool NDT1717MA::GetAttr(int nAttrID, float& fVal)
 {
-	return gs_pDetInstance->GetAttr(nAttrID, fVal);
+	int result = gs_pDetInstance->GetAttr(nAttrID, fVal);
+	qDebug() << "nAttrID: " << nAttrID
+		<< " result: " << result
+		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str()
+		<< " fVal: " << fVal;
+	return  result == Err_OK;
 }
 
-int NDT1717MA::GetAttr(int nAttrID, std::string& strVal)
+bool NDT1717MA::GetAttr(int nAttrID, std::string& strVal)
 {
-	return gs_pDetInstance->GetAttr(nAttrID, strVal);
+	int result = gs_pDetInstance->GetAttr(nAttrID, strVal);
+	qDebug() << "nAttrID: " << nAttrID
+		<< " result: " << result
+		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str()
+		<< " strVal: " << strVal.c_str();
+	return  result == Err_OK;
+}
+
+bool NDT1717MA::SetAttr(int nAttrID, int nValue)
+{
+	int result = gs_pDetInstance->SetAttr(nAttrID, nValue);
+	qDebug() << "nAttrID: " << nAttrID
+		<< " result: " << result
+		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str()
+		<< " nValue: " << nValue;
+	return  result == Err_OK;
+}
+
+bool NDT1717MA::SetAttr(int nAttrID, float fValue)
+{
+	int result = gs_pDetInstance->SetAttr(nAttrID, fValue);
+	qDebug() << "nAttrID: " << nAttrID
+		<< " result: " << result
+		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str()
+		<< " fValue: " << fValue;
+	return  result == Err_OK;
+}
+
+bool NDT1717MA::SetAttr(int nAttrID, const char* strValue)
+{
+	int result = gs_pDetInstance->SetAttr(nAttrID, strValue);
+	qDebug() << "nAttrID: " << nAttrID
+		<< " result: " << result
+		<< " msg: " << gs_pDetInstance->GetErrorInfo(result).c_str()
+		<< " strValue: " << strValue;
+	return  result == Err_OK;
+}
+
+bool NDT1717MA::WriteUserROM()
+{
+	int result = SyncInvoke(Cmd_WriteUserROM, INT_MAX);
+	dbgResult(result);
+	return result == Err_OK ||
+		result == Err_TaskPending;
+}
+
+bool NDT1717MA::WriteUserRAM()
+{
+	int result = SyncInvoke(Cmd_WriteUserRAM, INT_MAX);
+	dbgResult(result);
+	return result == Err_OK ||
+		result == Err_TaskPending;
 }
 
 bool NDT1717MA::GetMode(std::string& mode)
@@ -239,9 +301,7 @@ bool NDT1717MA::GetMode(std::string& mode)
 	if (!Initialized())
 		return false;
 
-	int result = gs_pDetInstance->GetAttr(Attr_CurrentSubset, mode);
-	dbgResult(result);
-	return result == Err_OK;
+	return GetAttr(Attr_CurrentSubset, mode);
 }
 
 int NDT1717MA::GetModeMaxFrameRate(std::string mode)
@@ -278,15 +338,14 @@ bool NDT1717MA::UpdateMode(std::string mode)
 {
 	qDebug() << "mode: " << mode.c_str();
 	std::string current_mode;
-	int result = gs_pDetInstance->GetAttr(Attr_CurrentSubset, current_mode);
-	dbgResult(result);
+	GetAttr(Attr_CurrentSubset, current_mode);
 	if (current_mode == mode)
 	{
 		qDebug() << QStringLiteral("目标模式与当前模式相同，当前模式") << QString::fromStdString(current_mode);
 		return true;
 	}
 
-	result = gs_pDetInstance->SyncInvoke(Cmd_SetCaliSubset, mode, INT_MAX);
+	int result = gs_pDetInstance->SyncInvoke(Cmd_SetCaliSubset, mode, INT_MAX);
 	dbgResult(result);
 
 	if (Err_OK != result)
@@ -300,31 +359,8 @@ bool NDT1717MA::UpdateMode(std::string mode)
 	m_status.AcqParam_Binning_W = gs_pDetInstance->GetAttrInt(Attr_AcqParam_Binning_W);
 	m_status.AcqParam_Zoom_W = gs_pDetInstance->GetAttrInt(Attr_AcqParam_Zoom_W);
 
-	// 检查是否存在校正文件，如果存在，则开启校正
-	// "D:\NDT1717MA\"
-	auto WorkDir = gs_pDetInstance->GetAttrStr(Attr_WorkDir);
-	// "Mode7"
-	auto CurrentSubset = gs_pDetInstance->GetAttrStr(Attr_CurrentSubset);
+	TryOpenCorrection();
 
-	// 检查 WorkDir/Correct/CurrentSubset/ 下是否存在 offset_*.off gain_*.gn defect_*.dft
-	QString calibPath = QString::fromStdString(WorkDir) + "Correct\\" + QString::fromStdString(CurrentSubset);
-	QDir calibDir(calibPath);
-	
-	bool hasOffset = !calibDir.entryList(QStringList() << "offset_*.off", QDir::Files).isEmpty();
-	bool hasGain = !calibDir.entryList(QStringList() << "gain_*.gn", QDir::Files).isEmpty();
-	bool hasDefect = !calibDir.entryList(QStringList() << "defect_*.dft", QDir::Files).isEmpty();
-	
-	qDebug() << "校正文件检查 - 路径:" << calibPath
-		<< " Offset:" << hasOffset
-		<< " Gain:" << hasGain
-		<< " Defect:" << hasDefect;
-	
-	// 根据校正文件存在情况设置校正选项
-	if (hasOffset || hasGain || hasDefect)
-	{
-		SetCorrectOption(hasOffset ? 1 : 0, hasGain ? 1 : 0, hasDefect ? 1 : 0);
-	}
-	
 	GetCurrentCorrectOption(m_status.SW_PreOffset, m_status.SW_Gain, m_status.SW_Defect);
 
 	qDebug() << "修改探测器工作模式成功，"
@@ -342,12 +378,17 @@ bool NDT1717MA::UpdateMode(std::string mode)
 	return true;
 }
 
+bool NDT1717MA::UpdateSequenceIntervalTime(int nIntervalTime)
+{
+	qDebug() << "nIntervalTime: " << nIntervalTime;
+	SetAttr(Attr_UROM_SequenceIntervalTime_W, nIntervalTime);
+	return WriteUserROM();
+}
+
 bool NDT1717MA::GetCurrentCorrectOption(int& sw_offset, int& sw_gain, int& sw_defect)
 {
 	int nCurrentCorrectOption{ -1 };
-	int result = gs_pDetInstance->GetAttr(Attr_CurrentCorrectOption, nCurrentCorrectOption);
-	dbgResult(result);
-	if (Err_OK != result)
+	if (!GetAttr(Attr_CurrentCorrectOption, nCurrentCorrectOption))
 	{
 		return false;
 	}
@@ -392,10 +433,10 @@ int NDT1717MA::SetCorrectOption(int sw_offset, int sw_gain, int sw_defect)
 int NDT1717MA::SetPreviewImageEnable(int enable)
 {
 	int current_enbale{ -1 };
-	gs_pDetInstance->GetAttr(Cfg_PreviewImage_Enable, current_enbale);
+	GetAttr(Cfg_PreviewImage_Enable, current_enbale);
 	qDebug() << "Cfg_PreviewImage_Enable: " << current_enbale;
 	int ret = gs_pDetInstance->SetAttr(Cfg_PreviewImage_Enable, enable);
-	gs_pDetInstance->GetAttr(Cfg_PreviewImage_Enable, current_enbale);
+	GetAttr(Cfg_PreviewImage_Enable, current_enbale);
 	qDebug() << "Cfg_PreviewImage_Enable: " << current_enbale;
 	return ret;
 }
@@ -505,12 +546,9 @@ int NDT1717MA::Invoke(int nCmdId, int nParam1, int nParam2)
 	return result;
 }
 
-int NDT1717MA::GetDetectorState(int& state)
+bool NDT1717MA::GetDetectorState(int& state)
 {
-	int result = gs_pDetInstance->GetAttr(Attr_State, state);
-	dbgResult(result);
-
-	return result;
+	return GetAttr(Attr_State, state);
 }
 
 void NDT1717MA::ClearAcq()
@@ -534,6 +572,16 @@ bool NDT1717MA::StartAcq()
 {
 	if (!CheckBatteryStateOK())
 	{
+		return false;
+	}
+
+	// 检查校正是否已经开启
+	GetCurrentCorrectOption(m_status.SW_PreOffset, m_status.SW_Gain, m_status.SW_Defect);
+	if (!m_status.SW_PreOffset ||
+		!m_status.SW_Gain ||
+		!m_status.SW_Defect)
+	{
+		emit signalErrorOccurred("请先进行该模式下的探测器标定，并开启校正！");
 		return false;
 	}
 
@@ -825,11 +873,10 @@ bool NDT1717MA::DefectValid()
 	return gs_pDetInstance->GetAttrInt(Attr_DefectValidityState) == 1;
 }
 
-int NDT1717MA::Abort()
+void NDT1717MA::Abort()
 {
 	int result = gs_pDetInstance->Abort();
 	dbgResult(result);
-	return result;
 }
 
 void NDT1717MA::SetReceivedImage(int width, int height, const unsigned short* pData, int nDataSize, int nGray)
@@ -983,4 +1030,33 @@ bool NDT1717MA::CheckBatteryStateOK()
 	}
 
 	return true;
+}
+
+void NDT1717MA::TryOpenCorrection()
+{
+	// 检查是否存在校正文件，如果存在，则开启校正
+// "D:\NDT1717MA\"
+	auto WorkDir = gs_pDetInstance->GetAttrStr(Attr_WorkDir);
+	// "Mode7"
+	auto CurrentSubset = gs_pDetInstance->GetAttrStr(Attr_CurrentSubset);
+
+	// 检查 WorkDir/Correct/CurrentSubset/ 下是否存在 offset_*.off gain_*.gn defect_*.dft
+	QString calibPath = QString::fromStdString(WorkDir) + "Correct\\" + QString::fromStdString(CurrentSubset);
+	QDir calibDir(calibPath);
+
+	bool hasOffset = !calibDir.entryList(QStringList() << "offset_*.off", QDir::Files).isEmpty();
+	bool hasGain = !calibDir.entryList(QStringList() << "gain_*.gn", QDir::Files).isEmpty();
+	bool hasDefect = !calibDir.entryList(QStringList() << "defect_*.dft", QDir::Files).isEmpty();
+
+	qDebug() << "校正文件检查 - 路径:" << calibPath
+		<< " Offset:" << hasOffset
+		<< " Gain:" << hasGain
+		<< " Defect:" << hasDefect;
+
+	// 根据校正文件存在情况设置校正选项
+	if (hasOffset || hasGain || hasDefect)
+	{
+		SetCorrectOption(hasOffset ? 1 : 0, hasGain ? 1 : 0, hasDefect ? 1 : 0);
+	}
+
 }

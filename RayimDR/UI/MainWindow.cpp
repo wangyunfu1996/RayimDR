@@ -220,12 +220,12 @@ void MainWindow::onAcqImageReceived(AcqCondition condition, int receivedIdx)
 		}
 		else if (condition.frame == INT_MAX)
 		{
-			updateStatusText(QString("连续DR采集，当前接受帧数：%1").arg(receivedIdx));
+			updateStatusText(QString("连续DR采集，当前接收帧数：%1").arg(receivedIdx));
 		}
 		else
 		{
 			_XGraphicsView->addImageToList(AcqTaskManager::Instance().receivedImage(receivedIdx));
-			updateStatusText(QString("多张DR采集，当前接受帧数：%1，共 %2 帧").arg(receivedIdx).arg(condition.frame));
+			updateStatusText(QString("多张DR采集，当前接收帧数：%1，共 %2 帧").arg(receivedIdx).arg(condition.frame));
 		}
 	}
 }

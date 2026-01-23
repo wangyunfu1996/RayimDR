@@ -49,14 +49,23 @@ public:
 	bool Initialized() const;
 	bool CanModifyCfg() const;
 
-	int GetAttr(int nAttrID, int& nVal);
-	int GetAttr(int nAttrID, float& fVal);
-	int GetAttr(int nAttrID, std::string& strVal);
+	bool GetAttr(int nAttrID, int& nVal);
+	bool GetAttr(int nAttrID, float& fVal);
+	bool GetAttr(int nAttrID, std::string& strVal);
+
+	bool SetAttr(int nAttrID, int nValue);
+	bool SetAttr(int nAttrID, float fValue);
+	bool SetAttr(int nAttrID, const char* strValue);
+
+	bool WriteUserROM();
+	bool WriteUserRAM();
+
 	bool GetMode(std::string& mode);
 	static int GetModeMaxFrameRate(std::string mode);
 	static int GetMaxStackedNum();
 
 	bool UpdateMode(std::string mode);
+	bool UpdateSequenceIntervalTime(int nIntervalTime);
 	bool GetCurrentCorrectOption(int& sw_offset, int& sw_gain, int& sw_defect);
 	int SetCorrectOption(int sw_offset, int sw_gain, int sw_defect);
 	int SetPreviewImageEnable(int enable);
@@ -77,7 +86,7 @@ public:
 	//	Enm_State_Busy = 2,
 	//	Enm_State_Sleeping = 3,
 	//};
-	int GetDetectorState(int& state);
+	bool GetDetectorState(int& state);
 
 	void ClearAcq();
 	bool StartAcq();
@@ -99,7 +108,7 @@ public:
 	bool DefectGeneration();
 	bool DefectValid();
 
-	int Abort();
+	void Abort();
 
 	// 图像数据操作
 	void SetReceivedImage(int width, int height, const unsigned short* pData, int nDataSize, int nGray);
@@ -113,6 +122,9 @@ public:
 
 	bool CheckBatteryStateOK();
 
+private:
+	void TryOpenCorrection();
+
 signals:
 	void signalAcqImageReceived(int idx);
 	void signalOffsetImageSelected(int nTotal, int nValid);
@@ -120,6 +132,7 @@ signals:
 	void signalDefectImageSelected(int nTotal, int nValid);
 	void signalStatusChanged();
 	void signalModeChanged();
+	void signalErrorOccurred(const QString& msg);
 
 private:
 	QString m_uuid;

@@ -47,22 +47,18 @@ IRayDetectorWidget::IRayDetectorWidget(QWidget* parent)
 		DET.Abort();
 		});
 
-	ui->comboBox_mode->addItem("Mode5");
-	ui->comboBox_mode->addItem("Mode6");
-	ui->comboBox_mode->addItem("Mode7");
-	ui->comboBox_mode->addItem("Mode8");
+	DET.QueryStatus();
+	auto status = DET.Status();
+	ui->checkBox_offset->setChecked(status.SW_PreOffset);
+	ui->checkBox_gain->setChecked(status.SW_Gain);
+	ui->checkBox_defect->setChecked(status.SW_Defect);
 
-	connect(ui->comboBox_mode, &QComboBox::currentTextChanged, this, [this]() {
-		DET.UpdateMode(ui->comboBox_mode->currentText().toStdString());
+	connect(&DET, &NDT1717MA::signalStatusChanged, this, [this]() {
+		auto status = DET.Status();
+		ui->checkBox_offset->setChecked(status.SW_PreOffset);
+		ui->checkBox_gain->setChecked(status.SW_Gain);
+		ui->checkBox_defect->setChecked(status.SW_Defect);
 		});
-
-	int sw_offset{ -1 };
-	int sw_gain{ -1 };
-	int sw_defect{ -1 };
-	DET.GetCurrentCorrectOption(sw_offset, sw_gain, sw_defect);
-	ui->checkBox_offset->setChecked(sw_offset == 1);
-	ui->checkBox_gain->setChecked(sw_gain == 1);
-	ui->checkBox_defect->setChecked(sw_defect == 1);
 
 	auto updateCorrectOption = [this]() {
 		int sw_offset = ui->checkBox_offset->isChecked();
@@ -90,8 +86,7 @@ IRayDetectorWidget::IRayDetectorWidget(QWidget* parent)
 
 		int nAttrID = ui->lineEdit_nAttrID->text().toInt();
 		int nVal{ -1 };
-		int ret = DET.GetAttr(nAttrID, nVal);
-		if (0 == ret)
+		if (DET.GetAttr(nAttrID, nVal))
 		{
 			ui->lineEdit_nVal->setText(QString::number(nVal));
 		}
@@ -107,8 +102,7 @@ IRayDetectorWidget::IRayDetectorWidget(QWidget* parent)
 
 		int nAttrID = ui->lineEdit_nAttrID->text().toInt();
 		float fVal{ -1.0 };
-		int ret = DET.GetAttr(nAttrID, fVal);
-		if (0 == ret)
+		if (DET.GetAttr(nAttrID, fVal))
 		{
 			ui->lineEdit_fVal->setText(QString::number(fVal));
 		}
@@ -124,8 +118,7 @@ IRayDetectorWidget::IRayDetectorWidget(QWidget* parent)
 
 		int nAttrID = ui->lineEdit_nAttrID->text().toInt();
 		std::string strVal;
-		int ret = DET.GetAttr(nAttrID, strVal);
-		if (0 == ret)
+		if (DET.GetAttr(nAttrID, strVal))
 		{
 			ui->lineEdit_strVal->setText(QString::fromStdString(strVal));
 		}
@@ -270,6 +263,37 @@ IRayDetectorWidget::IRayDetectorWidget(QWidget* parent)
 
 		}
 		});
+
+	connect(ui->pushButton_Setnval, &QPushButton::clicked, this, [this]() {
+		int nVal = ui->lineEdit_ValueToSet->text().toInt();
+		int nAttrID = ui->lineEdit_nAttrIDToSet->text().toInt();
+		if (!DET.SetAttr(nAttrID, nVal) ||
+			!DET.WriteUserROM())
+		{
+			ui->lineEdit_msg->setText("写入错误！");
+		}
+		});
+
+	connect(ui->pushButton_Setfval, &QPushButton::clicked, this, [this]() {
+		float fVal = ui->lineEdit_ValueToSet->text().toFloat();
+		int nAttrID = ui->lineEdit_nAttrIDToSet->text().toInt();
+		if (!DET.SetAttr(nAttrID, fVal) ||
+			!DET.WriteUserROM())
+		{
+			ui->lineEdit_msg->setText("写入错误！");
+		}
+		});
+
+	connect(ui->pushButton_Setstrval, &QPushButton::clicked, this, [this]() {
+		std::string strVal = ui->lineEdit_ValueToSet->text().toStdString();
+		int nAttrID = ui->lineEdit_nAttrIDToSet->text().toInt();
+		if (!DET.SetAttr(nAttrID, strVal.c_str()) ||
+			!DET.WriteUserROM())
+		{
+			ui->lineEdit_msg->setText("写入错误！");
+		}
+		});
+
 }
 
 IRayDetectorWidget::~IRayDetectorWidget()

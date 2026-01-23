@@ -105,6 +105,8 @@ void CommonConfigUI::initUIConnect()
 		auto status = DET.Status();
 		updateUIFromMode(status.Mode);
 		});
+
+	connect(ui.comboBox_frameRate, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &CommonConfigUI::changeFrameRate);
 }
 
 void CommonConfigUI::changeMode(const QString& modeText)
@@ -148,6 +150,13 @@ void CommonConfigUI::changeMode(const QString& modeText)
 		setUIEnable(true);
 		});
 	watcher->setFuture(future);
+}
+
+void CommonConfigUI::changeFrameRate(int nFrameRateComboboxIdx)
+{
+	int nFrameRate = ++nFrameRateComboboxIdx;
+	int nSequenceIntervalTime = 1000 / nFrameRate;
+	DET.UpdateSequenceIntervalTime(nSequenceIntervalTime);
 }
 
 std::string CommonConfigUI::getModeFromUI()

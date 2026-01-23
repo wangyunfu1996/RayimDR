@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>852</width>
-    <height>464</height>
+    <width>853</width>
+    <height>342</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,84 +15,158 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="2">
-     <spacer name="verticalSpacer_2">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>40</height>
-       </size>
-      </property>
-     </spacer>
+    <item row="9" column="7">
+     <widget class="QLineEdit" name="lineEdit_nParam2"/>
     </item>
-    <item row="4" column="2">
-     <widget class="QLineEdit" name="lineEdit_nAttrID"/>
+    <item row="5" column="2">
+     <widget class="QLineEdit" name="lineEdit_strVal"/>
     </item>
-    <item row="3" column="1">
-     <widget class="QLabel" name="label_4">
+    <item row="2" column="5">
+     <widget class="QLineEdit" name="lineEdit_ValueToSet"/>
+    </item>
+    <item row="1" column="1">
+     <widget class="QCheckBox" name="checkBox_offset">
       <property name="text">
-       <string>校正</string>
+       <string>offset</string>
       </property>
      </widget>
     </item>
-    <item row="1" column="4">
-     <widget class="QPushButton" name="pushButton_Abort">
+    <item row="5" column="1">
+     <widget class="QPushButton" name="pushButton_strVal">
       <property name="text">
-       <string>Abort</string>
+       <string>GetAttr strVal</string>
       </property>
      </widget>
     </item>
-    <item row="11" column="7">
-     <widget class="QCheckBox" name="checkBox_nParam2">
-      <property name="text">
-       <string>启用参数2</string>
-      </property>
-     </widget>
-    </item>
-    <item row="10" column="2">
+    <item row="8" column="1">
      <widget class="QPushButton" name="pushButton_readImage">
       <property name="text">
        <string>读取图像</string>
       </property>
      </widget>
     </item>
-    <item row="12" column="2">
-     <spacer name="verticalSpacer">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>40</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="3" column="4">
-     <widget class="QCheckBox" name="checkBox_defect">
+    <item row="9" column="1">
+     <widget class="QPushButton" name="pushButton_Invoke">
       <property name="text">
-       <string>defect</string>
+       <string>Invoke</string>
       </property>
      </widget>
     </item>
-    <item row="3" column="0">
-     <spacer name="horizontalSpacer">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>40</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
+    <item row="9" column="3">
+     <widget class="QLineEdit" name="lineEdit_cmdId"/>
     </item>
     <item row="1" column="2">
+     <widget class="QCheckBox" name="checkBox_gain">
+      <property name="text">
+       <string>gain</string>
+      </property>
+     </widget>
+    </item>
+    <item row="9" column="5">
+     <widget class="QLineEdit" name="lineEdit_nParam1"/>
+    </item>
+    <item row="0" column="3">
+     <widget class="QPushButton" name="pushButton_Abort">
+      <property name="text">
+       <string>Abort</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="2">
+     <widget class="QLineEdit" name="lineEdit_fVal"/>
+    </item>
+    <item row="7" column="3">
+     <widget class="QPushButton" name="pushButton_StopAcq">
+      <property name="text">
+       <string>停止采集</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="5">
+     <widget class="QPushButton" name="pushButton_Setnval">
+      <property name="text">
+       <string>SetAttr nVal</string>
+      </property>
+     </widget>
+    </item>
+    <item row="9" column="6">
+     <widget class="QCheckBox" name="checkBox_nParam2">
+      <property name="text">
+       <string>启用参数2</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="1">
+     <widget class="QPushButton" name="pushButton_fVal">
+      <property name="text">
+       <string>GetAttr fVal</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="2">
+     <widget class="QLineEdit" name="lineEdit_nVal">
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="0">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>错误信息</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="3">
+     <widget class="QLabel" name="label_5">
+      <property name="text">
+       <string>Attr To Set</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_3">
+      <property name="text">
+       <string>Attr To Get</string>
+      </property>
+     </widget>
+    </item>
+    <item row="9" column="2">
+     <widget class="QPushButton" name="pushButton_SyncInvoke">
+      <property name="text">
+       <string>SyncInvoke</string>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="1">
+     <widget class="QPushButton" name="pushButton_clearAcq">
+      <property name="text">
+       <string>单帧采集</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="2">
+     <widget class="QPushButton" name="pushButton_disconnect">
+      <property name="text">
+       <string>断开连接</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <widget class="QPushButton" name="pushButton_nVal">
+      <property name="text">
+       <string>GetAttr nVal</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="label_4">
+      <property name="text">
+       <string>校正</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
      <widget class="QPushButton" name="pushButton_connect">
       <property name="text">
        <string>连接</string>
@@ -100,153 +174,55 @@
      </widget>
     </item>
     <item row="2" column="1">
-     <widget class="QLabel" name="label">
-      <property name="text">
-       <string>模式</string>
-      </property>
-     </widget>
-    </item>
-    <item row="9" column="2">
-     <widget class="QPushButton" name="pushButton_clearAcq">
-      <property name="text">
-       <string>单帧采集</string>
-      </property>
-     </widget>
-    </item>
-    <item row="11" column="6">
-     <widget class="QLineEdit" name="lineEdit_nParam1"/>
-    </item>
-    <item row="4" column="1">
-     <widget class="QLabel" name="label_3">
-      <property name="text">
-       <string>属性id</string>
-      </property>
-     </widget>
+     <widget class="QLineEdit" name="lineEdit_nAttrID"/>
     </item>
     <item row="8" column="2">
-     <widget class="QLineEdit" name="lineEdit_msg"/>
-    </item>
-    <item row="9" column="3">
-     <widget class="QPushButton" name="pushButton_StartAcq">
-      <property name="text">
-       <string>连续采集</string>
-      </property>
-     </widget>
-    </item>
-    <item row="6" column="2">
-     <widget class="QPushButton" name="pushButton_fVal">
-      <property name="text">
-       <string>GetAttr fVal</string>
-      </property>
-     </widget>
-    </item>
-    <item row="11" column="8">
-     <widget class="QLineEdit" name="lineEdit_nParam2"/>
-    </item>
-    <item row="5" column="3">
-     <widget class="QLineEdit" name="lineEdit_nVal"/>
-    </item>
-    <item row="3" column="2">
-     <widget class="QCheckBox" name="checkBox_offset">
-      <property name="text">
-       <string>offset</string>
-      </property>
-     </widget>
-    </item>
-    <item row="10" column="3">
      <widget class="QPushButton" name="pushButton_saveImage">
       <property name="text">
        <string>保存图像</string>
       </property>
      </widget>
     </item>
-    <item row="11" column="3">
-     <widget class="QPushButton" name="pushButton_SyncInvoke">
+    <item row="1" column="3">
+     <widget class="QCheckBox" name="checkBox_defect">
       <property name="text">
-       <string>SyncInvoke</string>
+       <string>defect</string>
       </property>
      </widget>
     </item>
-    <item row="11" column="5">
+    <item row="4" column="5">
+     <widget class="QPushButton" name="pushButton_Setfval">
+      <property name="text">
+       <string>SetAttr fVal</string>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="2">
+     <widget class="QPushButton" name="pushButton_StartAcq">
+      <property name="text">
+       <string>连续采集</string>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="1" colspan="7">
+     <widget class="QLineEdit" name="lineEdit_msg"/>
+    </item>
+    <item row="9" column="4">
      <widget class="QCheckBox" name="checkBox_nParam1">
       <property name="text">
        <string>启用参数1</string>
       </property>
      </widget>
     </item>
-    <item row="6" column="3">
-     <widget class="QLineEdit" name="lineEdit_fVal"/>
-    </item>
-    <item row="5" column="2">
-     <widget class="QPushButton" name="pushButton_nVal">
+    <item row="5" column="5">
+     <widget class="QPushButton" name="pushButton_Setstrval">
       <property name="text">
-       <string>GetAttr nVal</string>
+       <string>SetAttr strVal</string>
       </property>
      </widget>
     </item>
-    <item row="9" column="4">
-     <widget class="QPushButton" name="pushButton_StopAcq">
-      <property name="text">
-       <string>停止采集</string>
-      </property>
-     </widget>
-    </item>
-    <item row="11" column="2">
-     <widget class="QPushButton" name="pushButton_Invoke">
-      <property name="text">
-       <string>Invoke</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="3">
-     <widget class="QCheckBox" name="checkBox_gain">
-      <property name="text">
-       <string>gain</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="3">
-     <widget class="QPushButton" name="pushButton_disconnect">
-      <property name="text">
-       <string>断开连接</string>
-      </property>
-     </widget>
-    </item>
-    <item row="7" column="2">
-     <widget class="QPushButton" name="pushButton_strVal">
-      <property name="text">
-       <string>GetAttr strVal</string>
-      </property>
-     </widget>
-    </item>
-    <item row="7" column="3">
-     <widget class="QLineEdit" name="lineEdit_strVal"/>
-    </item>
-    <item row="8" column="1">
-     <widget class="QLabel" name="label_2">
-      <property name="text">
-       <string>错误信息</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="2">
-     <widget class="QComboBox" name="comboBox_mode"/>
-    </item>
-    <item row="11" column="4">
-     <widget class="QLineEdit" name="lineEdit_cmdId"/>
-    </item>
-    <item row="3" column="8">
-     <spacer name="horizontalSpacer_2">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>40</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
+    <item row="2" column="4">
+     <widget class="QLineEdit" name="lineEdit_nAttrIDToSet"/>
     </item>
    </layout>
   </widget>
@@ -255,7 +231,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>852</width>
+     <width>853</width>
      <height>21</height>
     </rect>
    </property>

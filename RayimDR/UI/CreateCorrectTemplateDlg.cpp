@@ -417,12 +417,11 @@ void CreateCorrectTemplateDlg::onOffsetImageSelected(int nTotal, int nValid)
 	ui.lineEdit_OffsetProgress->setText(QString("%1 / %2").arg(nValid).arg(nTotal));
 }
 
-void CreateCorrectTemplateDlg::onGainAcqImageReceived(QSharedPointer<QImage> image, int idx)
+void CreateCorrectTemplateDlg::onGainAcqImageReceived(QSharedPointer<QImage> image, int idx, int grayValue)
 {
 	gainPixmapItem->setPixmap(QPixmap::fromImage(*image).scaled(ui.graphicsView_GainImageView->width() - 5,
 		ui.graphicsView_GainImageView->height() - 5));
-	int nGray = DET.GetGrayOfReceivedImage();
-	ui.lineEdit_GainCenterValue->setText(QString::number(nGray));
+	ui.lineEdit_GainCenterValue->setText(QString::number(grayValue));
 }
 
 void CreateCorrectTemplateDlg::onGainImageSelected(int nTotal, int nValid)
@@ -430,12 +429,11 @@ void CreateCorrectTemplateDlg::onGainImageSelected(int nTotal, int nValid)
 	ui.lineEdit_GainProgress->setText(QString("%1 / %2").arg(nValid).arg(nTotal));
 }
 
-void CreateCorrectTemplateDlg::onDefectAcqImageReceived(QSharedPointer<QImage> image, int idx)
+void CreateCorrectTemplateDlg::onDefectAcqImageReceived(QSharedPointer<QImage> image, int idx, int grayValue)
 {
 	defectPixmapItem->setPixmap(QPixmap::fromImage(*image).scaled(ui.graphicsView_DefectImageView->width() - 5,
 		ui.graphicsView_DefectImageView->height() - 5));
-	int nGray = DET.GetGrayOfReceivedImage();
-	ui.lineEdit_DefectCurrentGray->setText(QString::number(nGray));
+	ui.lineEdit_DefectCurrentGray->setText(QString::number(grayValue));
 }
 
 void CreateCorrectTemplateDlg::onDefectGroupChanged(int groupIdx, int nTotalGroup)

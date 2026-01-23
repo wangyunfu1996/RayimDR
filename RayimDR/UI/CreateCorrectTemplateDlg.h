@@ -25,9 +25,9 @@ private:
 
 private:
 	void onOffsetImageSelected(int nTotal, int nValid);
-	void onGainAcqImageReceived(QSharedPointer<QImage> image, int idx);
+	void onGainAcqImageReceived(QSharedPointer<QImage> image, int idx, int grayValue);
 	void onGainImageSelected(int nTotal, int nValid);
-	void onDefectAcqImageReceived(QSharedPointer<QImage> image, int idx);
+	void onDefectAcqImageReceived(QSharedPointer<QImage> image, int idx, int grayValue);
 	void onDefectGroupChanged(int groupIdx, int nTotalGroup);
 	void onDefectImageSelected(int nTotal, int nValid);
 

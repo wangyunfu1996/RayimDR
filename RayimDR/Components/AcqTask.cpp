@@ -165,9 +165,9 @@ void AcqTask::run()
 	startAcq();
 }
 
-void AcqTask::onImageReceived(QSharedPointer<QImage> image, int idx)
+void AcqTask::onImageReceived(QSharedPointer<QImage> image, int idx, int grayValue)
 {
-	qDebug() << "Called with idx=" << idx;
+	qDebug() << "Called with idx=" << idx << ", grayValue=" << grayValue;
 	
 	if (bStopRequested.load())
 	{

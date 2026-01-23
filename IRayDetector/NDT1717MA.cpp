@@ -104,13 +104,14 @@ namespace {
 				<< " nCenterValue: " << nCenterValue;
 
 			// 将图像数据深拷贝到QImage
-			NDT1717MA::Instance().SetReceivedImage(pImg->nWidth, pImg->nHeight, pImageData, nImageSize, nCenterValue);
+			NDT1717MA::Instance().SetReceivedImage(pImg->nWidth, pImg->nHeight, pImageData, nImageSize);
 			QSharedPointer<QImage> receivedImage = DET.GetReceivedImage();
 			if (receivedImage && !receivedImage.isNull())
 			{
 				qDebug() << "Emitting signalAcqImageReceived with idx=" << gn_receviedIdx.load()
-					<< ", image size:" << receivedImage->width() << "x" << receivedImage->height();
-				emit NDT1717MA::Instance().signalAcqImageReceived(receivedImage, gn_receviedIdx.load());
+					<< ", image size:" << receivedImage->width() << "x" << receivedImage->height()
+					<< ", grayValue:" << nCenterValue;
+				emit NDT1717MA::Instance().signalAcqImageReceived(receivedImage, gn_receviedIdx.load(), nCenterValue);
 			}
 			else
 			{
@@ -903,7 +904,7 @@ void NDT1717MA::Abort()
 	dbgResult(result);
 }
 
-void NDT1717MA::SetReceivedImage(int width, int height, const unsigned short* pData, int nDataSize, int nGray)
+void NDT1717MA::SetReceivedImage(int width, int height, const unsigned short* pData, int nDataSize)
 {
 	qDebug() << "进行图像拷贝，receviedIdx：" << gn_receviedIdx.load();
 
@@ -951,7 +952,6 @@ void NDT1717MA::SetReceivedImage(int width, int height, const unsigned short* pD
 		// 拷贝成功，加锁更新成员变量
 		QMutexLocker locker(&m_imageDataMutex);
 		m_receivedImage = tempImage;
-		m_nGray = nGray;
 
 		qDebug() << "Image deep copied successfully: " << width << "x" << height
 			<< " (" << nDataSize << " bytes)";
@@ -969,12 +969,6 @@ QSharedPointer<QImage> NDT1717MA::GetReceivedImage() const
 {
 	QMutexLocker locker(&m_imageDataMutex);
 	return m_receivedImage;  // 返回智能指针，多个接收端共享同一个图像数据
-}
-
-int NDT1717MA::GetGrayOfReceivedImage() const
-{
-	//QMutexLocker locker(&m_imageDataMutex);
-	return m_nGray;
 }
 
 void NDT1717MA::QueryStatus()

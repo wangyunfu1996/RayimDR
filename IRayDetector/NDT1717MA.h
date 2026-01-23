@@ -114,9 +114,8 @@ public:
 	void Abort();
 
 	// 图像数据操作
-	void SetReceivedImage(int width, int height, const unsigned short* pData, int nDataSize, int nGray);
+	void SetReceivedImage(int width, int height, const unsigned short* pData, int nDataSize);
 	QSharedPointer<QImage> GetReceivedImage() const;
-	int GetGrayOfReceivedImage() const;
 
 	void QueryStatus();
 	void StartQueryStatus();
@@ -129,7 +128,7 @@ private:
 	void TryOpenCorrection();
 
 signals:
-	void signalAcqImageReceived(QSharedPointer<QImage> image, int idx);
+	void signalAcqImageReceived(QSharedPointer<QImage> image, int idx, int grayValue);
 	void signalOffsetImageSelected(int nTotal, int nValid);
 	void signalGainImageSelected(int nTotal, int nValid);
 	void signalDefectImageSelected(int nTotal, int nValid);
@@ -141,9 +140,8 @@ private:
 	QString m_uuid;
 	QString m_workDirPath;
 	QSharedPointer<QImage> m_receivedImage;
-	int m_nGray{ 0 };
 	NDT1717MAStatus m_status;
-	mutable QMutex m_imageDataMutex;  // 保护 m_receivedImage 和 m_nGray 的线程安全
+	mutable QMutex m_imageDataMutex;  // 保护 m_receivedImage 的线程安全
 	
 public:
 	const static int nTotalGroup{ 4 };

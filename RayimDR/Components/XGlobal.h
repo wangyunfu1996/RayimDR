@@ -71,39 +71,7 @@ const static int IMAGE_BUFFER_SIZE{ 10 };
 #elif DET_TYPE == DET_TYPE_IRAY
 #endif // DET_TYPE
 
-
-#define xGlobal XGlobal::Instance()
-
-class XGlobal
-{
-private:
-	XGlobal()
-	{
-
-	}
-
-	~XGlobal()
-	{
-
-	}
-
-public:
-	static XGlobal& Instance()
-	{
-		static XGlobal instance;
-		return instance;
-	}
-
-public:
-	bool CONFIG_BEFORE_ACQ{ false };
-
-	int VOLTAGE_MAX{ 120 };
-	int VOLTAGE_MIN{ 40 };
-
-	int CURRENT_MAX{ 1000 };
-	int CURRENT_MIN{ 10 };
-
-	int POWER_MAX{ 0 };
-	int POWER_MIN{ 50 };
-};
-
+const static int XRAY_MIN_VOLTAGE{ 30 };	// kV
+const static int XRAY_MAX_VOLTAGE{ 120 };	// kV
+const static int XRAY_MIN_CURRENT{ 100 };	// mA
+const static int XRAY_MAX_CURRENT{ 1000 };	// mA

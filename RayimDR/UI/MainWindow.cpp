@@ -32,8 +32,8 @@
 #include "ImageRender/XImageAdjustTool.h"
 #include "ImageRender/XImageHelper.h"
 
+#include "UI/XElaDialog.h"
 #include "UI/CommonConfigUI.h"
-
 #include "UI/XRayCfgDialog.h"
 #include "UI/CreateCorrectTemplateDlg.h"
 #include "UI/AppCfgDialog.h"
@@ -62,11 +62,8 @@ MainWindow::MainWindow(QWidget* parent)
 
 	// 拦截默认关闭事件
 	_closeDialog = new ElaContentDialog(this);
-	//_closeDialog->setFixedHeight(150);
-	//_closeDialog->setFixedWidth(300);
 	_closeDialog->setLeftButtonText("取消");
 	_closeDialog->setMiddleButtonText("最小化");
-	//_closeDialog->setMiddleButtonVisible(false);
 	_closeDialog->setRightButtonText("确认");
 
 	connect(_closeDialog, &ElaContentDialog::rightButtonClicked, this, [this]() {
@@ -79,15 +76,12 @@ MainWindow::MainWindow(QWidget* parent)
 	connect(this, &MainWindow::closeButtonClicked, this, [=]() {
 
 		// 检查当前是否存在正在执行的采集任务
-		//if (AcqTaskManager::Instance().isAcquiring())
-		//{
-		//	ElaContentDialog dialog(this, "提示", "请先取消当前正在进行的采集任务!");
-		//	dialog.setRightButtonText("确认");
-		//	dialog.setLeftButtonVisible(false);
-		//	dialog.setMiddleButtonVisible(false);
-		//	dialog.exec();
-		//	return;
-		//}
+		if (AcqTaskManager::Instance().isAcquiring())
+		{
+			XElaDialog dialog("请先取消当前正在进行的采集任务!", XElaDialogType::ERR);
+			dialog.showCentered();
+			return;
+		}
 
 		_closeDialog->exec();
 		});
@@ -203,8 +197,6 @@ void MainWindow::onAcqStopped()
 	toolButtonDR->setEnabled(true);
 	toolButtonDRMulti->setEnabled(true);
 	toolButtonRealTimeDR->setEnabled(true);
-
-	updateStatusText("采集结束");
 }
 
 void MainWindow::onAcqImageReceived(AcqCondition condition, int receivedIdx)
@@ -346,19 +338,16 @@ void MainWindow::initMenuBar()
 			return;
 		}
 
-		CreateCorrectTemplateDlg* dialog = new CreateCorrectTemplateDlg;
-		dialog->show();
-
-		//CreateCorrectTemplateDlg dialog;
-		//dialog.exec();
-		});
-
-	fileMenu->addSeparator();
-	action = configMenu->addAction("软件配置");
-	connect(action, &QAction::triggered, this, [this]() {
-		AppCfgDialog dialog;
+		CreateCorrectTemplateDlg dialog;
 		dialog.exec();
 		});
+
+	//fileMenu->addSeparator();
+	//action = configMenu->addAction("软件配置");
+	//connect(action, &QAction::triggered, this, [this]() {
+	//	AppCfgDialog dialog;
+	//	dialog.exec();
+	//	});
 
 #define XTEST
 #ifdef XTEST
@@ -382,6 +371,12 @@ void MainWindow::initMenuBar()
 	action = configMenu->addAction("测试opencv");
 	connect(action, &QAction::triggered, this, [this]() {
 		XImageHelper::testOpencv("X:\\故宫\\data\\20251106150628936_海棠1106_步进CT扫描\\TWINDOW=3_WINDOW=0_TKEV=15_HKEV=60\\PROJECTION\\table=0_proj=0.raw", 1891, 496);
+		});
+
+	action = configMenu->addAction("测试弹窗");
+	connect(action, &QAction::triggered, this, [this]() {
+		XElaDialog dialog("测试信息", XElaDialogType::INFO);
+		dialog.showCentered();
 		});
 #endif // XTEST
 }
@@ -512,6 +507,7 @@ void MainWindow::connectToDet()
 #if DET_TYPE == DET_TYPE_VIRTUAL
 	QThread::currentThread()->msleep(1000);
 	emit xSignaHelper.signalUpdateStatusInfo("探测器已连接");
+	emit xSignaHelper.signalShowSuccessMessageBar("探测器已连接");
 #elif DET_TYPE == DET_TYPE_IRAY
 
 	if (!DET.Initialize())
@@ -528,29 +524,6 @@ void MainWindow::connectToDet()
 		IRayDetectorWidget* pIRayDetectorWidget = new IRayDetectorWidget;
 		pIRayDetectorWidget->showNormal();
 	}
-
-	//QFuture<int> future = QtConcurrent::run([this]() {
-	//	emit xSignaHelper.signalUpdateStatusInfo("开始连接探测器");
-	//	qDebug() << "开始连接探测器";
-	//	return DET.Initialize();
-	//});
-
-	//QFutureWatcher<int>* watcher = new QFutureWatcher<int>();
-	//connect(watcher, &QFutureWatcher<int>::finished, this, [this, watcher]() {
-	//	int result = watcher->result();
-	//	if (result != 0)
-	//	{
-
-	//	}
-	//	else
-	//	{
-	//		emit xSignaHelper.signalUpdateStatusInfo("探测器已连接");
-	//		DET.StartQueryStatus();
-	//	}
-	//	watcher->deleteLater();
-	//});
-	//watcher->setFuture(future);
-
 #endif // DET_TYPE
 }
 

@@ -67,6 +67,9 @@
     <ClCompile Include="UI\CreateCorrectTemplateDlg.cpp">
       <Filter>UI</Filter>
     </ClCompile>
+    <ClCompile Include="UI\XElaDialog.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Components\AcqTask.h">
@@ -121,6 +124,9 @@
       <Filter>ImageRender</Filter>
     </QtMoc>
     <QtMoc Include="UI\CreateCorrectTemplateDlg.h">
+      <Filter>UI</Filter>
+    </QtMoc>
+    <QtMoc Include="UI\XElaDialog.h">
       <Filter>UI</Filter>
     </QtMoc>
   </ItemGroup>

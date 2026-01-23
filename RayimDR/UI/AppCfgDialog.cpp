@@ -26,11 +26,6 @@ AppCfgDialog::AppCfgDialog(QWidget* parent)
 		this->reject();
 		});
 
-	ui.checkBox_cfg_before_acq->setChecked(xGlobal.CONFIG_BEFORE_ACQ);
-	connect(ui.checkBox_cfg_before_acq, &QCheckBox::toggled, this, [this](bool checked) {
-		xGlobal.CONFIG_BEFORE_ACQ = checked;
-		});
-
 	ElaUIHepler::ChangeToNormalStyle(this);
 }
 

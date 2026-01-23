@@ -33,19 +33,19 @@ CommonConfigUI::~CommonConfigUI()
 bool CommonConfigUI::checkInputValid()
 {
 	QString errMsg;
-	if (ui.spinBox_targetVoltage->value() > xGlobal.VOLTAGE_MAX ||
-		ui.spinBox_targetVoltage->value() < xGlobal.VOLTAGE_MIN)
+	if (ui.spinBox_targetVoltage->value() > XRAY_MAX_VOLTAGE ||
+		ui.spinBox_targetVoltage->value() < XRAY_MIN_VOLTAGE)
 	{
-		errMsg = QString("设置的电压值必须在 %1kV - %2kV 之间").arg(xGlobal.VOLTAGE_MIN).arg(xGlobal.VOLTAGE_MAX);
+		errMsg = QString("设置的电压值必须在 %1kV - %2kV 之间").arg(XRAY_MIN_VOLTAGE).arg(XRAY_MAX_VOLTAGE);
 		qDebug() << errMsg;
 		emit xSignaHelper.signalShowErrorMessageBar(errMsg);
 		return false;
 	}
 
-	if (ui.spinBox_targetCurrent->value() > xGlobal.CURRENT_MAX ||
-		ui.spinBox_targetCurrent->value() < xGlobal.CURRENT_MIN)
+	if (ui.spinBox_targetCurrent->value() > XRAY_MAX_VOLTAGE ||
+		ui.spinBox_targetCurrent->value() < XRAY_MIN_VOLTAGE)
 	{
-		errMsg = QString("设置的电流值必须在 %1mA - %2mA 之间").arg(xGlobal.CURRENT_MIN).arg(xGlobal.CURRENT_MAX);
+		errMsg = QString("设置的电流值必须在 %1mA - %2mA 之间").arg(XRAY_MIN_CURRENT).arg(XRAY_MAX_CURRENT);
 		qDebug() << errMsg;
 		emit xSignaHelper.signalShowErrorMessageBar(errMsg);
 		return false;

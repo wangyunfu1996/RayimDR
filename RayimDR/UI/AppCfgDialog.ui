@@ -80,22 +80,10 @@
      </property>
     </spacer>
    </item>
-   <item row="1" column="1" colspan="2">
-    <widget class="ElaCheckBox" name="checkBox_cfg_before_acq">
-     <property name="text">
-      <string>采集前配置参数</string>
-     </property>
-    </widget>
-   </item>
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
-  <customwidget>
-   <class>ElaCheckBox</class>
-   <extends>QCheckBox</extends>
-   <header>ElaCheckBox.h</header>
-  </customwidget>
   <customwidget>
    <class>ElaPushButton</class>
    <extends>QPushButton</extends>

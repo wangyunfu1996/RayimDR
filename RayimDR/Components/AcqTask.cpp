@@ -104,7 +104,10 @@ void AcqTask::startAcq()
 
 	do
 	{
-		QImage image = XImageHelper::generateRandomGaussianGrayImage(width, height);
+		QSharedPointer<QImage> image = QSharedPointer<QImage>::create(
+			XImageHelper::generateRandomGaussianGrayImage(width, height)
+		);
+		qDebug() << "[Virtual Mode] Calling onImageReceived with idx=" << nReceivedIdx.load();
 		onImageReceived(image, nReceivedIdx.load());
 		nReceivedIdx.fetch_add(1);
 		QThread::msleep(1000 / acqCondition.frameRate);
@@ -121,7 +124,15 @@ void AcqTask::startAcq()
 	}
 
 	connect(&DET, &NDT1717MA::signalErrorOccurred, this, &AcqTask::onErrorOccurred, Qt::ConnectionType::UniqueConnection);
-	connect(&DET, &NDT1717MA::signalAcqImageReceived, this, &AcqTask::onImageReceived, Qt::ConnectionType::UniqueConnection);
+	bool connected = connect(&DET, &NDT1717MA::signalAcqImageReceived, this, &AcqTask::onImageReceived, Qt::ConnectionType::UniqueConnection);
+	if (!connected)
+	{
+		qWarning() << "Failed to connect signalAcqImageReceived signal!";
+	}
+	else
+	{
+		qDebug() << "Successfully connected signalAcqImageReceived signal";
+	}
 	
 	if (!DET.StartAcq())
 	{
@@ -154,8 +165,10 @@ void AcqTask::run()
 	startAcq();
 }
 
-void AcqTask::onImageReceived(QImage image, int idx)
+void AcqTask::onImageReceived(QSharedPointer<QImage> image, int idx)
 {
+	qDebug() << "Called with idx=" << idx;
+	
 	if (bStopRequested.load())
 	{
 		qDebug() << "Received detector data, but acquisition task has been stopped";
@@ -173,12 +186,18 @@ void AcqTask::onImageReceived(QImage image, int idx)
 		return;
 	}
 
-	AcqTaskManager::Instance().stackedImageList.append(image);
+	if (!image)
+	{
+		qWarning() << "Received null image pointer";
+		return;
+	}
+
+	AcqTaskManager::Instance().stackedImageList.append(*image);  // 解引用指针转为 QImage
 	nReceivedIdx.fetch_add(1);
 	qDebug() << "Received frame" << nReceivedIdx
 		<< ", stack buffer current frames:" << AcqTaskManager::Instance().stackedImageList.size()
-		<< ", width:" << image.width()
-		<< ", height:" << image.height()
+		<< ", width:" << image->width()
+		<< ", height:" << image->height()
 		<< ", idxInDet:" << idx;
 
 	if (acqCondition.stackedFrame > 0)

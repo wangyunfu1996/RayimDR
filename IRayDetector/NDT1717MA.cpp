@@ -105,8 +105,18 @@ namespace {
 
 			// 将图像数据深拷贝到QImage
 			NDT1717MA::Instance().SetReceivedImage(pImg->nWidth, pImg->nHeight, pImageData, nImageSize, nCenterValue);
-			emit NDT1717MA::Instance().signalAcqImageReceived(DET.GetReceivedImage(), gn_receviedIdx.load());
-			gn_receviedIdx.store(gn_receviedIdx.load() + 1);
+			QSharedPointer<QImage> receivedImage = DET.GetReceivedImage();
+			if (receivedImage && !receivedImage.isNull())
+			{
+				qDebug() << "Emitting signalAcqImageReceived with idx=" << gn_receviedIdx.load()
+					<< ", image size:" << receivedImage->width() << "x" << receivedImage->height();
+				emit NDT1717MA::Instance().signalAcqImageReceived(receivedImage, gn_receviedIdx.load());
+			}
+			else
+			{
+				qWarning() << "Received image is null, skip emitting signal";
+			}
+			gn_receviedIdx.fetch_add(1);  // 使用原子递增操作替代 store(load() + 1)
 			break;
 		}
 		case Evt_TaskResult_Succeed:
@@ -144,6 +154,12 @@ NDT1717MA& NDT1717MA::Instance()
 	return iRayDetector;
 }
 
+void NDT1717MA::registerMetaTypes()
+{
+	qRegisterMetaType<QSharedPointer<QImage>>("QSharedPointer<QImage>");
+	qDebug() << "QSharedPointer<QImage> meta type registered";
+}
+
 bool NDT1717MA::Initialize()
 {
 	if (gs_pDetInstance &&
@@ -151,6 +167,9 @@ bool NDT1717MA::Initialize()
 	{
 		return true;
 	}
+
+	// 注册元类型以支持跨线程信号传递
+	registerMetaTypes();
 
 	gs_pDetInstance = new CDetector();
 	qDebug() << "Load libray";
@@ -824,6 +843,7 @@ bool NDT1717MA::DefectForceDarkContinuousAcq(int groupIdx)
 {
 	int nExpectedImageCnt = nDefectExpectedImageCnts[groupIdx];
 	int nExpectedValid = nDefectDarkExpectedValids[groupIdx];
+	int nDefectAllExceptedVliad = gs_pDetInstance->GetAttrInt(Attr_DefectTotalFrames);
 	int result = gs_pDetInstance->Invoke(Cmd_ForceDarkContinuousAcq, nExpectedImageCnt);
 	dbgResult(result);
 
@@ -834,14 +854,14 @@ bool NDT1717MA::DefectForceDarkContinuousAcq(int groupIdx)
 	}
 
 	int nValid{ 0 };
-	std::async(std::launch::async, [this, groupIdx, nExpectedValid, &nValid]() {
+	std::async(std::launch::async, [this, groupIdx, nExpectedValid, nDefectAllExceptedVliad, &nValid]() {
 		do
 		{
 			nValid = gs_pDetInstance->GetAttrInt(Attr_DefectValidFrames);
 			qDebug() << "nExpectedValid: " << nExpectedValid
 				<< " nValid: " << nValid;
 
-			emit signalDefectImageSelected(nExpectedValid, nValid);
+			emit signalDefectImageSelected(nDefectAllExceptedVliad, nValid);
 			if (gs_pDetInstance->GetAttrInt(Attr_CurrentTransaction) != Enm_Transaction_DefectGen)
 			{
 				qDebug() << "缺陷校正已退出";
@@ -886,7 +906,7 @@ void NDT1717MA::Abort()
 void NDT1717MA::SetReceivedImage(int width, int height, const unsigned short* pData, int nDataSize, int nGray)
 {
 	qDebug() << "进行图像拷贝，receviedIdx：" << gn_receviedIdx.load();
-	m_nGray = nGray;
+
 	// 参数验证
 	if (width <= 0 || height <= 0 || !pData || nDataSize <= 0)
 	{
@@ -905,16 +925,16 @@ void NDT1717MA::SetReceivedImage(int width, int height, const unsigned short* pD
 		return;
 	}
 
-	// 创建16位灰度QImage
-	m_receivedImage = QImage(width, height, QImage::Format_Grayscale16);
+	// 创建临时QImage，完全成功后再替换（减少互斥锁持有时间）
+	QSharedPointer<QImage> tempImage = QSharedPointer<QImage>::create(width, height, QImage::Format_Grayscale16);
 
-	// 深拷贝数据到QImage
+	// 深拷贝数据到临时QImage
 	try
 	{
 		for (int y = 0; y < height; ++y)
 		{
 			// 获取当前行的指针
-			ushort* destLine = reinterpret_cast<ushort*>(m_receivedImage.scanLine(y));
+			ushort* destLine = reinterpret_cast<ushort*>(tempImage->scanLine(y));
 			if (!destLine)
 			{
 				qWarning() << "Failed to get scan line at row " << y;
@@ -928,23 +948,32 @@ void NDT1717MA::SetReceivedImage(int width, int height, const unsigned short* pD
 			std::copy(srcLine, srcLine + width, destLine);
 		}
 
+		// 拷贝成功，加锁更新成员变量
+		QMutexLocker locker(&m_imageDataMutex);
+		m_receivedImage = tempImage;
+		m_nGray = nGray;
+
 		qDebug() << "Image deep copied successfully: " << width << "x" << height
 			<< " (" << nDataSize << " bytes)";
 	}
 	catch (const std::exception& e)
 	{
 		qWarning() << "Exception during image deep copy: " << e.what();
-		m_receivedImage = QImage();  // 清空图像
+		// 异常情况下加锁清空
+		QMutexLocker locker(&m_imageDataMutex);
+		m_receivedImage = QSharedPointer<QImage>();
 	}
 }
 
-QImage NDT1717MA::GetReceivedImage() const
+QSharedPointer<QImage> NDT1717MA::GetReceivedImage() const
 {
-	return m_receivedImage;
+	QMutexLocker locker(&m_imageDataMutex);
+	return m_receivedImage;  // 返回智能指针，多个接收端共享同一个图像数据
 }
 
 int NDT1717MA::GetGrayOfReceivedImage() const
 {
+	//QMutexLocker locker(&m_imageDataMutex);
 	return m_nGray;
 }
 

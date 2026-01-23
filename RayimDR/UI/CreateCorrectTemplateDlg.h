@@ -2,6 +2,7 @@
 
 #include "ElaDialog.h"
 #include "ui_CreateCorrectTemplateDlg.h"
+#include <QSharedPointer>
 
 class CreateCorrectTemplateDlg : public ElaDialog
 {
@@ -24,9 +25,9 @@ private:
 
 private:
 	void onOffsetImageSelected(int nTotal, int nValid);
-	void onGainAcqImageReceived(QImage image, int idx);
+	void onGainAcqImageReceived(QSharedPointer<QImage> image, int idx);
 	void onGainImageSelected(int nTotal, int nValid);
-	void onDefectAcqImageReceived(QImage image, int idx);
+	void onDefectAcqImageReceived(QSharedPointer<QImage> image, int idx);
 	void onDefectGroupChanged(int groupIdx, int nTotalGroup);
 	void onDefectImageSelected(int nTotal, int nValid);
 

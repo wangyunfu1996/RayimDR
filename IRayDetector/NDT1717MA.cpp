@@ -121,7 +121,7 @@ namespace {
 			{
 				qWarning() << "Received image is null, skip emitting signal";
 			}
-			gn_receviedIdx.fetch_add(1);  // 使用原子递增操作替代 store(load() + 1)
+			gn_receviedIdx.fetch_add(1);
 			break;
 		}
 		case Evt_TaskResult_Succeed:

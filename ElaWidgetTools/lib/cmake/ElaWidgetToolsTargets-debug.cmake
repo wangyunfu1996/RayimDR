@@ -12,8 +12,8 @@ set_target_properties(ElaWidgetTools PROPERTIES
   IMPORTED_LOCATION_DEBUG "${_IMPORT_PREFIX}/ElaWidgetTools/bin/ElaWidgetToolsd.dll"
   )
 
-list(APPEND _IMPORT_CHECK_TARGETS ElaWidgetTools )
-list(APPEND _IMPORT_CHECK_FILES_FOR_ElaWidgetTools "${_IMPORT_PREFIX}/ElaWidgetTools/lib/ElaWidgetToolsd.lib" "${_IMPORT_PREFIX}/ElaWidgetTools/bin/ElaWidgetToolsd.dll" )
+list(APPEND _cmake_import_check_targets ElaWidgetTools )
+list(APPEND _cmake_import_check_files_for_ElaWidgetTools "${_IMPORT_PREFIX}/ElaWidgetTools/lib/ElaWidgetToolsd.lib" "${_IMPORT_PREFIX}/ElaWidgetTools/bin/ElaWidgetToolsd.dll" )
 
 # Commands beyond this point should not need to know the version.
 set(CMAKE_IMPORT_FILE_VERSION)

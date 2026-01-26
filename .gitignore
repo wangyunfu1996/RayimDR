@@ -1,8 +1,6 @@
 ﻿################################################################################
 # 此 .gitignore 文件已由 Microsoft(R) Visual Studio 自动创建。
 ################################################################################
-
-/.vs/RayimDR/v16
 /build/x64/Debug/RayimDR
 /install/x64/Debug
 /build/x64/Release/RayimDR
@@ -16,3 +14,4 @@
 /RayimDR/FTPHostManager.log
 /RayimDR/SplincingCorrect.1.log
 /IRayDetectorWidgetsApplication/FTPHostManager.log
+/.vs

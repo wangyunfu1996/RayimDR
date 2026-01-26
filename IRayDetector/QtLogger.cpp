@@ -9,6 +9,10 @@
 #include <QMutex>
 #include <QApplication>
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#include <QStringConverter>
+#endif
+
 #include <DbgHelp.h>
 #pragma comment(lib, "dbghelp.lib")
 
@@ -166,7 +170,11 @@ void QtLogger::customMessageHandler(QtMsgType type, const QMessageLogContext& co
 
 		if (logFile.isOpen()) {
 			QTextStream stream(&logFile);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 			stream.setCodec("UTF-8");
+#else
+			stream.setEncoding(QStringConverter::Utf8);
+#endif
 			stream << logMessage;
 			stream.flush();
 		}

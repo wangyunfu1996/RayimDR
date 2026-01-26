@@ -140,7 +140,7 @@ IRayDetectorWidget::IRayDetectorWidget(QWidget* parent)
 			QMessageBox::warning(nullptr,
 				"警告",
 				"请等待当前采集完成，或取消当前采集任务！",
-				"确定");
+				QMessageBox::Ok);
 			return;
 		}
 

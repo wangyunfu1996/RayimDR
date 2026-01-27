@@ -19,44 +19,39 @@
 
 #define ELACOMBOBOX_HEIGHT 35
 
-ElaUIHepler::ElaUIHepler(QObject* parent)
-	: QObject(parent)
-{}
+ElaUIHepler::ElaUIHepler(QObject* parent) : QObject(parent) {}
 
-ElaUIHepler::~ElaUIHepler()
-{}
+ElaUIHepler::~ElaUIHepler() {}
 
 void ElaUIHepler::ChangeToNormalStyle(QWidget* widget)
 {
-	if (nullptr == widget)
-	{
-		return;
-	}
+    if (nullptr == widget)
+    {
+        return;
+    }
 
-	for (auto elaText : widget->findChildren<ElaText*>())
-	{
-		elaText->setWordWrap(false);
-		elaText->setTextPixelSize(15);
-	}
+    for (auto elaText : widget->findChildren<ElaText*>())
+    {
+        elaText->setWordWrap(false);
+        elaText->setTextPixelSize(15);
+    }
 
-	for (auto elaSpinBox : widget->findChildren<ElaSpinBox*>())
-	{
-		elaSpinBox->setButtonMode(ElaSpinBoxType::ButtonMode::PMSide);
-		elaSpinBox->setMinimumWidth(ELASPINBOX_WIDTH);
-	}
+    for (auto elaSpinBox : widget->findChildren<ElaSpinBox*>())
+    {
+        elaSpinBox->setButtonMode(ElaSpinBoxType::ButtonMode::PMSide);
+        elaSpinBox->setMinimumWidth(ELASPINBOX_WIDTH);
+    }
 
-	for (auto elaDoubleSpinBox : widget->findChildren<ElaDoubleSpinBox*>())
-	{
-		elaDoubleSpinBox->setButtonMode(ElaSpinBoxType::ButtonMode::PMSide);
-		elaDoubleSpinBox->setMinimumWidth(ELADOUBLESPINBOX_WIDTH);
-	}
+    for (auto elaDoubleSpinBox : widget->findChildren<ElaDoubleSpinBox*>())
+    {
+        elaDoubleSpinBox->setButtonMode(ElaSpinBoxType::ButtonMode::PMSide);
+        elaDoubleSpinBox->setMinimumWidth(ELADOUBLESPINBOX_WIDTH);
+    }
 
-	for (auto elaLineEdit : widget->findChildren<ElaLineEdit*>())
-	{
-		elaLineEdit->setMinimumWidth(ELALINEEDIT_WIDTH);
-		elaLineEdit->setAlignment(Qt::AlignmentFlag::AlignCenter);
-		elaLineEdit->setEnabled(false);
-	}
-
+    for (auto elaLineEdit : widget->findChildren<ElaLineEdit*>())
+    {
+        elaLineEdit->setMinimumWidth(ELALINEEDIT_WIDTH);
+        elaLineEdit->setAlignment(Qt::AlignmentFlag::AlignCenter);
+        elaLineEdit->setEnabled(false);
+    }
 }
-

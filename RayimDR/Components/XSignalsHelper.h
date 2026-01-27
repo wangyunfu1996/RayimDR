@@ -9,18 +9,17 @@
 
 class XSignalsHelper : public QObject
 {
-	Q_OBJECT
+    Q_OBJECT
 
 private:
-	XSignalsHelper(QObject* parent = nullptr);
-	~XSignalsHelper();
+    XSignalsHelper(QObject* parent = nullptr);
+    ~XSignalsHelper();
 
 public:
-	static XSignalsHelper& Instance();
+    static XSignalsHelper& Instance();
 
 signals:
-	void signalUpdateStatusInfo(const QString& msg);
-	void signalShowErrorMessageBar(const QString& msg);
-	void signalShowSuccessMessageBar(const QString& msg);
+    void signalUpdateStatusInfo(const QString& msg);
+    void signalShowErrorMessageBar(const QString& msg);
+    void signalShowSuccessMessageBar(const QString& msg);
 };
-

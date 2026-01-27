@@ -4,12 +4,11 @@
 
 class ElaUIHepler : public QObject
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
-	ElaUIHepler(QObject* parent = nullptr);
-	~ElaUIHepler();
+    ElaUIHepler(QObject* parent = nullptr);
+    ~ElaUIHepler();
 
-	static void ChangeToNormalStyle(QWidget* widget);
+    static void ChangeToNormalStyle(QWidget* widget);
 };
-

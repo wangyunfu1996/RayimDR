@@ -5,21 +5,17 @@
 
 class MultiAcqCfgDialog : public ElaDialog
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
-	MultiAcqCfgDialog(QWidget* parent = nullptr);
-	~MultiAcqCfgDialog();
+    MultiAcqCfgDialog(QWidget* parent = nullptr);
+    ~MultiAcqCfgDialog();
 
-	bool getCfg(int& n, 
-		bool& saveToFiles, 
-		QString& savePath,
-		QString& saveType);
+    bool getCfg(int& n, bool& saveToFiles, QString& savePath, QString& saveType);
 
 private:
-	Ui::MultiAcqCfgDialogClass ui;
+    Ui::MultiAcqCfgDialogClass ui;
 
-	const int nMin{ 1 };
-	const int nMax{ 1000 };
+    const int nMin{1};
+    const int nMax{1000};
 };
-

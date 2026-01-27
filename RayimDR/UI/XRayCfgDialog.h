@@ -5,13 +5,12 @@
 
 class XRayCfgDialog : public ElaDialog
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
-	XRayCfgDialog(QWidget* parent = nullptr);
-	~XRayCfgDialog();
+    XRayCfgDialog(QWidget* parent = nullptr);
+    ~XRayCfgDialog();
 
 private:
-	Ui::XRayCfgDialogClass ui;
+    Ui::XRayCfgDialogClass ui;
 };
-

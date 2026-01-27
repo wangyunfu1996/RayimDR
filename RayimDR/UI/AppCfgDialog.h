@@ -5,13 +5,12 @@
 
 class AppCfgDialog : public ElaDialog
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
-	AppCfgDialog(QWidget* parent = nullptr);
-	~AppCfgDialog();
+    AppCfgDialog(QWidget* parent = nullptr);
+    ~AppCfgDialog();
 
 private:
-	Ui::AppCfgDialogClass ui;
+    Ui::AppCfgDialogClass ui;
 };
-

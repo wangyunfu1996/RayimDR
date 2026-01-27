@@ -6,12 +6,11 @@
 
 class XFileHelper : public QObject
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
-	XFileHelper(QObject* parent = nullptr);
-	~XFileHelper();
+    XFileHelper(QObject* parent = nullptr);
+    ~XFileHelper();
 
-	static QFileInfo getImageSaveFileInfo();
+    static QFileInfo getImageSaveFileInfo();
 };
-

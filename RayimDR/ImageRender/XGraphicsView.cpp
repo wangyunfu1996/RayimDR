@@ -277,14 +277,14 @@ void XGraphicsView::openImage()
     {
         // RAW 文件需要用户输入图像尺寸
         bool okWidth = false;
-        int width = QInputDialog::getInt(nullptr, "输入图像宽度", "请输入图像宽度（像素）:", 
-                                         DET_WIDTH_1X1, 1, 65536, 1, &okWidth);
+        int width = QInputDialog::getInt(nullptr, "输入图像宽度", "请输入图像宽度（像素）:", DET_WIDTH_1X1, 1, 65536, 1,
+                                         &okWidth);
         if (!okWidth)
             return;
 
         bool okHeight = false;
-        int height = QInputDialog::getInt(nullptr, "输入图像高度", "请输入图像高度（像素）:", 
-                                          DET_HEIGHT_1X1, 1, 65536, 1, &okHeight);
+        int height = QInputDialog::getInt(nullptr, "输入图像高度", "请输入图像高度（像素）:", DET_HEIGHT_1X1, 1, 65536,
+                                          1, &okHeight);
         if (!okHeight)
             return;
 
@@ -368,14 +368,14 @@ void XGraphicsView::openImageFolder()
     if (isRawFormat)
     {
         bool okWidth = false;
-        rawWidth = QInputDialog::getInt(nullptr, "输入图像宽度", "请输入 RAW 图像宽度（像素）:", 
-                                        DET_WIDTH_1X1, 1, 65536, 1, &okWidth);
+        rawWidth = QInputDialog::getInt(nullptr, "输入图像宽度", "请输入 RAW 图像宽度（像素）:", DET_WIDTH_1X1, 1,
+                                        65536, 1, &okWidth);
         if (!okWidth)
             return;
 
         bool okHeight = false;
-        rawHeight = QInputDialog::getInt(nullptr, "输入图像高度", "请输入 RAW 图像高度（像素）:", 
-                                         DET_HEIGHT_1X1, 1, 65536, 1, &okHeight);
+        rawHeight = QInputDialog::getInt(nullptr, "输入图像高度", "请输入 RAW 图像高度（像素）:", DET_HEIGHT_1X1, 1,
+                                         65536, 1, &okHeight);
         if (!okHeight)
             return;
     }

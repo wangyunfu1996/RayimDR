@@ -1,0 +1,84 @@
+---
+Language: Cpp
+BasedOnStyle: Google
+
+# Indentation
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+AccessModifierOffset: -4
+
+# Braces
+BreakBeforeBraces: Allman
+BraceWrapping:
+  AfterClass: true
+  AfterControlStatement: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterStruct: true
+  AfterUnion: true
+  BeforeCatch: true
+  BeforeElse: true
+  IndentBraces: false
+
+# Column Limit
+ColumnLimit: 120
+
+# Pointer and Reference Alignment
+PointerAlignment: Left
+ReferenceAlignment: Left
+
+# Alignment
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignOperands: true
+AlignTrailingComments: true
+
+# Line Break
+AllowAllParametersOfDeclarationOnNextLine: true
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+
+# Function Arguments
+BinPackArguments: true
+BinPackParameters: true
+
+# Namespace
+NamespaceIndentation: None
+
+# Include Sorting
+SortIncludes: false
+IncludeBlocks: Preserve
+
+# Spacing
+SpaceAfterCStyleCast: false
+SpaceAfterTemplateKeyword: true
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyParentheses: false
+SpacesInAngles: false
+SpacesInCStyleCastParentheses: false
+SpacesInContainerLiterals: true
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+
+# Line Comment Spacing (// comment -> // comment with space)
+SpacesInLineCommentPrefix:
+  Minimum: 1
+  Maximum: 1
+
+# Other Settings
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 2
+ReflowComments: true
+
+# Separate function definitions with empty lines
+SeparateDefinitionBlocks: Always
+
+# C++ Standard
+Standard: c++11

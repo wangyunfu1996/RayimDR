@@ -204,10 +204,11 @@ bool NDT1717MA::Initialize()
 
 	qDebug() << "Query attrs";
 	gs_pDetInstance->GetAttr(Attr_CurrentSubset, m_status.Mode);
+    emit signalModeChanged();
 
 	TryOpenCorrection();
 	GetCurrentCorrectOption(m_status.SW_PreOffset, m_status.SW_Gain, m_status.SW_Defect);
-	emit signalStatusChanged();
+    emit signalCorrectChanged();
 	return true;
 }
 
@@ -455,6 +456,10 @@ int NDT1717MA::SetCorrectOption(int sw_offset, int sw_gain, int sw_defect)
 		<< " Enm_CorrectOp_SW_Gain: " << ((CurrentCorrectOption & Enm_CorrectOp_SW_Gain) ? 1 : 0)
 		<< " Enm_CorrectOp_SW_Defect: " << ((CurrentCorrectOption & Enm_CorrectOp_SW_Defect) ? 1 : 0);
 
+	m_status.SW_PreOffset = (CurrentCorrectOption & Enm_CorrectOp_SW_PreOffset) ? 1 : 0;
+    m_status.SW_Gain = (CurrentCorrectOption & Enm_CorrectOp_SW_Gain) ? 1 : 0;
+    m_status.SW_Defect = (CurrentCorrectOption & Enm_CorrectOp_SW_Defect) ? 1 : 0;
+    emit signalCorrectChanged();
 	return result == Err_OK;
 }
 
@@ -992,6 +997,7 @@ void NDT1717MA::QueryStatus()
 		m_status.Battery_ChargingStatus = gs_pDetInstance->GetAttrInt(Attr_Battery_ChargingStatus);
 		m_status.Battery_PowerWarnStatus = gs_pDetInstance->GetAttrInt(Attr_Battery_PowerWarnStatus);
 
+		emit signalBatteryStatusChanged();
 		//qDebug() << "Attr_Battery_ExternalPower: " << m_status.Battery_ExternalPower
 		//	<< " Attr_Battery_Exist: " << m_status.Battery_Exist
 		//	<< " Attr_Battery_Remaining: " << m_status.Battery_Remaining

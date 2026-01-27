@@ -53,7 +53,7 @@ IRayDetectorWidget::IRayDetectorWidget(QWidget* parent)
 	ui->checkBox_gain->setChecked(status.SW_Gain);
 	ui->checkBox_defect->setChecked(status.SW_Defect);
 
-	connect(&DET, &NDT1717MA::signalStatusChanged, this, [this]() {
+	connect(&DET, &NDT1717MA::signalCorrectChanged, this, [this]() {
 		auto status = DET.Status();
 		ui->checkBox_offset->setChecked(status.SW_PreOffset);
 		ui->checkBox_gain->setChecked(status.SW_Gain);

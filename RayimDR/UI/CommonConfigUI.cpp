@@ -23,7 +23,10 @@ CommonConfigUI::CommonConfigUI(QWidget* parent) : QWidget(parent)
         ui.comboBox_stakcedNum->addItem(QString::number(i));
     }
 
+    ui.lineEdit_ChargingStatus->setEnabled(false);
+    ui.lineEdit_Battery_Remaining->setEnabled(false);
     initUIConnect();
+
 }
 
 CommonConfigUI::~CommonConfigUI() {}
@@ -96,7 +99,7 @@ void CommonConfigUI::initUIConnect()
 {
     // 模式改变 帧率的最大值上线相应发生改变
     connect(ui.comboBox_mode, &QComboBox::currentTextChanged, this, &CommonConfigUI::changeMode);
-    connect(&DET, &NDT1717MA::signalStatusChanged, this,
+    connect(&DET, &NDT1717MA::signalModeChanged, this,
             [this]()
             {
                 auto status = DET.Status();
@@ -105,6 +108,14 @@ void CommonConfigUI::initUIConnect()
 
     connect(ui.comboBox_frameRate, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             &CommonConfigUI::changeFrameRate);
+
+    connect(&DET, &NDT1717MA::signalBatteryStatusChanged, this,
+            [this]()
+            {
+                auto status = DET.Status();
+                ui.lineEdit_ChargingStatus->setText(status.Battery_ChargingStatus == 1 ? "充电中" : "未充电");
+                ui.lineEdit_Battery_Remaining->setText(QString::number(status.Battery_Remaining) + "%");
+            });
 }
 
 void CommonConfigUI::changeMode(const QString& modeText)

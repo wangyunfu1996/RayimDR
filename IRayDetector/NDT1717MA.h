@@ -133,7 +133,9 @@ signals:
 	void signalGainImageSelected(int nTotal, int nValid);
 	void signalDefectImageSelected(int nTotal, int nValid);
 	void signalStatusChanged();
+    void signalCorrectChanged();
 	void signalModeChanged();
+    void signalBatteryStatusChanged();
 	void signalErrorOccurred(const QString& msg);
 
 private:

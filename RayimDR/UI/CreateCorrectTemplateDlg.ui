@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>492</width>
-    <height>300</height>
+    <height>287</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,67 +24,21 @@
    <item row="1" column="0" colspan="2">
     <widget class="QStackedWidget" name="stackedWidget">
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="page_Offset">
       <layout class="QGridLayout" name="gridLayout_2" columnstretch="1,1,1,1">
        <item row="2" column="1">
-        <widget class="ElaText" name="label_OffsetProgress">
-         <property name="text">
-          <string>采集进度</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="4" column="2">
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="1" column="1">
         <widget class="ElaPushButton" name="pushButton_OffsetGenerationStart">
          <property name="text">
           <string>执行暗场校正</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="2">
-        <widget class="ElaPushButton" name="pushButton_OffsetGenerationAbort">
-         <property name="text">
-          <string>取消</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="2">
-        <widget class="ElaLineEdit" name="lineEdit_OffsetProgress"/>
-       </item>
-       <item row="2" column="3">
+       <item row="3" column="3">
         <spacer name="horizontalSpacer_2">
          <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+          <enum>Qt::Orientation::Horizontal</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -94,10 +48,20 @@
          </property>
         </spacer>
        </item>
+       <item row="3" column="1">
+        <widget class="ElaText" name="label_OffsetProgress">
+         <property name="text">
+          <string>采集进度</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
        <item row="0" column="2">
         <spacer name="verticalSpacer_2">
          <property name="orientation">
-          <enum>Qt::Vertical</enum>
+          <enum>Qt::Orientation::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -107,12 +71,58 @@
          </property>
         </spacer>
        </item>
-       <item row="3" column="1" colspan="2">
+       <item row="5" column="2">
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="3" column="0">
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="2" column="2">
+        <widget class="ElaPushButton" name="pushButton_OffsetGenerationAbort">
+         <property name="text">
+          <string>取消</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1" colspan="2">
         <widget class="ElaPushButton" name="pushButton_ToGain">
          <property name="text">
           <string>下一步</string>
          </property>
         </widget>
+       </item>
+       <item row="3" column="2">
+        <widget class="ElaLineEdit" name="lineEdit_OffsetProgress"/>
+       </item>
+       <item row="1" column="1">
+        <widget class="ElaText" name="label_mode">
+         <property name="text">
+          <string>模式</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="ElaComboBox" name="comboBox_mode"/>
        </item>
       </layout>
      </widget>
@@ -317,16 +327,6 @@
     <widget class="ElaText" name="label_Tips">
      <property name="text">
       <string/>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="1">
-    <widget class="ElaComboBox" name="comboBox_mode"/>
-   </item>
-   <item row="0" column="0">
-    <widget class="ElaText" name="label_mode">
-     <property name="text">
-      <string>模式</string>
      </property>
     </widget>
    </item>

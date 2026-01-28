@@ -105,6 +105,18 @@ CreateCorrectTemplateDlg::CreateCorrectTemplateDlg(QWidget* parent) : ElaDialog(
     ui.comboBox_mode->addItem("3x3");
     ui.comboBox_mode->addItem("4x4");
 
+    // 先获取一次探测器当前的工作模式
+    std::string mode;
+    DET.GetMode(mode);
+    if (mode == "Mode5")
+        ui.comboBox_mode->setCurrentText("1x1");
+    else if (mode == "Mode6")
+        ui.comboBox_mode->setCurrentText("2x2");
+    else if (mode == "Mode7")
+        ui.comboBox_mode->setCurrentText("3x3");
+    else if (mode == "Mode8")
+        ui.comboBox_mode->setCurrentText("4x4");
+
     connect(ui.comboBox_mode, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             &CreateCorrectTemplateDlg::ModifyMode);
 }
@@ -254,6 +266,10 @@ void CreateCorrectTemplateDlg::Gain()
                 {
                     emit this->signalTipsChanged("亮场校正完成，请进行下一步校正");
                 }
+                else
+                {
+                    emit this->signalTipsChanged("亮场校正流程失败！");
+                }
                 disconnect(&DET, &NDT1717MA::signalAcqImageReceived, this,
                            &CreateCorrectTemplateDlg::onGainAcqImageReceived);
                 watcher->deleteLater();
@@ -305,6 +321,7 @@ void CreateCorrectTemplateDlg::Defect()
                 QThread::msleep(5000);
                 emit this->signalTipsChanged("射线源已开启");
 
+                emit this->signalTipsChanged("正在自动调整电压电流，并采集亮场");
                 if (!DET.DefectStartAcq())
                 {
                     return false;
@@ -331,15 +348,18 @@ void CreateCorrectTemplateDlg::Defect()
                 {
                     return false;
                 }
+                emit this->signalTipsChanged("亮场采集结束");
 
                 emit this->signalTipsChanged("等待射线源关闭");
                 QThread::msleep(2000);
                 emit this->signalTipsChanged("射线源已关闭");
 
+                emit this->signalTipsChanged("正在采集暗场");
                 if (!DET.DefectForceDarkContinuousAcq(idxGroup))
                 {
                     return false;
                 }
+                emit this->signalTipsChanged("暗场采集结束");
             }
 
             return DET.DefectGeneration();
@@ -358,6 +378,10 @@ void CreateCorrectTemplateDlg::Defect()
                 if (bRet)
                 {
                     emit this->signalTipsChanged("陷矫正流程完成");
+                }
+                else
+                {
+                    emit this->signalTipsChanged("陷矫正流程失败！");
                 }
                 disconnect(&DET, &NDT1717MA::signalAcqImageReceived, this,
                            &CreateCorrectTemplateDlg::onDefectAcqImageReceived);
@@ -428,6 +452,8 @@ void CreateCorrectTemplateDlg::ModifyMode(int modeIdx)
                 watcher->deleteLater();
             });
     watcher->setFuture(future);
+
+    future.waitForFinished();
 }
 
 void CreateCorrectTemplateDlg::onOffsetImageSelected(int nTotal, int nValid)

@@ -163,6 +163,7 @@ void CommonConfigUI::changeMode(const QString& modeText)
                 setUIEnable(true);
             });
     watcher->setFuture(future);
+    future.waitForFinished();
 }
 
 void CommonConfigUI::changeFrameRate(int nFrameRateComboboxIdx)

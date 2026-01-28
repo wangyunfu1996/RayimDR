@@ -25,7 +25,7 @@
 #include "Components/XFileHelper.h"
 #include "Components/XSignalsHelper.h"
 
-#include "../IRayDetector/TiffHelper.h"
+#include "IRayDetector/TiffHelper.h"
 
 XGraphicsView::XGraphicsView(QWidget* parent) : QGraphicsView(parent)
 {

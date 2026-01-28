@@ -39,8 +39,8 @@
 #include "UI/AppCfgDialog.h"
 #include "UI/MultiAcqCfgDialog.h"
 
-#include "../IRayDetector/NDT1717MA.h"
-#include "../IRayDetector/IRayDetectorWidget.h"
+#include "IRayDetector/NDT1717MA.h"
+#include "IRayDetector/IRayDetectorWidget.h"
 
 MainWindow::MainWindow(QWidget* parent) : ElaWindow(parent)
 {

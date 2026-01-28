@@ -10,7 +10,7 @@
 
 #include "AcqTask.h"
 
-#include "../IRayDetector/NDT1717MA.h"
+#include "IRayDetector/NDT1717MA.h"
 
 AcqTaskManager::AcqTaskManager(QObject* parent) : QObject(parent), acqCondition(new AcqCondition())
 {

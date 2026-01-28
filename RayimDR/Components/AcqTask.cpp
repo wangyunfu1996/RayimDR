@@ -9,8 +9,8 @@
 #include "AcqTaskManager.h"
 #include "ImageRender/XImageHelper.h"
 
-#include "../IRayDetector/NDT1717MA.h"
-#include "../IRayDetector/TiffHelper.h"
+#include "IRayDetector/NDT1717MA.h"
+#include "IRayDetector/TiffHelper.h"
 
 AcqTask::AcqTask(AcqCondition acqCond, QObject* parent) : QThread(parent), acqCondition(acqCond)
 {

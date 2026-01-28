@@ -131,7 +131,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\ElaWidgetTools\include;..\opencv\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\ElaWidgetTools\include;..\opencv\include;..\..\IRayDetector;</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -141,7 +141,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\ElaWidgetTools\include;..\opencv\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\ElaWidgetTools\include;..\opencv\include;..\..\IRayDetector;</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>

@@ -10,7 +10,7 @@
 
 #include "Components/XGlobal.h"
 
-#include "../IRayDetector/QtLogger.h"
+#include "IRayDetector/QtLogger.h"
 
 int main(int argc, char* argv[])
 {

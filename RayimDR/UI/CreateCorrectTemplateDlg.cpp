@@ -5,7 +5,7 @@
 #include <QtConcurrent/QtConcurrent>
 #include <QFutureWatcher>
 
-#include "../IRayDetector/NDT1717MA.h"
+#include "IRayDetector/NDT1717MA.h"
 
 CreateCorrectTemplateDlg::CreateCorrectTemplateDlg(QWidget* parent) : ElaDialog(parent)
 {

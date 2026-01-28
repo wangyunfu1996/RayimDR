@@ -8,7 +8,7 @@
 #include "Components/XSignalsHelper.h"
 #include "ElaUIHepler.h"
 
-#include "../IRayDetector/NDT1717MA.h"
+#include "IRayDetector/NDT1717MA.h"
 
 CommonConfigUI::CommonConfigUI(QWidget* parent) : QWidget(parent)
 {

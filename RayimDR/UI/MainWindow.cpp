@@ -41,6 +41,7 @@
 
 #include "IRayDetector/NDT1717MA.h"
 #include "IRayDetector/IRayDetectorWidget.h"
+#include "IRayDetector/QtLogger.h"
 
 MainWindow::MainWindow(QWidget* parent) : ElaWindow(parent)
 {
@@ -345,6 +346,21 @@ void MainWindow::initMenuBar()
                 CreateCorrectTemplateDlg dialog;
                 dialog.exec();
             });
+
+    action = configMenu->addAction("清理日志");
+    connect(action, &QAction::triggered, this,
+            [this]()
+            {
+                if (QtLogger::cleanupLogs())
+                {
+                    emit xSignaHelper.signalShowSuccessMessageBar("日志已清理!");
+                }
+                else
+                {
+                    emit xSignaHelper.signalShowErrorMessageBar("日志清理失败!");
+                }
+            });
+
 
     // fileMenu->addSeparator();
     // action = configMenu->addAction("软件配置");

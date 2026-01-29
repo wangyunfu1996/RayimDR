@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 18.2.11415.280
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RayimDR", "RayimDR\RayimDR.vcxproj", "{0ECFFCB6-819D-42FD-A6E7-6F611AE46919}"
+	ProjectSection(ProjectDependencies) = postProject
+		{877A99A0-A5A2-440F-8F17-CB32DDFB1485} = {877A99A0-A5A2-440F-8F17-CB32DDFB1485}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IRayDetector", "..\IRayDetector\IRayDetector\IRayDetector.vcxproj", "{877A99A0-A5A2-440F-8F17-CB32DDFB1485}"
 EndProject

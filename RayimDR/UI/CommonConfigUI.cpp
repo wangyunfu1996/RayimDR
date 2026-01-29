@@ -216,6 +216,10 @@ void CommonConfigUI::updateUIFromMode(std::string mode)
         ui.comboBox_frameRate->addItem(QString::number(i + 1));
     }
 
+    int frameRate = DET.GetFrameRate();
+    qDebug() << "当前帧率: " << frameRate;
+    ui.comboBox_frameRate->setCurrentText(QString::number(frameRate));
+
     ui.comboBox_mode->blockSignals(false);
     ui.comboBox_frameRate->blockSignals(false);
 }

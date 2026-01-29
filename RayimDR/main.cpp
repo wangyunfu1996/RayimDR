@@ -52,5 +52,6 @@ int main(int argc, char* argv[])
     w.setGeometry(QApplication::screens().last()->availableGeometry());
     w.showMaximized();
 
-    return a.exec();
+    int exitCode = a.exec();
+    return exitCode;
 }

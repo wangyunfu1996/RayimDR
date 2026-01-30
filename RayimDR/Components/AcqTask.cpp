@@ -6,6 +6,7 @@
 #include <qfuture.h>
 #include <qdatetime.h>
 #include <qelapsedtimer.h>
+#include <qrandom.h>
 
 #include "AcqTaskManager.h"
 #include "ImageRender/XImageHelper.h"
@@ -168,7 +169,7 @@ void AcqTask::startAcq()
 
         QSharedPointer<QImage> image =
             QSharedPointer<QImage>::create(XImageHelper::generateRandomGaussianGrayImage(width, height));
-        int grayValue = 400 + (qrand() % 100);
+        int grayValue = 400 + QRandomGenerator::global()->bounded(100);
         
         onImageReceived(image, nReceivedIdx.load(), grayValue);
         nReceivedIdx.fetch_add(1);

@@ -25,7 +25,6 @@
 
 #include "Components/XSignalsHelper.h"
 #include "Components/AcqTaskManager.h"
-#include "Components/XRayManager.h"
 #include "Components/XGlobal.h"
 
 #include "ImageRender/XGraphicsView.h"
@@ -42,6 +41,8 @@
 #include "IRayDetector/NDT1717MA.h"
 #include "IRayDetector/IRayDetectorWidget.h"
 #include "IRayDetector/QtLogger.h"
+
+#include "VJXRAY/IXS120BP120P366.h"
 
 MainWindow::MainWindow(QWidget* parent) : ElaWindow(parent)
 {
@@ -509,29 +510,29 @@ void MainWindow::connectToDevices()
 void MainWindow::connectToXRay()
 {
     emit xSignaHelper.signalUpdateStatusInfo("开始连接射线源");
-    qDebug() << "开始连接射线源";
     QFuture<void> future = QtConcurrent::run(
         [this]()
         {
-            do
+            qDebug() << "开始连接射线源";
+            if (!xRaySource.connectToSource("127.0.0.1", 4242))
             {
-                emit xRay.signalConnectToXRaySource();
-            } while (false);
+                qDebug() << "射线源连接失败!";
+            }
         });
 
     QFutureWatcher<void>* wathcher = new QFutureWatcher<void>();
     connect(wathcher, &QFutureWatcher<void>::finished, this,
             [wathcher]()
             {
-                wathcher->deleteLater();
-                if (xRay.Status().connected)
-                {
-                    emit xSignaHelper.signalShowSuccessMessageBar("射线源已连接!");
-                }
-                else
-                {
-                    emit xSignaHelper.signalShowErrorMessageBar("射线源连接失败!");
-                }
+                //wathcher->deleteLater();
+                //if (xRay.Status().connected)
+                //{
+                //    emit xSignaHelper.signalShowSuccessMessageBar("射线源已连接!");
+                //}
+                //else
+                //{
+                //    emit xSignaHelper.signalShowErrorMessageBar("射线源连接失败!");
+                //}
             });
     wathcher->setFuture(future);
 }

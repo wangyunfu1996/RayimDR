@@ -24,12 +24,6 @@
     <ClCompile Include="Components\XFileHelper.cpp">
       <Filter>Components</Filter>
     </ClCompile>
-    <ClCompile Include="Components\XRayWorker.cpp">
-      <Filter>Components</Filter>
-    </ClCompile>
-    <ClCompile Include="Components\XRayManager.cpp">
-      <Filter>Components</Filter>
-    </ClCompile>
     <ClCompile Include="Components\XSignalsHelper.cpp">
       <Filter>Components</Filter>
     </ClCompile>
@@ -76,6 +70,10 @@
     <ClCompile Include="VJXRAY\TcpClient.cpp">
       <Filter>VJXRay</Filter>
     </ClCompile>
+    <ClCompile Include="VJXRAY\IXS120BP120P366.cpp">
+      <Filter>VJXRay</Filter>
+    </ClCompile>
+    <ClCompile Include="VJXRAY\IXS120BP120P366_simple.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Components\AcqTask.h">
@@ -85,12 +83,6 @@
       <Filter>Components</Filter>
     </QtMoc>
     <QtMoc Include="Components\XFileHelper.h">
-      <Filter>Components</Filter>
-    </QtMoc>
-    <QtMoc Include="Components\XRayWorker.h">
-      <Filter>Components</Filter>
-    </QtMoc>
-    <QtMoc Include="Components\XRayManager.h">
       <Filter>Components</Filter>
     </QtMoc>
     <QtMoc Include="Components\XSignalsHelper.h">
@@ -138,6 +130,7 @@
     <QtMoc Include="VJXRAY\TcpClient.h">
       <Filter>VJXRay</Filter>
     </QtMoc>
+    <QtMoc Include="VJXRAY\IXS120BP120P366.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Components\XGlobal.h">

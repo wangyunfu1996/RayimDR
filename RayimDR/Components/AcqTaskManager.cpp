@@ -4,7 +4,6 @@
 #include <qimage.h>
 #include <qdebug.h>
 
-#include "XRayManager.h"
 #include "XSignalsHelper.h"
 #include "XGlobal.h"
 

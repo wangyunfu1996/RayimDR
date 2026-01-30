@@ -47,16 +47,9 @@ int main(int argc, char* argv[])
     QtLogger::initialize();
 
     qDebug() << "程序运行，当前时间：" << QDateTime::currentDateTime();
-    //MainWindow w;
-    //w.setGeometry(QApplication::screens().last()->availableGeometry());
-    //w.showMaximized();
-
-    QWidget w;
-    w.showNormal();
-
-    TcpClient tcpClient;
-    tcpClient.connectToHost("127.0.0.1", 4242);
-    tcpClient.sendData("Hello from RayimDR!\n");
+    MainWindow w;
+    w.setGeometry(QApplication::screens().last()->availableGeometry());
+    w.showMaximized();
 
     // 启动Qt事件循环，使信号槽机制正常工作
     int exitCode = a.exec();

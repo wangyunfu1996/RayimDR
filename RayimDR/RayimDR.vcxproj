@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -14,8 +14,6 @@
     <ClCompile Include="Components\AcqTask.cpp" />
     <ClCompile Include="Components\AcqTaskManager.cpp" />
     <ClCompile Include="Components\XFileHelper.cpp" />
-    <ClCompile Include="Components\XRayWorker.cpp" />
-    <ClCompile Include="Components\XRayManager.cpp" />
     <ClCompile Include="Components\XSignalsHelper.cpp" />
     <ClCompile Include="ElaUIHepler.cpp" />
     <ClCompile Include="ImageRender\XGraphicsScene.cpp" />
@@ -31,6 +29,8 @@
     <ClCompile Include="UI\MultiAcqCfgDialog.cpp" />
     <ClCompile Include="UI\XElaDialog.cpp" />
     <ClCompile Include="UI\XRayCfgDialog.cpp" />
+    <ClCompile Include="VJXRAY\IXS120BP120P366.cpp" />
+    <ClCompile Include="VJXRAY\IXS120BP120P366_simple.cpp" />
     <ClCompile Include="VJXRAY\TcpClient.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Components\XGlobal.h" />
+    <QtMoc Include="VJXRAY\IXS120BP120P366.h" />
     <QtMoc Include="VJXRAY\TcpClient.h" />
     <QtMoc Include="UI\XElaDialog.h" />
     <QtMoc Include="UI\CreateCorrectTemplateDlg.h" />
@@ -59,8 +60,6 @@
     <QtMoc Include="UI\CommonConfigUI.h" />
     <QtMoc Include="UI\AppCfgDialog.h" />
     <QtMoc Include="Components\XSignalsHelper.h" />
-    <QtMoc Include="Components\XRayManager.h" />
-    <QtMoc Include="Components\XRayWorker.h" />
     <QtMoc Include="Components\XFileHelper.h" />
   </ItemGroup>
   <ItemGroup>

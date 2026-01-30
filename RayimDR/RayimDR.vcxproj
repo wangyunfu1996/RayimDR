@@ -31,6 +31,7 @@
     <ClCompile Include="UI\MultiAcqCfgDialog.cpp" />
     <ClCompile Include="UI\XElaDialog.cpp" />
     <ClCompile Include="UI\XRayCfgDialog.cpp" />
+    <ClCompile Include="VJXRAY\TcpClient.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="RayimDR.qrc" />
@@ -43,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Components\XGlobal.h" />
+    <QtMoc Include="VJXRAY\TcpClient.h" />
     <QtMoc Include="UI\XElaDialog.h" />
     <QtMoc Include="UI\CreateCorrectTemplateDlg.h" />
     <QtMoc Include="ImageRender\XWindowLevelManager.h" />
@@ -67,6 +69,9 @@
     <QtUic Include="UI\CreateCorrectTemplateDlg.ui" />
     <QtUic Include="UI\MultiAcqCfgDialog.ui" />
     <QtUic Include="UI\XRayCfgDialog.ui" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="VJXRAY\tcp_echo_server.py" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0ECFFCB6-819D-42FD-A6E7-6F611AE46919}</ProjectGuid>
@@ -95,13 +100,13 @@
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
     <QtInstall>6.10.0_msvc2022_64</QtInstall>
-    <QtModules>core;gui;widgets</QtModules>
+    <QtModules>core;gui;network;widgets</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
     <QtDeploy>true</QtDeploy>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
     <QtInstall>6.10.0_msvc2022_64</QtInstall>
-    <QtModules>core;gui;widgets</QtModules>
+    <QtModules>core;gui;network;widgets</QtModules>
     <QtBuildConfig>release</QtBuildConfig>
     <QtDeploy>true</QtDeploy>
   </PropertyGroup>

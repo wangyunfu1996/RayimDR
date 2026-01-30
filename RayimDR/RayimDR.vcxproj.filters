@@ -10,6 +10,9 @@
     <Filter Include="UI">
       <UniqueIdentifier>{abbe00be-c3c1-480b-8b10-5e727e5a1d67}</UniqueIdentifier>
     </Filter>
+    <Filter Include="VJXRay">
+      <UniqueIdentifier>{150653de-a5d0-457a-9a4b-fd28940e266a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Components\AcqTask.cpp">
@@ -70,6 +73,9 @@
     <ClCompile Include="UI\XElaDialog.cpp">
       <Filter>UI</Filter>
     </ClCompile>
+    <ClCompile Include="VJXRAY\TcpClient.cpp">
+      <Filter>VJXRay</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Components\AcqTask.h">
@@ -129,6 +135,9 @@
     <QtMoc Include="UI\XElaDialog.h">
       <Filter>UI</Filter>
     </QtMoc>
+    <QtMoc Include="VJXRAY\TcpClient.h">
+      <Filter>VJXRay</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Components\XGlobal.h">
@@ -154,5 +163,8 @@
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="RayimDR.qrc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="VJXRAY\tcp_echo_server.py" />
   </ItemGroup>
 </Project>

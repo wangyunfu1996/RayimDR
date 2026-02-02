@@ -27,7 +27,7 @@ public:
     void disconnectFromSource();
     bool isConnected() const;
 
-    bool sendCommand(const QByteArray& command);
+    bool sendCommand(std::string cmd);
 
 signals:
     void connected();

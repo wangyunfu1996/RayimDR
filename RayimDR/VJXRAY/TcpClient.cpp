@@ -5,7 +5,7 @@
 TcpClient::TcpClient(QObject* parent) : QObject(parent), m_socket(nullptr)
 {
     qDebug() << "Initializing TcpClient";
-    m_socket = new QTcpSocket(this);
+    m_socket = new QTcpSocket();
 
     connect(m_socket, &QTcpSocket::connected, this, &TcpClient::onConnected);
     connect(m_socket, &QTcpSocket::disconnected, this, &TcpClient::onDisconnected);
@@ -17,6 +17,8 @@ TcpClient::~TcpClient()
 {
     qDebug() << "Destroying TcpClient";
     disconnectFromHost();
+    delete m_socket;
+    m_socket = nullptr;
 }
 
 bool TcpClient::connectToHost(const QString& host, quint16 port)

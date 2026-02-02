@@ -1,6 +1,7 @@
 #include "XRayCfgDialog.h"
 
 #include "ElaUIHepler.h"
+#include "VJXRAY/IXS120BP120P366.h"
 
 XRayCfgDialog::XRayCfgDialog(QWidget* parent) : ElaDialog(parent)
 {
@@ -10,17 +11,29 @@ XRayCfgDialog::XRayCfgDialog(QWidget* parent) : ElaDialog(parent)
     this->setWindowButtonFlag(ElaAppBarType::MinimizeButtonHint, false);
     this->setWindowButtonFlag(ElaAppBarType::MaximizeButtonHint, false);
     this->resize(700, 200);
+    ElaUIHepler::ChangeToNormalStyle(this);
 
     connect(ui.pushButton_confirm, &QPushButton::clicked, this, [this]() { this->accept(); });
-
     connect(ui.pushButton_cancel, &QPushButton::clicked, this, [this]() { this->reject(); });
 
-    ui.lineEdit_currentVoltage->setEnabled(false);
-    ui.lineEdit_currentCurrent->setEnabled(false);
-    ui.lineEdit_currentPower->setEnabled(false);
-    ui.lineEdit_targetPower->setEnabled(false);
+    connect(ui.pushButton_docmd, &QPushButton::clicked, this,
+            [this]()
+            {
+                std::string cmd = ui.lineEdit_cmd->text().toStdString();
+                qDebug() << "Sending command to X-ray source:" << QString::fromStdString(cmd);
+                IXS120BP120P366::Instance().sendCommand(cmd);
+            });
 
-    ElaUIHepler::ChangeToNormalStyle(this);
+    connect(&IXS120BP120P366::Instance(), &IXS120BP120P366::dataReceived, this,
+            [this](const QByteArray& data)
+            {
+                // 显示返回结果
+                QString result = QString::fromUtf8(data);
+                ui.lineEdit_cmdResult->setText(result);
+            });
+
+    ui.lineEdit_cmd->setEnabled(true);
+    ui.lineEdit_cmdResult->setReadOnly(true);
 }
 
 XRayCfgDialog::~XRayCfgDialog() {}

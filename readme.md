@@ -58,3 +58,12 @@ Cmd_FinishGenerationProcess
 
 #define Cmd_DefectGeneration	3010
 #define Cmd_FinishGenerationProcess	3015
+
+
+Mode6 
+Gain 70kV 0.5mA
+Defect 
+stage1 40kv 0.2mA
+stage2 50kv 0.2mA
+stage2 65kv 0.2mA
+stage2 80kv 0.25mA

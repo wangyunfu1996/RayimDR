@@ -147,6 +147,18 @@ void CommonConfigUI::initUIConnect()
                 ui.lineEdit_currentPower->setText(QString::number((status.voltage * status.current) / 1000.0, 'f', 2) +
                                                   " W");
                 ui.lineEdit_temperature->setText(QString::number(status.temperature, 'f', 1) + " ℃");
+                
+                // 根据 status.interlock 的状态设置 ui.lineEdit_interlock
+                if (status.interlock == 0)
+                {
+                    ui.lineEdit_interlock->setText("正常");
+                    ui.lineEdit_interlock->setStyleSheet("QLineEdit { color: green; }");
+                }
+                else
+                {
+                    ui.lineEdit_interlock->setText("互锁激活");
+                    ui.lineEdit_interlock->setStyleSheet("QLineEdit { color: red; }");
+                }
             });
 }
 

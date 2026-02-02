@@ -73,13 +73,13 @@ private slots:
     void onQueryStatus();
 
 private:
-    void parseMonResponse(const QString& response);
+    void parseMONResponse(const QString& response);
+    void parseFTLResponse(const QString& response);
 
 private:
     TcpClient* m_tcpClient{nullptr};
     bool m_connected;
     QThread m_thread;
-
     // Status query
     QTimer* m_statusQueryTimer{nullptr};
     XRaySourceStatus m_currentStatus;

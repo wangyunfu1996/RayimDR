@@ -20,111 +20,6 @@
       <string>射线源设置</string>
      </property>
      <layout class="QGridLayout" name="gridLayout" columnstretch="0,1,1,1,1,0">
-      <item row="1" column="1">
-       <widget class="ElaText" name="label_2">
-        <property name="text">
-         <string>目标电流(uA)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2">
-       <widget class="ElaLineEdit" name="lineEdit_targetPower"/>
-      </item>
-      <item row="4" column="1" colspan="4">
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <widget class="ElaPushButton" name="pushButton">
-          <property name="text">
-           <string>预热</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="ElaPushButton" name="pushButton_2">
-          <property name="text">
-           <string>开射线</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="ElaPushButton" name="pushButton_3">
-          <property name="text">
-           <string>关射线</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="0" column="1">
-       <widget class="ElaText" name="label">
-        <property name="text">
-         <string>目标电压(kV)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="ElaSpinBox" name="spinBox_targetVoltage">
-        <property name="minimum">
-         <number>30</number>
-        </property>
-        <property name="maximum">
-         <number>120</number>
-        </property>
-        <property name="value">
-         <number>60</number>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="5">
-       <spacer name="horizontalSpacer_6">
-        <property name="orientation">
-         <enum>Qt::Orientation::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item row="0" column="4">
-       <widget class="ElaLineEdit" name="lineEdit_currentVoltage"/>
-      </item>
-      <item row="1" column="3">
-       <widget class="ElaText" name="label_4">
-        <property name="text">
-         <string>当前电流(uA)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="4">
-       <widget class="ElaLineEdit" name="lineEdit_currentCurrent"/>
-      </item>
-      <item row="0" column="3">
-       <widget class="ElaText" name="label_3">
-        <property name="text">
-         <string>当前电压(kV)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="4">
-       <widget class="ElaLineEdit" name="lineEdit_currentPower"/>
-      </item>
-      <item row="2" column="3">
-       <widget class="ElaText" name="label_6">
-        <property name="text">
-         <string>当前功率(W)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="ElaText" name="label_5">
-        <property name="text">
-         <string>目标功率(W)</string>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="0">
        <spacer name="horizontalSpacer_5">
         <property name="orientation">
@@ -154,6 +49,81 @@
         </property>
        </widget>
       </item>
+      <item row="0" column="3">
+       <widget class="ElaText" name="label_3">
+        <property name="text">
+         <string>当前电压(kV)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="ElaText" name="label">
+        <property name="text">
+         <string>目标电压(kV)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="4">
+       <widget class="ElaLineEdit" name="lineEdit_currentVoltage"/>
+      </item>
+      <item row="1" column="4">
+       <widget class="ElaLineEdit" name="lineEdit_currentCurrent"/>
+      </item>
+      <item row="2" column="3">
+       <widget class="ElaText" name="label_6">
+        <property name="text">
+         <string>当前功率(W)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1" colspan="4">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="ElaPushButton" name="pushButton">
+          <property name="text">
+           <string>预热</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="ElaPushButton" name="pushButton_2">
+          <property name="text">
+           <string>开射线</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="ElaPushButton" name="pushButton_3">
+          <property name="text">
+           <string>关射线</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="0" column="5">
+       <spacer name="horizontalSpacer_6">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="2" column="2">
+       <widget class="ElaLineEdit" name="lineEdit_targetPower"/>
+      </item>
+      <item row="1" column="3">
+       <widget class="ElaText" name="label_4">
+        <property name="text">
+         <string>当前电流(uA)</string>
+        </property>
+       </widget>
+      </item>
       <item row="3" column="1">
        <widget class="ElaText" name="label_12">
         <property name="text">
@@ -161,8 +131,48 @@
         </property>
        </widget>
       </item>
+      <item row="2" column="4">
+       <widget class="ElaLineEdit" name="lineEdit_currentPower"/>
+      </item>
+      <item row="0" column="2">
+       <widget class="ElaSpinBox" name="spinBox_targetVoltage">
+        <property name="minimum">
+         <number>30</number>
+        </property>
+        <property name="maximum">
+         <number>120</number>
+        </property>
+        <property name="value">
+         <number>60</number>
+        </property>
+       </widget>
+      </item>
       <item row="3" column="2">
        <widget class="ElaLineEdit" name="lineEdit_temperature"/>
+      </item>
+      <item row="2" column="1">
+       <widget class="ElaText" name="label_5">
+        <property name="text">
+         <string>目标功率(W)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="ElaText" name="label_2">
+        <property name="text">
+         <string>目标电流(uA)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="ElaText" name="label_13">
+        <property name="text">
+         <string>连锁状态</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="2">
+       <widget class="ElaLineEdit" name="lineEdit_interlock"/>
       </item>
      </layout>
     </widget>

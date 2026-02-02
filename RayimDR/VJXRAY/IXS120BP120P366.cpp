@@ -243,7 +243,7 @@ void IXS120BP120P366::onTcpConnected()
     emit connected();
 
     // 在工作线程中启动状态查询
-    startStatusQuery(1000);
+    startStatusQuery(500);
 }
 
 void IXS120BP120P366::onTcpDisconnected()
@@ -328,16 +328,38 @@ void IXS120BP120P366::onQueryStatus()
             // 移除 STX 和 CR
             QByteArray actualData = response.mid(1, response.size() - 2);
             QString responseStr = QString::fromUtf8(actualData);
-            parseMonResponse(responseStr);
+            parseMONResponse(responseStr);
         }
         else
         {
             qDebug() << "Invalid status response format:" << response.toHex();
         }
     }
+
+    cmd = CMD_PREFIX + CMD_FLT + CMD_SUFFIX;
+    cmdData = QByteArray::fromStdString(cmd);
+    response = m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), 1000);
+
+    if (!response.isEmpty())
+    {
+        // 处理 FLT 响应（类似处理 MON 响应）
+        if (response.size() >= 2 && response.at(0) == 0x02 && response.at(response.size() - 1) == 0x0D)
+        {
+            // 移除 STX 和 CR
+            QByteArray actualData = response.mid(1, response.size() - 2);
+            QString responseStr = QString::fromUtf8(actualData);
+            parseFTLResponse(responseStr);
+        }
+        else
+        {
+            qDebug() << "Invalid status response format:" << response.toHex();
+        }
+    }
+
+    emit statusUpdated(m_currentStatus);
 }
 
-void IXS120BP120P366::parseMonResponse(const QString& response)
+void IXS120BP120P366::parseMONResponse(const QString& response)
 {
     // response的格式：vvvv<SP>ccccc<SP>tttt<SP>ffff <SP> bbbb
     // vvv.v = 000.0 – [max] kV
@@ -352,45 +374,43 @@ void IXS120BP120P366::parseMonResponse(const QString& response)
         return;
     }
 
-    XRaySourceStatus status;
     bool ok;
-
     // 解析电压 (kV) - vvvv 格式，除以10得到 vvv.v
     int voltageRaw = parts[0].toInt(&ok);
     if (ok)
     {
-        status.voltage = voltageRaw / 10.0;
+        m_currentStatus.voltage = voltageRaw / 10.0;
     }
     else
     {
         qDebug() << "Failed to parse voltage:" << parts[0];
-        status.voltage = 0.0;
+        m_currentStatus.voltage = 0.0;
     }
 
     // 解析电流 (mA) - ccccc 格式，除以10000得到 c.cccc
     int currentRaw = parts[1].toInt(&ok);
     if (ok)
     {
-        status.current = currentRaw / 10000.0;
+        m_currentStatus.current = currentRaw / 10000.0;
     }
     else
     {
         qDebug() << "Failed to parse current:" << parts[1];
-        status.current = 0.0;
+        m_currentStatus.current = 0.0;
     }
 
     // 解析温度 (°C) - tttt 格式，除以10得到 ttt.t (仅用于日志)
     int tempRaw = parts[2].toInt(&ok);
     if (ok)
     {
-        status.temperature = tempRaw / 10.0;
+        m_currentStatus.temperature = tempRaw / 10.0;
     }
 
     // 解析灯丝电流 (A) - ffff 格式，除以1000得到 f.fff (仅用于日志)
     int filamentRaw = parts[3].toInt(&ok);
     if (ok)
     {
-        status.filamentCurrent = filamentRaw / 1000.0;
+        m_currentStatus.filamentCurrent = filamentRaw / 1000.0;
     }
 
     // 解析电压 (VDC) - bbbb 格式，除以100得到 bb.bb (仅用于日志)
@@ -402,26 +422,66 @@ void IXS120BP120P366::parseMonResponse(const QString& response)
     }
 
     // 判断X射线是否开启（根据电流是否大于0）
-    status.xrayOn = (status.current > 0.001);  // 使用小阈值避免浮点误差
+    m_currentStatus.xrayOn = (m_currentStatus.current > 0.001);  // 使用小阈值避免浮点误差
+    qDebug() << "Status updated - X-ray:" << m_currentStatus.xrayOn << "Voltage:" << m_currentStatus.voltage << "kV"
+             << "Current:" << m_currentStatus.current << "uA"
+             << "Temperature:" << m_currentStatus.temperature << "°C"
+             << "Filament:" << m_currentStatus.filamentCurrent << "u"
+             << "VDC:" << vdc << "V"
+             << "Fault:" << m_currentStatus.faultStatus << "Warmup:" << m_currentStatus.warmupComplete
+             << "Interlock:" << m_currentStatus.interlock;
+}
 
-    // 其他状态字段暂时设置默认值（需要通过其他命令如FLT获取）
-    status.faultStatus = false;
-    status.warmupComplete = true;
-    status.interlock = 0;
+void IXS120BP120P366::parseFTLResponse(const QString& response)
+{
+    // FLT 响应格式: x<SP>x<SP>x<SP>x<SP>x<SP>x<SP>x<SP>x<SP>x<SP>x<SP>x
+    // 11个字段，每个字段表示不同的故障/状态位
+    // 0 = 正常, 1 = 故障/激活
 
-    // 更新当前状态
+    QStringList parts = response.split(' ', Qt::SkipEmptyParts);
+    if (parts.size() < 11)
     {
-        QMutexLocker locker(&m_statusMutex);
-        m_currentStatus = status;
+        qDebug() << "Incomplete FLT response:" << response;
+        return;
     }
 
-    emit statusUpdated(status);
+    bool ok;
+    QVector<int> faultBits;
+    bool anyFault = false;
 
-    qDebug() << "Status updated - X-ray:" << status.xrayOn << "Voltage:" << status.voltage << "kV"
-             << "Current:" << status.current << "uA"
-             << "Temperature:" << status.temperature << "°C"
-             << "Filament:" << status.filamentCurrent << "u"
-             << "VDC:" << vdc << "V"
-             << "Fault:" << status.faultStatus << "Warmup:" << status.warmupComplete
-             << "Interlock:" << status.interlock;
+    // 解析所有11个故障位
+    for (int i = 0; i < 11; ++i)
+    {
+        int bit = parts[i].toInt(&ok);
+        if (!ok)
+        {
+            qDebug() << "Failed to parse fault bit" << i << ":" << parts[i];
+            bit = 0;
+        }
+        faultBits.append(bit);
+        if (bit != 0)
+        {
+            anyFault = true;
+        }
+    }
+
+    // 更新故障状态和相关字段
+    m_currentStatus.faultStatus = anyFault;
+
+    // 根据具体的故障位更新其他状态字段
+    m_currentStatus.interlock = faultBits[8];
+
+    // 输出详细的故障信息用于调试
+    if (anyFault)
+    {
+        QString faultInfo = "Fault detected - Bits:";
+        for (int i = 0; i < faultBits.size(); ++i)
+        {
+            if (faultBits[i] != 0)
+            {
+                faultInfo += QString(" [%1]=%2").arg(i).arg(faultBits[i]);
+            }
+        }
+        qDebug() << faultInfo;
+    }
 }

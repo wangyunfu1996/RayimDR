@@ -25,8 +25,11 @@
       </item>
       <item row="0" column="2">
        <widget class="ElaSpinBox" name="spinBox_targetVoltage">
+        <property name="minimum">
+         <number>30</number>
+        </property>
         <property name="maximum">
-         <number>160</number>
+         <number>120</number>
         </property>
         <property name="value">
          <number>60</number>
@@ -55,7 +58,7 @@
       <item row="1" column="3">
        <widget class="ElaText" name="label_4">
         <property name="text">
-         <string>当前电流(mA)</string>
+         <string>当前电流(uA)</string>
         </property>
        </widget>
       </item>
@@ -82,11 +85,17 @@
       </item>
       <item row="1" column="2">
        <widget class="ElaSpinBox" name="spinBox_targetCurrent">
+        <property name="minimum">
+         <number>200</number>
+        </property>
         <property name="maximum">
          <number>1000</number>
         </property>
-        <property name="value">
+        <property name="singleStep">
          <number>100</number>
+        </property>
+        <property name="value">
+         <number>200</number>
         </property>
        </widget>
       </item>
@@ -103,7 +112,7 @@
       <item row="1" column="1">
        <widget class="ElaText" name="label_2">
         <property name="text">
-         <string>目标电流(mA)</string>
+         <string>目标电流(uA)</string>
         </property>
        </widget>
       </item>

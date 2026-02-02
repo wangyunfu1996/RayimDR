@@ -3,6 +3,10 @@
 #include <QObject>
 #include <QString>
 #include <QThread>
+#include <QMutex>
+#include <QWaitCondition>
+#include <QEventLoop>
+#include <QTimer>
 
 class TcpClient;
 
@@ -28,9 +32,10 @@ public:
     bool isConnected() const;
 
     bool sendCommand(const std::string& cmd, const std::string& param = "");
-
+    bool sendCmdAndWaitForResponse(const std::string& cmd, const std::string& param, QString& response,
+                                int timeoutMs = 2000);
     bool setVoltage(int kV);
-    bool setCurrent(int mA);
+    bool setCurrent(int uA);
 
 signals:
     void connected();
@@ -48,4 +53,11 @@ private:
     TcpClient* m_tcpClient;
     bool m_connected;
     QThread m_thread;
+
+    // 用于阻塞等待响应
+    QMutex m_responseMutex;
+    QWaitCondition m_responseCondition;
+    QByteArray m_lastResponse;
+    bool m_responseReceived;
+    QString m_expectedResponsePrefix;  // 期望的响应前缀，用于识别正确的响应
 };

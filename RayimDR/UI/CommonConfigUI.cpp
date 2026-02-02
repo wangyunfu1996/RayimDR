@@ -9,6 +9,7 @@
 #include "ElaUIHepler.h"
 
 #include "IRayDetector/NDT1717MA.h"
+#include "VJXRAY/IXS120BP120P366.h"
 
 CommonConfigUI::CommonConfigUI(QWidget* parent) : QWidget(parent)
 {
@@ -26,7 +27,6 @@ CommonConfigUI::CommonConfigUI(QWidget* parent) : QWidget(parent)
     ui.lineEdit_ChargingStatus->setEnabled(false);
     ui.lineEdit_Battery_Remaining->setEnabled(false);
     initUIConnect();
-
 }
 
 CommonConfigUI::~CommonConfigUI() {}
@@ -116,6 +116,27 @@ void CommonConfigUI::initUIConnect()
                 ui.lineEdit_ChargingStatus->setText(status.Battery_ChargingStatus == 1 ? "充电中" : "未充电");
                 ui.lineEdit_Battery_Remaining->setText(QString::number(status.Battery_Remaining) + "%");
             });
+
+    // 只在按下回车键时触发，不在失去焦点时触发
+    // 通过 findChild 获取 QSpinBox 内部的 QLineEdit
+    if (auto* currentLineEdit = ui.spinBox_targetCurrent->findChild<QLineEdit*>())
+    {
+        connect(currentLineEdit, &QLineEdit::returnPressed, this,
+                [this]()
+                {
+                    QtConcurrent::run([this]()
+                                      { IXS120BP120P366::Instance().setCurrent(ui.spinBox_targetCurrent->value()); });
+                });
+    }
+    if (auto* voltageLineEdit = ui.spinBox_targetVoltage->findChild<QLineEdit*>())
+    {
+        connect(voltageLineEdit, &QLineEdit::returnPressed, this,
+                [this]()
+                {
+                    QtConcurrent::run([this]()
+                                      { IXS120BP120P366::Instance().setVoltage(ui.spinBox_targetVoltage->value()); });
+                });
+    }
 }
 
 void CommonConfigUI::changeMode(const QString& modeText)

@@ -10,6 +10,26 @@
 
 class TcpClient;
 
+// X-ray source status structure
+struct XRaySourceStatus
+{
+    bool xrayOn;          // X-ray is on/off
+    double voltage;       // Current voltage in kV
+    double current;       // Current in uA
+    bool faultStatus;     // Fault status
+    bool warmupComplete;  // Warmup status
+    int interlock;        // Interlock status
+
+    double temperature;  // Temperature in Celsius
+
+    double filamentCurrent;  // Filament current in uA
+
+    XRaySourceStatus()
+        : xrayOn(false), voltage(0.0), current(0.0), faultStatus(false), warmupComplete(false), interlock(0)
+    {
+    }
+};
+
 #define xRaySource IXS120BP120P366::Instance()
 #define pXRaySource &IXS120BP120P366::Instance()
 
@@ -31,33 +51,38 @@ public:
     void disconnectFromSource();
     bool isConnected() const;
 
-    bool sendCommand(const std::string& cmd, const std::string& param = "");
-    bool sendCmdAndWaitForResponse(const std::string& cmd, const std::string& param, QString& response,
-                                int timeoutMs = 2000);
     bool setVoltage(int kV);
     bool setCurrent(int uA);
+
+    // Status query control
+    void startStatusQuery(int intervalMs = 1000);
+    void stopStatusQuery();
+    bool isStatusQueryRunning() const;
+    XRaySourceStatus getCurrentStatus() const;
 
 signals:
     void connected();
     void disconnected();
     void error(const QString& errorMsg);
-    void dataReceived(const QByteArray& data);
+    void statusUpdated(const XRaySourceStatus& status);
 
 private slots:
     void onTcpConnected();
     void onTcpDisconnected();
     void onTcpError(const QString& errorMsg);
-    void onTcpDataReceived(const QByteArray& data);
+    void onQueryStatus();
 
 private:
-    TcpClient* m_tcpClient;
+    void parseMonResponse(const QString& response);
+
+private:
+    TcpClient* m_tcpClient{nullptr};
     bool m_connected;
     QThread m_thread;
 
-    // 用于阻塞等待响应
-    QMutex m_responseMutex;
-    QWaitCondition m_responseCondition;
-    QByteArray m_lastResponse;
-    bool m_responseReceived;
-    QString m_expectedResponsePrefix;  // 期望的响应前缀，用于识别正确的响应
+    // Status query
+    QTimer* m_statusQueryTimer{nullptr};
+    XRaySourceStatus m_currentStatus;
+    mutable QMutex m_statusMutex;
+    bool m_statusQueryEnabled{false};
 };

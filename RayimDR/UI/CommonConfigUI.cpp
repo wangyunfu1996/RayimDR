@@ -26,6 +26,7 @@ CommonConfigUI::CommonConfigUI(QWidget* parent) : QWidget(parent)
 
     ui.lineEdit_ChargingStatus->setEnabled(false);
     ui.lineEdit_Battery_Remaining->setEnabled(false);
+
     initUIConnect();
 }
 
@@ -137,6 +138,16 @@ void CommonConfigUI::initUIConnect()
                                       { IXS120BP120P366::Instance().setVoltage(ui.spinBox_targetVoltage->value()); });
                 });
     }
+
+    connect(&IXS120BP120P366::Instance(), &IXS120BP120P366::statusUpdated, this,
+            [this](const XRaySourceStatus& status)
+            {
+                ui.lineEdit_currentCurrent->setText(QString::number(status.current / 1000.0, 'f', 2) + " mA");
+                ui.lineEdit_currentVoltage->setText(QString::number(status.voltage, 'f', 2) + " kV");
+                ui.lineEdit_currentPower->setText(QString::number((status.voltage * status.current) / 1000.0, 'f', 2) +
+                                                  " W");
+                ui.lineEdit_temperature->setText(QString::number(status.temperature, 'f', 1) + " ℃");
+            });
 }
 
 void CommonConfigUI::changeMode(const QString& modeText)

@@ -73,3 +73,5 @@ const static int XRAY_MIN_VOLTAGE{30};    // kV
 const static int XRAY_MAX_VOLTAGE{120};   // kV
 const static int XRAY_MIN_CURRENT{100};   // mA
 const static int XRAY_MAX_CURRENT{1000};  // mA
+
+static bool OPEN_DEBUG_LOG = true;

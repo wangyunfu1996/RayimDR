@@ -32,16 +32,9 @@ XRayCfgDialog::XRayCfgDialog(QWidget* parent) : ElaDialog(parent)
                 }
                 qDebug() << "Prepared to send command to X-ray source:" << QString::fromStdString(cmd)
                          << (param.empty() ? "" : (" with param: " + QString::fromStdString(param)));
-                IXS120BP120P366::Instance().sendCommand(cmd, param);
+                //IXS120BP120P366::Instance().sendCommand(cmd, param);
             });
 
-    connect(&IXS120BP120P366::Instance(), &IXS120BP120P366::dataReceived, this,
-            [this](const QByteArray& data)
-            {
-                // 显示返回结果
-                QString result = QString::fromUtf8(data);
-                ui.lineEdit_cmdResult->setText(result);
-            });
 
     ui.lineEdit_cmd->setEnabled(true);
     ui.lineEdit_cmdResult->setReadOnly(true);

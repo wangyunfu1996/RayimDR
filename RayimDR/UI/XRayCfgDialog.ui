@@ -13,21 +13,11 @@
   <property name="windowTitle">
    <string>XRayCfgDialog</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0,0,0">
-   <item row="1" column="1">
-    <widget class="ElaText" name="label">
+  <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0,0,0,0,0">
+   <item row="4" column="2">
+    <widget class="ElaPushButton" name="pushButton_confirm">
      <property name="text">
-      <string>命令：</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="2" colspan="2">
-    <widget class="ElaLineEdit" name="lineEdit_cmd"/>
-   </item>
-   <item row="3" column="3">
-    <widget class="ElaPushButton" name="pushButton_cancel">
-     <property name="text">
-      <string>取消</string>
+      <string>确定</string>
      </property>
     </widget>
    </item>
@@ -44,7 +34,21 @@
      </property>
     </spacer>
    </item>
-   <item row="4" column="1">
+   <item row="1" column="1">
+    <widget class="ElaText" name="label">
+     <property name="text">
+      <string>命令：</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="3">
+    <widget class="ElaPushButton" name="pushButton_cancel">
+     <property name="text">
+      <string>取消</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
     <spacer name="verticalSpacer_2">
      <property name="orientation">
       <enum>Qt::Orientation::Vertical</enum>
@@ -57,7 +61,21 @@
      </property>
     </spacer>
    </item>
-   <item row="1" column="5">
+   <item row="3" column="1">
+    <widget class="ElaText" name="label_cmdResult">
+     <property name="text">
+      <string>反馈：</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="6">
+    <widget class="ElaPushButton" name="pushButton_docmd">
+     <property name="text">
+      <string>执行命令</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="7">
     <spacer name="horizontalSpacer_2">
      <property name="orientation">
       <enum>Qt::Orientation::Horizontal</enum>
@@ -83,29 +101,21 @@
      </property>
     </spacer>
    </item>
-   <item row="3" column="2">
-    <widget class="ElaPushButton" name="pushButton_confirm">
-     <property name="text">
-      <string>确定</string>
-     </property>
-    </widget>
+   <item row="1" column="2" colspan="2">
+    <widget class="ElaLineEdit" name="lineEdit_cmd"/>
+   </item>
+   <item row="3" column="2" colspan="5">
+    <widget class="ElaLineEdit" name="lineEdit_cmdResult"/>
    </item>
    <item row="1" column="4">
-    <widget class="ElaPushButton" name="pushButton_docmd">
+    <widget class="QCheckBox" name="checkBox_param">
      <property name="text">
-      <string>执行命令</string>
+      <string>参数：</string>
      </property>
     </widget>
    </item>
-   <item row="2" column="1">
-    <widget class="ElaText" name="label_cmdResult">
-     <property name="text">
-      <string>反馈：</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="2" colspan="3">
-    <widget class="ElaLineEdit" name="lineEdit_cmdResult"/>
+   <item row="1" column="5">
+    <widget class="QLineEdit" name="lineEdit_param"/>
    </item>
   </layout>
  </widget>

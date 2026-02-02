@@ -27,7 +27,10 @@ public:
     void disconnectFromSource();
     bool isConnected() const;
 
-    bool sendCommand(std::string cmd);
+    bool sendCommand(const std::string& cmd, const std::string& param = "");
+
+    bool setVoltage(int kV);
+    bool setCurrent(int mA);
 
 signals:
     void connected();

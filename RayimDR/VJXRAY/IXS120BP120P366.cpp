@@ -4,6 +4,15 @@
 
 #pragma warning(disable : 4996)  // disable deprecated function warning
 
+namespace
+{
+const int CMD_MAX_LENGTH = 48;
+const std::string CMD_PREFIX = "\x02";  // STX
+const std::string CMD_SUFFIX = "\x0D";  // CR
+
+const std::string CMD_REPORT_MODEL_NUMBER = CMD_PREFIX + "MNUM" + CMD_SUFFIX;
+}  // namespace
+
 IXS120BP120P366::IXS120BP120P366(QObject* parent) : QObject(parent), m_tcpClient(nullptr), m_connected(false)
 {
     qDebug() << "Initializing IXS120BP120P366";
@@ -68,7 +77,7 @@ bool IXS120BP120P366::isConnected() const
     return m_connected && m_tcpClient->isConnected();
 }
 
-bool IXS120BP120P366::sendCommand(std::string cmd)
+bool IXS120BP120P366::sendCommand(const std::string& cmd, const std::string& param)
 {
     if (!isConnected())
     {
@@ -78,13 +87,25 @@ bool IXS120BP120P366::sendCommand(std::string cmd)
 
     try
     {
+        // Build command string: STX + cmd + param + CR
+        std::string fullCmd = cmd + param;
+        size_t totalSize = fullCmd.size() + 2;  // +2 for STX and CR
+
+        if (totalSize > 50)
+        {
+            qDebug() << "Command too long:" << totalSize << "bytes";
+            return false;
+        }
+
         char buffer[50];
         buffer[0] = 0x02;  // STX
-        strcpy(&buffer[1], cmd.c_str());
-        buffer[1 + strlen(cmd.c_str())] = 0x0D;  // CR
-        qDebug() << "Sending command to X-ray source:" << QString::fromStdString(cmd);
+        memcpy(&buffer[1], fullCmd.c_str(), fullCmd.size());
+        buffer[1 + fullCmd.size()] = 0x0D;  // CR
 
-        m_tcpClient->sendData(QByteArray(buffer, static_cast<int>(2 + strlen(cmd.c_str()))));
+        qDebug() << "Sending command to X-ray source:" << QString::fromStdString(cmd)
+                 << (param.empty() ? "" : (" with param: " + QString::fromStdString(param)));
+
+        m_tcpClient->sendData(QByteArray(buffer, static_cast<int>(totalSize)));
     }
     catch (const std::exception& ex)
     {
@@ -93,6 +114,16 @@ bool IXS120BP120P366::sendCommand(std::string cmd)
     }
 
     return true;
+}
+
+bool IXS120BP120P366::setVoltage(int kV)
+{
+    return false;
+}
+
+bool IXS120BP120P366::setCurrent(int mA)
+{
+    return false;
 }
 
 void IXS120BP120P366::onTcpConnected()
@@ -117,7 +148,7 @@ void IXS120BP120P366::onTcpError(const QString& errorMsg)
 
 void IXS120BP120P366::onTcpDataReceived(const QByteArray& data)
 {
-    //  Each reply is preceded by<STX> and terminated by<CR>
+    // Each reply is preceded by<STX> and terminated by<CR>
     // <SP> indicates the ASCII space character, 0x20
     qDebug() << "Data received from X-ray source:" << data;
 

@@ -15,13 +15,24 @@ XRayCfgDialog::XRayCfgDialog(QWidget* parent) : ElaDialog(parent)
 
     connect(ui.pushButton_confirm, &QPushButton::clicked, this, [this]() { this->accept(); });
     connect(ui.pushButton_cancel, &QPushButton::clicked, this, [this]() { this->reject(); });
-
+    connect(ui.checkBox_param, &QCheckBox::checkStateChanged, this,
+            [this](int state)
+            {
+                bool isChecked = (state == Qt::Checked);
+                ui.lineEdit_param->setEnabled(isChecked);
+            });
     connect(ui.pushButton_docmd, &QPushButton::clicked, this,
             [this]()
             {
                 std::string cmd = ui.lineEdit_cmd->text().toStdString();
-                qDebug() << "Sending command to X-ray source:" << QString::fromStdString(cmd);
-                IXS120BP120P366::Instance().sendCommand(cmd);
+                std::string param = "";
+                if (ui.checkBox_param->isChecked())
+                {
+                    param = ui.lineEdit_param->text().toStdString();
+                }
+                qDebug() << "Prepared to send command to X-ray source:" << QString::fromStdString(cmd)
+                         << (param.empty() ? "" : (" with param: " + QString::fromStdString(param)));
+                IXS120BP120P366::Instance().sendCommand(cmd, param);
             });
 
     connect(&IXS120BP120P366::Instance(), &IXS120BP120P366::dataReceived, this,

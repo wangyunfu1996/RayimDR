@@ -142,12 +142,11 @@ void CommonConfigUI::initUIConnect()
     connect(&IXS120BP120P366::Instance(), &IXS120BP120P366::statusUpdated, this,
             [this](const XRaySourceStatus& status)
             {
-                ui.lineEdit_currentCurrent->setText(QString::number(status.current / 1000.0, 'f', 2) + " mA");
+                ui.lineEdit_currentCurrent->setText(QString::number(status.current * 1000, 'f', 3) + " uA");
                 ui.lineEdit_currentVoltage->setText(QString::number(status.voltage, 'f', 2) + " kV");
-                ui.lineEdit_currentPower->setText(QString::number((status.voltage * status.current) / 1000.0, 'f', 2) +
-                                                  " W");
+                ui.lineEdit_currentPower->setText(QString::number((status.voltage * status.current), 'f', 2) + " W");
                 ui.lineEdit_temperature->setText(QString::number(status.temperature, 'f', 1) + " ℃");
-                
+
                 // 根据 status.interlock 的状态设置 ui.lineEdit_interlock
                 if (status.interlock == 0)
                 {
@@ -160,6 +159,18 @@ void CommonConfigUI::initUIConnect()
                     ui.lineEdit_interlock->setStyleSheet("QLineEdit { color: red; }");
                 }
             });
+
+    connect(ui.pushButton_startXRay, &QPushButton::clicked, this,
+            [this]()
+            {
+                IXS120BP120P366::Instance().setVoltage(ui.spinBox_targetVoltage->value());
+                IXS120BP120P366::Instance().setCurrent(ui.spinBox_targetCurrent->value());
+                IXS120BP120P366::Instance().startXRay();
+            });
+
+    connect(ui.pushButton_stopXRay, &QPushButton::clicked, this, [this]() { IXS120BP120P366::Instance().stopXRay(); });
+
+    connect(ui.pushButton_clearErr, &QPushButton::clicked, this, [this]() { IXS120BP120P366::Instance().clearErr(); });
 }
 
 void CommonConfigUI::changeMode(const QString& modeText)

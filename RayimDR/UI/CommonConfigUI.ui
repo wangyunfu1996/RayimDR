@@ -86,14 +86,14 @@
          </widget>
         </item>
         <item>
-         <widget class="ElaPushButton" name="pushButton_2">
+         <widget class="ElaPushButton" name="pushButton_startXRay">
           <property name="text">
            <string>开射线</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="ElaPushButton" name="pushButton_3">
+         <widget class="ElaPushButton" name="pushButton_stopXRay">
           <property name="text">
            <string>关射线</string>
           </property>
@@ -173,6 +173,13 @@
       </item>
       <item row="4" column="2">
        <widget class="ElaLineEdit" name="lineEdit_interlock"/>
+      </item>
+      <item row="4" column="3">
+       <widget class="ElaPushButton" name="pushButton_clearErr">
+        <property name="text">
+         <string>清错</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

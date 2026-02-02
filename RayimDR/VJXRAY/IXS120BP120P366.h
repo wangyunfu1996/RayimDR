@@ -53,6 +53,11 @@ public:
 
     bool setVoltage(int kV);
     bool setCurrent(int uA);
+    bool startXRay();
+    bool stopXRay();
+    void clearErr();
+
+    QByteArray sendDataSyncWithEndMarker(const QByteArray& data, const QByteArray& endMarker, int timeout = 5000);
 
     // Status query control
     void startStatusQuery(int intervalMs = 1000);

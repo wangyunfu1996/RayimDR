@@ -32,9 +32,24 @@ XRayCfgDialog::XRayCfgDialog(QWidget* parent) : ElaDialog(parent)
                 }
                 qDebug() << "Prepared to send command to X-ray source:" << QString::fromStdString(cmd)
                          << (param.empty() ? "" : (" with param: " + QString::fromStdString(param)));
-                //IXS120BP120P366::Instance().sendCommand(cmd, param);
+                auto response = IXS120BP120P366::Instance().sendDataSyncWithEndMarker(
+                    QByteArray::fromStdString(cmd + param), "\x0D");
+                ui.label_cmdResult->setText(QString::fromStdString(response.toStdString()));
             });
 
+    connect(ui.checkBox_queryStatus, &QCheckBox::checkStateChanged, this,
+            [this](int state)
+            {
+                bool isChecked = (state == Qt::Checked);
+                if (isChecked)
+                {
+                    IXS120BP120P366::Instance().startStatusQuery(1000);
+                }
+                else
+                {
+                    IXS120BP120P366::Instance().stopStatusQuery();
+                }
+            });
 
     ui.lineEdit_cmd->setEnabled(true);
     ui.lineEdit_cmdResult->setReadOnly(true);

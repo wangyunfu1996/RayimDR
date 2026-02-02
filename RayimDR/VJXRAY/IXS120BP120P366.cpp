@@ -18,6 +18,9 @@ const std::string CMD_MON = "MON";         // Get status command
 const std::string CMD_FLT = "FLT";
 const std::string CMD_MNUM = "MNUM";
 const std::string CMD_SNUM = "SNUM";
+const std::string CMD_STARTXRAY = "ENBL1";
+const std::string CMD_STOPXRAY = "ENBL0";
+const std::string CMD_CLR = "CLR";
 }  // namespace
 
 IXS120BP120P366::IXS120BP120P366(QObject* parent)
@@ -176,12 +179,13 @@ bool IXS120BP120P366::setVoltage(int kV)
             // 构建完整命令: STX + VP + param + CR
             std::string cmd = CMD_PREFIX + CMD_SET_VOLTAGE + paramStr + CMD_SUFFIX;
             QByteArray cmdData = QByteArray::fromStdString(cmd);
+            qDebug() << "Voltage command:" << cmdData.toHex(' ') << "ASCII:" << cmdData;
             QByteArray response =
                 m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), 3000);
 
             if (!response.isEmpty())
             {
-                qDebug() << "Voltage set successfully to" << kV << "kV, response:" << response.toHex();
+                qDebug() << "Voltage set successfully to" << kV << "kV, response:" << response;
                 result = true;
             }
             else
@@ -210,19 +214,20 @@ bool IXS120BP120P366::setCurrent(int uA)
         this,
         [this, uA, &result]()
         {
-            char currentStr[6];  // "xxxxx"
-            snprintf(currentStr, sizeof(currentStr), "%05d", uA);
-            std::string paramStr(currentStr);
+            char str[6];  // "xxxxx"
+            snprintf(str, sizeof(str), "%05d", uA * 10);
+            std::string paramStr(str);
 
             // 构建完整命令: STX + CP + param + CR
             std::string cmd = CMD_PREFIX + CMD_SET_CURRENT + paramStr + CMD_SUFFIX;
             QByteArray cmdData = QByteArray::fromStdString(cmd);
+            qDebug() << "Current command:" << cmdData.toHex(' ') << "ASCII:" << cmdData;
             QByteArray response =
                 m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), 3000);
 
             if (!response.isEmpty())
             {
-                qDebug() << "Current set successfully to" << uA << "uA, response:" << response.toHex();
+                qDebug() << "Current set successfully to" << uA << "uA, response:" << response;
                 result = true;
             }
             else
@@ -234,6 +239,107 @@ bool IXS120BP120P366::setCurrent(int uA)
         Qt::BlockingQueuedConnection);
 
     return result;
+}
+
+bool IXS120BP120P366::startXRay()
+{
+    bool result = false;
+    QMetaObject::invokeMethod(
+        this,
+        [this, &result]()
+        {
+            // 构建完整命令: STX + ENBL1 + CR
+            std::string cmd = CMD_PREFIX + CMD_STARTXRAY + CMD_SUFFIX;
+            QByteArray cmdData = QByteArray::fromStdString(cmd);
+            QByteArray response =
+                m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), 3000);
+            if (!response.isEmpty())
+            {
+                qDebug() << "X-ray started successfully, response:" << response.toHex();
+                result = true;
+            }
+            else
+            {
+                qDebug() << "Failed to start X-ray";
+                result = false;
+            }
+        },
+        Qt::BlockingQueuedConnection);
+    return result;
+}
+
+bool IXS120BP120P366::stopXRay()
+{
+    bool result = false;
+    QMetaObject::invokeMethod(
+        this,
+        [this, &result]()
+        {
+            // 构建完整命令: STX + ENBL0 + CR
+            std::string cmd = CMD_PREFIX + CMD_STOPXRAY + CMD_SUFFIX;
+            QByteArray cmdData = QByteArray::fromStdString(cmd);
+            QByteArray response =
+                m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), 3000);
+            if (!response.isEmpty())
+            {
+                qDebug() << "X-ray stopped successfully, response:" << response.toHex();
+                result = true;
+            }
+            else
+            {
+                qDebug() << "Failed to stop X-ray";
+                result = false;
+            }
+        },
+        Qt::BlockingQueuedConnection);
+
+    return result;
+}
+
+void IXS120BP120P366::clearErr()
+{
+    QMetaObject::invokeMethod(
+        this,
+        [this]()
+        {
+            // 构建完整命令: STX + CLR + CR
+            std::string cmd = CMD_PREFIX + CMD_CLR + CMD_SUFFIX;
+            QByteArray cmdData = QByteArray::fromStdString(cmd);
+            QByteArray response =
+                m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), 3000);
+            if (!response.isEmpty())
+            {
+                qDebug() << "X-ray stopped successfully, response:" << response.toHex();
+            }
+            else
+            {
+                qDebug() << "Failed to stop X-ray";
+            }
+        },
+        Qt::BlockingQueuedConnection);
+}
+
+QByteArray IXS120BP120P366::sendDataSyncWithEndMarker(const QByteArray& data, const QByteArray& endMarker, int timeout)
+{
+    QByteArray response;
+    QMetaObject::invokeMethod(
+        this,
+        [this, data, endMarker, timeout, &response]()
+        {
+            // 直接发送数据（调用者应该已经构建了完整命令）
+            response = m_tcpClient->sendDataSyncWithEndMarker(data, endMarker, timeout);
+            if (!response.isEmpty())
+            {
+                qDebug() << "sendDataSyncWithEndMarker response:" << response.toHex(' ');
+            }
+            else
+            {
+                qDebug() << "sendDataSyncWithEndMarker failed: no response";
+            }
+        },
+        Qt::BlockingQueuedConnection);  // 使用阻塞调用确保同步执行
+
+    return response;
 }
 
 void IXS120BP120P366::onTcpConnected()

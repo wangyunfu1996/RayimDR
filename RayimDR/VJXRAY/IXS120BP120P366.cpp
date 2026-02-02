@@ -21,6 +21,7 @@ const std::string CMD_SNUM = "SNUM";
 const std::string CMD_STARTXRAY = "ENBL1";
 const std::string CMD_STOPXRAY = "ENBL0";
 const std::string CMD_CLR = "CLR";
+
 }  // namespace
 
 IXS120BP120P366::IXS120BP120P366(QObject* parent)
@@ -586,6 +587,7 @@ void IXS120BP120P366::parseFTLResponse(const QString& response)
             if (faultBits[i] != 0)
             {
                 faultInfo += QString(" [%1]=%2").arg(i).arg(faultBits[i]);
+                emit error(QString("Fault bit %1 active (value=%2)").arg(i).arg(faultBits[i]));
             }
         }
         qDebug() << faultInfo;

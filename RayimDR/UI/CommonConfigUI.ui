@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>512</width>
-    <height>381</height>
+    <width>520</width>
+    <height>470</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,6 +20,36 @@
       <string>射线源设置</string>
      </property>
      <layout class="QGridLayout" name="gridLayout" columnstretch="0,1,1,1,1,0">
+      <item row="5" column="1">
+       <widget class="ElaText" name="label_14">
+        <property name="text">
+         <string>错误信息</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="ElaText" name="label_12">
+        <property name="text">
+         <string>温度(℃)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="ElaSpinBox" name="spinBox_targetVoltage">
+        <property name="minimum">
+         <number>30</number>
+        </property>
+        <property name="maximum">
+         <number>120</number>
+        </property>
+        <property name="value">
+         <number>60</number>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="ElaLineEdit" name="lineEdit_temperature"/>
+      </item>
       <item row="0" column="0">
        <spacer name="horizontalSpacer_5">
         <property name="orientation">
@@ -33,42 +63,6 @@
         </property>
        </spacer>
       </item>
-      <item row="1" column="2">
-       <widget class="ElaSpinBox" name="spinBox_targetCurrent">
-        <property name="minimum">
-         <number>200</number>
-        </property>
-        <property name="maximum">
-         <number>1000</number>
-        </property>
-        <property name="singleStep">
-         <number>100</number>
-        </property>
-        <property name="value">
-         <number>200</number>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="3">
-       <widget class="ElaText" name="label_3">
-        <property name="text">
-         <string>当前电压(kV)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="ElaText" name="label">
-        <property name="text">
-         <string>目标电压(kV)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="4">
-       <widget class="ElaLineEdit" name="lineEdit_currentVoltage"/>
-      </item>
-      <item row="1" column="4">
-       <widget class="ElaLineEdit" name="lineEdit_currentCurrent"/>
-      </item>
       <item row="2" column="3">
        <widget class="ElaText" name="label_6">
         <property name="text">
@@ -76,15 +70,11 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="1" colspan="4">
+      <item row="1" column="4">
+       <widget class="ElaLineEdit" name="lineEdit_currentCurrent"/>
+      </item>
+      <item row="7" column="1" colspan="4">
        <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <widget class="ElaPushButton" name="pushButton">
-          <property name="text">
-           <string>预热</string>
-          </property>
-         </widget>
-        </item>
         <item>
          <widget class="ElaPushButton" name="pushButton_startXRay">
           <property name="text">
@@ -114,8 +104,8 @@
         </property>
        </spacer>
       </item>
-      <item row="2" column="2">
-       <widget class="ElaLineEdit" name="lineEdit_targetPower"/>
+      <item row="5" column="2" colspan="2">
+       <widget class="ElaLineEdit" name="lineEdit_errMsg"/>
       </item>
       <item row="1" column="3">
        <widget class="ElaText" name="label_4">
@@ -124,36 +114,32 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
-       <widget class="ElaText" name="label_12">
-        <property name="text">
-         <string>温度(℃)</string>
-        </property>
-       </widget>
+      <item row="0" column="4">
+       <widget class="ElaLineEdit" name="lineEdit_currentVoltage"/>
       </item>
       <item row="2" column="4">
        <widget class="ElaLineEdit" name="lineEdit_currentPower"/>
       </item>
-      <item row="0" column="2">
-       <widget class="ElaSpinBox" name="spinBox_targetVoltage">
+      <item row="1" column="2">
+       <widget class="ElaSpinBox" name="spinBox_targetCurrent">
         <property name="minimum">
-         <number>30</number>
+         <number>200</number>
         </property>
         <property name="maximum">
-         <number>120</number>
+         <number>1000</number>
+        </property>
+        <property name="singleStep">
+         <number>100</number>
         </property>
         <property name="value">
-         <number>60</number>
+         <number>200</number>
         </property>
        </widget>
       </item>
-      <item row="3" column="2">
-       <widget class="ElaLineEdit" name="lineEdit_temperature"/>
-      </item>
-      <item row="2" column="1">
-       <widget class="ElaText" name="label_5">
+      <item row="5" column="4">
+       <widget class="ElaPushButton" name="pushButton_clearErr">
         <property name="text">
-         <string>目标功率(W)</string>
+         <string>清错</string>
         </property>
        </widget>
       </item>
@@ -164,6 +150,9 @@
         </property>
        </widget>
       </item>
+      <item row="2" column="2">
+       <widget class="ElaLineEdit" name="lineEdit_targetPower"/>
+      </item>
       <item row="4" column="1">
        <widget class="ElaText" name="label_13">
         <property name="text">
@@ -171,13 +160,51 @@
         </property>
        </widget>
       </item>
+      <item row="0" column="1">
+       <widget class="ElaText" name="label">
+        <property name="text">
+         <string>目标电压(kV)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="ElaText" name="label_3">
+        <property name="text">
+         <string>当前电压(kV)</string>
+        </property>
+       </widget>
+      </item>
       <item row="4" column="2">
        <widget class="ElaLineEdit" name="lineEdit_interlock"/>
       </item>
-      <item row="4" column="3">
-       <widget class="ElaPushButton" name="pushButton_clearErr">
+      <item row="2" column="1">
+       <widget class="ElaText" name="label_5">
         <property name="text">
-         <string>清错</string>
+         <string>目标功率(W)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="ElaText" name="label_15">
+        <property name="text">
+         <string>预热程序：</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="2">
+       <widget class="ElaComboBox" name="comboBox"/>
+      </item>
+      <item row="6" column="3">
+       <widget class="ElaPushButton" name="pushButton">
+        <property name="text">
+         <string>执行</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="4">
+       <widget class="ElaPushButton" name="pushButton_2">
+        <property name="text">
+         <string>取消</string>
         </property>
        </widget>
       </item>

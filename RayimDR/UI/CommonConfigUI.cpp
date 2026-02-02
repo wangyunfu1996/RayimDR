@@ -171,6 +171,13 @@ void CommonConfigUI::initUIConnect()
     connect(ui.pushButton_stopXRay, &QPushButton::clicked, this, [this]() { IXS120BP120P366::Instance().stopXRay(); });
 
     connect(ui.pushButton_clearErr, &QPushButton::clicked, this, [this]() { IXS120BP120P366::Instance().clearErr(); });
+
+    connect(&IXS120BP120P366::Instance(), &IXS120BP120P366::error, this,
+            [this](const QString& errorMsg)
+            {
+                ui.lineEdit_errMsg->setText(errorMsg);
+                emit xSignaHelper.signalShowErrorMessageBar("X射线源错误: " + errorMsg);
+            });
 }
 
 void CommonConfigUI::changeMode(const QString& modeText)

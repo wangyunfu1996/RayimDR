@@ -6,6 +6,7 @@
 #include <QFutureWatcher>
 
 #include "IRayDetector/NDT1717MA.h"
+#include "VJXRAY/IXS120BP120P366.h"
 
 CreateCorrectTemplateDlg::CreateCorrectTemplateDlg(QWidget* parent) : ElaDialog(parent)
 {
@@ -203,7 +204,10 @@ void CreateCorrectTemplateDlg::Gain()
             int nCurrent = nBeginCurrent;
             emit this->signalTipsChanged("正在等待射线源开启");
             // 等待射线源已开启
-            QThread::msleep(5000);
+            IXS120BP120P366::Instance().setVoltage(nVoltage);
+            IXS120BP120P366::Instance().setCurrent(nBeginCurrent);
+            IXS120BP120P366::Instance().startXRay();
+            QThread::msleep(2000);
             emit this->signalTipsChanged("射线源已开启");
 
             emit this->signalTipsChanged("正在自动调整电压电流，并采集亮场");
@@ -231,6 +235,7 @@ void CreateCorrectTemplateDlg::Gain()
 
                 nCurrent += 100;
                 emit this->signalGainVoltageCurrentChanged(nVoltage, nCurrent);
+                IXS120BP120P366::Instance().setCurrent(nCurrent);
                 QThread::msleep(2000);
             }
 
@@ -318,7 +323,10 @@ void CreateCorrectTemplateDlg::Defect()
                 int nCurrent = nBeginCurrent;
                 int nExceptedGray = DET.nDefectExpectedGrays[idxGroup];
                 emit this->signalTipsChanged("等待射线源开启");
-                QThread::msleep(5000);
+                IXS120BP120P366::Instance().setVoltage(nVoltage);
+                IXS120BP120P366::Instance().setCurrent(nBeginCurrent);
+                IXS120BP120P366::Instance().startXRay();
+                QThread::msleep(2000);
                 emit this->signalTipsChanged("射线源已开启");
 
                 emit this->signalTipsChanged("正在自动调整电压电流，并采集亮场");
@@ -341,6 +349,7 @@ void CreateCorrectTemplateDlg::Defect()
                     }
                     nCurrent += 100;
                     emit this->signalDefectVoltageCurrentChanged(nVoltage, nCurrent);
+                    IXS120BP120P366::Instance().setCurrent(nCurrent);
                     QThread::msleep(2000);
                 }
 
@@ -351,6 +360,7 @@ void CreateCorrectTemplateDlg::Defect()
                 emit this->signalTipsChanged("亮场采集结束");
 
                 emit this->signalTipsChanged("等待射线源关闭");
+                IXS120BP120P366::Instance().stopXRay();
                 QThread::msleep(2000);
                 emit this->signalTipsChanged("射线源已关闭");
 

@@ -30,7 +30,6 @@
     <ClCompile Include="UI\XElaDialog.cpp" />
     <ClCompile Include="UI\XRayCfgDialog.cpp" />
     <ClCompile Include="VJXRAY\IXS120BP120P366.cpp" />
-    <ClCompile Include="VJXRAY\IXS120BP120P366_simple.cpp" />
     <ClCompile Include="VJXRAY\TcpClient.cpp" />
   </ItemGroup>
   <ItemGroup>

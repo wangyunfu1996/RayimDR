@@ -73,7 +73,6 @@
     <ClCompile Include="VJXRAY\IXS120BP120P366.cpp">
       <Filter>VJXRay</Filter>
     </ClCompile>
-    <ClCompile Include="VJXRAY\IXS120BP120P366_simple.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Components\AcqTask.h">
@@ -130,7 +129,9 @@
     <QtMoc Include="VJXRAY\TcpClient.h">
       <Filter>VJXRay</Filter>
     </QtMoc>
-    <QtMoc Include="VJXRAY\IXS120BP120P366.h" />
+    <QtMoc Include="VJXRAY\IXS120BP120P366.h">
+      <Filter>VJXRay</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Components\XGlobal.h">

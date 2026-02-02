@@ -211,8 +211,8 @@ QByteArray TcpClient::sendDataSyncWithEndMarker(const QByteArray& data, const QB
     m_socket->readAll();
 
     // 发送数据
-    qDebug() << "Sending data synchronously, size:" << data.size() << "bytes, data: " << data
-             << ", end marker:" << endMarker.toHex() << ", timeout:" << timeout << "ms";
+    // qDebug() << "Sending data synchronously, size:" << data.size() << "bytes, data: " << data
+    //         << ", end marker:" << endMarker.toHex() << ", timeout:" << timeout << "ms";
     qint64 written = m_socket->write(data);
     if (written == -1)
     {
@@ -246,7 +246,7 @@ QByteArray TcpClient::sendDataSyncWithEndMarker(const QByteArray& data, const QB
 
     if (response.contains(endMarker))
     {
-        qDebug() << "Response received completely with end marker, size:" << response.size() << "bytes";
+        // qDebug() << "Response received completely with end marker, size:" << response.size() << "bytes";
     }
     else
     {

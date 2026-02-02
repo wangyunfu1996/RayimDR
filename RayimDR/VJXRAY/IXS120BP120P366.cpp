@@ -530,13 +530,13 @@ void IXS120BP120P366::parseMONResponse(const QString& response)
 
     // 判断X射线是否开启（根据电流是否大于0）
     m_currentStatus.xrayOn = (m_currentStatus.current > 0.001);  // 使用小阈值避免浮点误差
-    qDebug() << "Status updated - X-ray:" << m_currentStatus.xrayOn << "Voltage:" << m_currentStatus.voltage << "kV"
-             << "Current:" << m_currentStatus.current << "uA"
-             << "Temperature:" << m_currentStatus.temperature << "°C"
-             << "Filament:" << m_currentStatus.filamentCurrent << "u"
-             << "VDC:" << vdc << "V"
-             << "Fault:" << m_currentStatus.faultStatus << "Warmup:" << m_currentStatus.warmupComplete
-             << "Interlock:" << m_currentStatus.interlock;
+    // qDebug() << "Status updated - X-ray:" << m_currentStatus.xrayOn << "Voltage:" << m_currentStatus.voltage << "kV"
+    //          << "Current:" << m_currentStatus.current << "uA"
+    //          << "Temperature:" << m_currentStatus.temperature << "°C"
+    //          << "Filament:" << m_currentStatus.filamentCurrent << "u"
+    //          << "VDC:" << vdc << "V"
+    //          << "Fault:" << m_currentStatus.faultStatus << "Warmup:" << m_currentStatus.warmupComplete
+    //          << "Interlock:" << m_currentStatus.interlock;
 }
 
 void IXS120BP120P366::parseFTLResponse(const QString& response)

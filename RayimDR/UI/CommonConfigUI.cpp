@@ -7,6 +7,7 @@
 
 #include "Components/XSignalsHelper.h"
 #include "ElaUIHepler.h"
+#include "UI/XElaDialog.h"
 
 #include "IRayDetector/NDT1717MA.h"
 #include "VJXRAY/IXS120BP120P366.h"
@@ -58,7 +59,24 @@ bool CommonConfigUI::checkInputValid()
         return false;
     }
 
-    return true;
+    // Check X-ray source status
+    if (!IXS120BP120P366::Instance().xRayIsOn())
+    {
+        XElaDialog dialog("射线源未开启，是否先开启射线源？", XElaDialogType::ASK);
+        if (dialog.showCentered() == QDialog::Accepted)
+        {
+            bool bRet = IXS120BP120P366::Instance().setVoltage(ui.spinBox_targetVoltage->value());
+            bRet = IXS120BP120P366::Instance().setCurrent(ui.spinBox_targetCurrent->value());
+            bRet = IXS120BP120P366::Instance().startXRay();
+            int ptst = IXS120BP120P366::Instance().getPTST();
+            QThread::msleep(1000 + ptst * 1000);
+            return bRet;
+        }
+        else
+        {
+            return true;
+        }
+    }
 }
 
 AcqCondition CommonConfigUI::getAcqCondition()

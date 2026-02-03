@@ -56,6 +56,7 @@ public:
     bool startXRay();
     bool stopXRay();
     void clearErr();
+    bool xRayIsOn();
 
     int getPTST();
 

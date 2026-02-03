@@ -31,6 +31,10 @@ XElaDialog::XElaDialog(QString msg, XElaDialogType type, QWidget* parent) : ElaD
     {
         titleText->setText("错误");
     }
+    else if (XElaDialogType::ASK == type)
+    {
+        titleText->setText("提示");
+    }
     ElaText* subTitle = new ElaText(msg, this);
     subTitle->setTextStyle(ElaTextType::Body);
 
@@ -51,12 +55,12 @@ XElaDialog::XElaDialog(QString msg, XElaDialogType type, QWidget* parent) : ElaD
 
 XElaDialog::~XElaDialog() {}
 
-void XElaDialog::showCentered()
+int XElaDialog::showCentered()
 {
     // 将弹窗移到当前屏幕中心
     moveToCurrentScreen();
     // 调用 exec 显示模态弹窗
-    exec();
+    return exec();
 }
 
 void XElaDialog::showEvent(QShowEvent* event)

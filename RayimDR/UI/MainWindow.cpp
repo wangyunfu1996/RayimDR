@@ -203,6 +203,16 @@ void MainWindow::onAcqStopped()
     toolButtonDR->setEnabled(true);
     toolButtonDRMulti->setEnabled(true);
     toolButtonRealTimeDR->setEnabled(true);
+
+    // Check X-ray source status
+    if (IXS120BP120P366::Instance().xRayIsOn())
+    {
+        XElaDialog dialog("采集结束，是否关闭射线源？", XElaDialogType::ASK);
+        if (dialog.showCentered() == QDialog::Accepted)
+        {
+            IXS120BP120P366::Instance().stopXRay();
+        }
+    }
 }
 
 void MainWindow::onAcqImageReceived(AcqCondition condition, int receivedIdx)
@@ -231,7 +241,6 @@ void MainWindow::onAcqImageReceived(AcqCondition condition, int receivedIdx)
 
 void MainWindow::onDROnceTimeBtnClicked()
 {
-    // TODO 检查开光状态
     if (!_CommonConfigUI->checkInputValid())
     {
         qDebug() << "进行扫描前的参数检查失败！";
@@ -249,25 +258,22 @@ void MainWindow::onDROnceTimeBtnClicked()
 
 void MainWindow::onDRMutliBtnClicked()
 {
-    // TODO 检查开光状态
-    if (!_CommonConfigUI->checkInputValid())
-    {
-        qDebug() << "进行扫描前的参数检查失败！";
-        return;
-    }
-
     MultiAcqCfgDialog dialog;
     if (dialog.exec() == QDialog::Accepted)
     {
-        qDebug() << "Accepted";
         AcqCondition acqCond = _CommonConfigUI->getAcqCondition();
         acqCond.acqType = AcqType::DR;
 
         if (!dialog.getCfg(acqCond.frame, acqCond.saveToFiles, acqCond.savePath, acqCond.saveType))
         {
-            // emit xSignaHelper.signalShowErrorMessageBar("获取多帧采集参数错误！");
-            qDebug() << "获取多帧采集参数错误!";
-            qDebug() << acqCond;
+            emit xSignaHelper.signalShowErrorMessageBar("获取多帧采集参数错误！");
+            qDebug() << "获取多帧采集参数错误!" << acqCond;
+            return;
+        }
+
+        if (!_CommonConfigUI->checkInputValid())
+        {
+            qDebug() << "进行扫描前的参数检查失败！";
             return;
         }
 
@@ -275,15 +281,10 @@ void MainWindow::onDRMutliBtnClicked()
         AcqTaskManager::Instance().startAcq();
         onAcqStarted(acqCond);
     }
-    else
-    {
-        qDebug() << "Rejected";
-    }
 }
 
 void MainWindow::onDRRealTimeBtnClicked()
 {
-    // TODO 检查开光状态
     if (!_CommonConfigUI->checkInputValid())
     {
         qDebug() << "进行扫描前的参数检查失败！";
@@ -334,6 +335,15 @@ void MainWindow::initMenuBar()
                 dialog.exec();
             });
 
+    action = configMenu->addAction("探测器设置");
+    connect(action, &QAction::triggered, this,
+            [this]()
+            {
+                IRayDetectorWidget* w = new IRayDetectorWidget;
+                w->setAttribute(Qt::WA_DeleteOnClose);
+                w->showNormal();
+            });
+
     action = configMenu->addAction("探测器校正");
     connect(action, &QAction::triggered, this,
             [this]()
@@ -369,48 +379,6 @@ void MainWindow::initMenuBar()
     //	AppCfgDialog dialog;
     //	dialog.exec();
     //	});
-
-#define XTEST
-#ifdef XTEST
-    configMenu = menuBar->addMenu("测试");
-    action = configMenu->addAction("快速打开文件");
-    connect(action, &QAction::triggered, this,
-            [this]()
-            {
-                if (AcqTaskManager::Instance().isAcquiring())
-                {
-                    ElaMessageBar::error(ElaMessageBarType::BottomRight, "错误",
-                                         "当前正在进行采集，请等待当前采集结束!", 4000);
-                    return;
-                }
-                QImage image = XImageHelper::openImageU16Raw(
-                    "X:\\故宫\\data\\20251106150628936_海棠1106_步进CT扫描\\TWINDOW=3_WINDOW=0_TKEV=15_HKEV="
-                    "60\\PROJECTION\\table=0_proj=0.raw",
-                    1891, 496);
-                _XGraphicsView->updateImage(image, true);
-            });
-
-    action = configMenu->addAction("测试QImage");
-    connect(action, &QAction::triggered, this, [this]() { XImageHelper::testQImage(); });
-
-    action = configMenu->addAction("测试opencv");
-    connect(action, &QAction::triggered, this,
-            [this]()
-            {
-                XImageHelper::testOpencv(
-                    "X:\\故宫\\data\\20251106150628936_海棠1106_步进CT扫描\\TWINDOW=3_WINDOW=0_TKEV=15_HKEV="
-                    "60\\PROJECTION\\table=0_proj=0.raw",
-                    1891, 496);
-            });
-
-    action = configMenu->addAction("测试弹窗");
-    connect(action, &QAction::triggered, this,
-            [this]()
-            {
-                XElaDialog dialog("测试信息", XElaDialogType::INFO);
-                dialog.showCentered();
-            });
-#endif  // XTEST
 }
 
 void MainWindow::initToolBar()
@@ -539,9 +507,6 @@ void MainWindow::connectToDet()
         emit xSignaHelper.signalUpdateStatusInfo("探测器已连接");
         emit xSignaHelper.signalShowSuccessMessageBar("探测器已连接");
         DET.StartQueryStatus();
-
-        IRayDetectorWidget* pIRayDetectorWidget = new IRayDetectorWidget;
-        pIRayDetectorWidget->showNormal();
     }
 #endif  // DET_TYPE
 }

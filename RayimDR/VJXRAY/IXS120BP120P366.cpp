@@ -28,6 +28,7 @@ const std::string CMD_SNUM = "SNUM";        // Serial number
 const std::string CMD_STARTXRAY = "ENBL1";  // Enable X-ray
 const std::string CMD_STOPXRAY = "ENBL0";   // Disable X-ray
 const std::string CMD_CLR = "CLR";          // Clear error
+const std::string CMD_STAT = "STAT";        // X-ray is on or off
 
 // Protocol parameters
 constexpr int DEFAULT_TIMEOUT = 3000;       // milliseconds
@@ -206,7 +207,7 @@ bool IXS120BP120P366::setVoltage(int kV)
             std::string cmd = CMD_PREFIX + CMD_SET_VOLTAGE + paramStr + CMD_SUFFIX;
             QByteArray cmdData = QByteArray::fromStdString(cmd);
 
-            qDebug() << "[SetVoltage] Setting to" << kV << "kV - Command:" << cmdData.toHex(' ');
+            qDebug() << "[SetVoltage] Setting to" << kV << "kV - Command:" << cmdData;
 
             QByteArray response =
                 m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), DEFAULT_TIMEOUT);
@@ -251,7 +252,7 @@ bool IXS120BP120P366::setCurrent(int uA)
             std::string cmd = CMD_PREFIX + CMD_SET_CURRENT + paramStr + CMD_SUFFIX;
             QByteArray cmdData = QByteArray::fromStdString(cmd);
 
-            qDebug() << "[SetCurrent] Setting to" << uA << "uA - Command:" << cmdData.toHex(' ');
+            qDebug() << "[SetCurrent] Setting to" << uA << "uA - Command:" << cmdData;
 
             QByteArray response =
                 m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), DEFAULT_TIMEOUT);
@@ -363,6 +364,46 @@ void IXS120BP120P366::clearErr()
         Qt::BlockingQueuedConnection);
 }
 
+bool IXS120BP120P366::xRayIsOn()
+{
+    qDebug() << "Querying STAT";
+
+    QByteArray response;
+    QMetaObject::invokeMethod(
+        this,
+        [this, &response]()
+        {
+            // Build command: STX + STAT + CR
+            std::string cmd = CMD_PREFIX + CMD_STAT + CMD_SUFFIX;
+            QByteArray cmdData = QByteArray::fromStdString(cmd);
+
+            response =
+                m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), DEFAULT_TIMEOUT);
+
+            if (!response.isEmpty())
+            {
+                qDebug() << "Received response:" << response;
+            }
+            else
+            {
+                qDebug() << "Failed - No response from X-ray source";
+            }
+        },
+        Qt::BlockingQueuedConnection);
+
+    if (response.size() < 3)
+    {
+        qDebug() << "Invalid response format";
+        return 0;
+    }
+
+    // Remove STX and CR
+    QByteArray actualData = response.mid(1, response.size() - 2);
+    QString responseStr = QString::fromUtf8(actualData);
+    int on = responseStr.toInt();
+    return on == 1;
+}
+
 int IXS120BP120P366::getPTST()
 {
     qDebug() << "[GetPTST] Querying pre-warmup time";
@@ -381,7 +422,7 @@ int IXS120BP120P366::getPTST()
 
             if (!response.isEmpty())
             {
-                qDebug() << "[GetPTST] Received response:" << response.toHex(' ');
+                qDebug() << "[GetPTST] Received response:" << response;
             }
             else
             {
@@ -417,7 +458,7 @@ QByteArray IXS120BP120P366::sendDataSyncWithEndMarker(const QByteArray& data, co
 
             if (!response.isEmpty())
             {
-                qDebug() << "[SendData] Received response:" << response.toHex(' ');
+                qDebug() << "[SendData] Received response:" << response;
             }
             else
             {
@@ -534,7 +575,7 @@ void IXS120BP120P366::onQueryStatus()
         }
         else
         {
-            qDebug() << "[StatusQuery] Invalid MON response format:" << response.toHex();
+            qDebug() << "[StatusQuery] Invalid MON response format:" << response;
         }
     }
 
@@ -556,7 +597,7 @@ void IXS120BP120P366::onQueryStatus()
         }
         else
         {
-            qDebug() << "[StatusQuery] Invalid FLT response format:" << response.toHex();
+            qDebug() << "[StatusQuery] Invalid FLT response format:" << response;
         }
     }
 

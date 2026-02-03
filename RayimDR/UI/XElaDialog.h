@@ -5,7 +5,8 @@
 enum class XElaDialogType
 {
     INFO,
-    ERR
+    ERR,
+    ASK
 };
 
 /**
@@ -22,7 +23,7 @@ public:
     /**
      * @brief 在当前鼠标所在的屏幕中心显示弹窗
      */
-    void showCentered();
+    int showCentered();
 
 protected:
     /**

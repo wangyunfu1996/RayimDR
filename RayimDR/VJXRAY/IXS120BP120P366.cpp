@@ -3,6 +3,7 @@
 #include <QMetaObject>
 
 #include "TcpClient.h"
+#include "../Components/XGlobal.h"
 
 #pragma warning(disable : 4996)  // disable deprecated function warning
 
@@ -33,13 +34,6 @@ const std::string CMD_STAT = "STAT";        // X-ray is on or off
 // Protocol parameters
 constexpr int DEFAULT_TIMEOUT = 3000;       // milliseconds
 constexpr int STATUS_QUERY_TIMEOUT = 1000;  // milliseconds
-constexpr int WARMUP_EXTRA_DELAY = 3000;    // milliseconds
-
-// X-ray source limits
-constexpr int MIN_VOLTAGE = 30;    // kV
-constexpr int MAX_VOLTAGE = 120;   // kV
-constexpr int MIN_CURRENT = 200;   // uA
-constexpr int MAX_CURRENT = 1000;  // uA
 }  // namespace
 
 // ============================================================================
@@ -186,10 +180,10 @@ bool IXS120BP120P366::isConnected() const
 bool IXS120BP120P366::setVoltage(int kV)
 {
     // Validate voltage range: 30.0 - 120.0 kV
-    if (kV < MIN_VOLTAGE || kV > MAX_VOLTAGE)
+    if (kV < XRAY_MIN_VOLTAGE || kV > XRAY_MAX_VOLTAGE)
     {
-        qDebug() << "[SetVoltage] Invalid voltage:" << kV << "kV (valid range:" << MIN_VOLTAGE << "-" << MAX_VOLTAGE
-                 << "kV)";
+        qDebug() << "[SetVoltage] Invalid voltage:" << kV << "kV (valid range:" << XRAY_MIN_VOLTAGE << "-"
+                 << XRAY_MAX_VOLTAGE << "kV)";
         return false;
     }
 
@@ -231,10 +225,10 @@ bool IXS120BP120P366::setVoltage(int kV)
 bool IXS120BP120P366::setCurrent(int uA)
 {
     // Validate current range: 0.2000 - 1.0000 mA (200 - 1000 uA)
-    if (uA < MIN_CURRENT || uA > MAX_CURRENT)
+    if (uA < XRAY_MIN_CURRENT || uA > XRAY_MAX_CURRENT)
     {
-        qDebug() << "[SetCurrent] Invalid current:" << uA << "uA (valid range:" << MIN_CURRENT << "-" << MAX_CURRENT
-                 << "uA)";
+        qDebug() << "[SetCurrent] Invalid current:" << uA << "uA (valid range:" << XRAY_MIN_CURRENT << "-"
+                 << XRAY_MAX_CURRENT << "uA)";
         return false;
     }
 

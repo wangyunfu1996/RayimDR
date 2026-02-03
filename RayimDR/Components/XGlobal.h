@@ -75,3 +75,6 @@ const static int XRAY_MIN_CURRENT{200};   // uA
 const static int XRAY_MAX_CURRENT{1000};  // uA
 
 static bool OPEN_DEBUG_LOG = true;
+
+const static std::string XRAY_DEVICE_IP = "192.168.10.1";
+const static int XRAY_DEVICE_PORT = 10001;

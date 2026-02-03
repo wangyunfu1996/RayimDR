@@ -611,7 +611,7 @@ void MainWindow::connectToXRay()
     qDebug() << "[MainWindow] Connecting to X-ray source";
     emit xSignaHelper.signalUpdateStatusInfo("开始连接射线源");
 
-    bool connected = xRaySource.connectToSource("192.168.1.1", 10001);
+    bool connected = xRaySource.connectToSource(XRAY_DEVICE_IP.c_str(), XRAY_DEVICE_PORT);
     if (connected)
     {
         emit xSignaHelper.signalShowSuccessMessageBar("射线源已连接!");

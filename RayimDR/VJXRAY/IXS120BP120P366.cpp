@@ -6,24 +6,44 @@
 
 #pragma warning(disable : 4996)  // disable deprecated function warning
 
+// ============================================================================
+// Protocol Constants
+// ============================================================================
+
 namespace
 {
+// Communication protocol
 const int CMD_MAX_LENGTH = 48;
-const std::string CMD_PREFIX = "\x02";  // STX
-const std::string CMD_SUFFIX = "\x0D";  // CR
+const std::string CMD_PREFIX = "\x02";  // STX (Start of Text)
+const std::string CMD_SUFFIX = "\x0D";  // CR (Carriage Return)
 
-const std::string CMD_SET_VOLTAGE = "VP";  // Set voltage command
-const std::string CMD_SET_CURRENT = "CP";  // Set current command
-const std::string CMD_MON = "MON";         // Get status command
-const std::string CMD_FLT = "FLT";
-const std::string CMD_MNUM = "MNUM";
-const std::string CMD_SNUM = "SNUM";
-const std::string CMD_STARTXRAY = "ENBL1";
-const std::string CMD_STOPXRAY = "ENBL0";
-const std::string CMD_CLR = "CLR";
-const std::string CMD_PTST = "PTST";
+// Command strings
+const std::string CMD_SET_VOLTAGE = "VP";   // Set voltage
+const std::string CMD_SET_CURRENT = "CP";   // Set current
+const std::string CMD_MON = "MON";          // Monitor status
+const std::string CMD_FLT = "FLT";          // Fault status
+const std::string CMD_PTST = "PTST";        // Prewarning time
+const std::string CMD_MNUM = "MNUM";        // Model number
+const std::string CMD_SNUM = "SNUM";        // Serial number
+const std::string CMD_STARTXRAY = "ENBL1";  // Enable X-ray
+const std::string CMD_STOPXRAY = "ENBL0";   // Disable X-ray
+const std::string CMD_CLR = "CLR";          // Clear error
 
+// Protocol parameters
+constexpr int DEFAULT_TIMEOUT = 3000;       // milliseconds
+constexpr int STATUS_QUERY_TIMEOUT = 1000;  // milliseconds
+constexpr int WARMUP_EXTRA_DELAY = 3000;    // milliseconds
+
+// X-ray source limits
+constexpr int MIN_VOLTAGE = 30;    // kV
+constexpr int MAX_VOLTAGE = 120;   // kV
+constexpr int MIN_CURRENT = 200;   // uA
+constexpr int MAX_CURRENT = 1000;  // uA
 }  // namespace
+
+// ============================================================================
+// Constructor / Destructor
+// ============================================================================
 
 IXS120BP120P366::IXS120BP120P366(QObject* parent)
     : QObject(parent),
@@ -32,74 +52,76 @@ IXS120BP120P366::IXS120BP120P366(QObject* parent)
       m_statusQueryTimer(nullptr),
       m_statusQueryEnabled(false)
 {
-    qDebug() << "Initializing IXS120BP120P366, current thread: " << QThread::currentThread();
+    qDebug() << "[IXS120BP120P366] Initializing - Main thread:" << QThread::currentThread();
 
-    // 先启动工作线程
+    // Start worker thread
     m_thread.start();
 
-    // 将整个 IXS120BP120P366 对象移动到工作线程
-    this->moveToThread(&m_thread);
-    qDebug() << "IXS120BP120P366 moved to worker thread: " << &m_thread;
+    // Move this object to worker thread
+    moveToThread(&m_thread);
+    qDebug() << "[IXS120BP120P366] Moved to worker thread:" << &m_thread;
 
-    // 在工作线程中创建子对象
+    // Create child objects in worker thread
     QMetaObject::invokeMethod(
         this,
         [this]()
         {
-            qDebug() << "Creating child objects in worker thread: " << QThread::currentThread();
+            qDebug() << "[IXS120BP120P366] Creating child objects in worker thread:" << QThread::currentThread();
 
-            // 在工作线程中创建 TcpClient 和 Timer
+            // Create TCP client and status query timer
             m_tcpClient = new TcpClient(this);
             m_statusQueryTimer = new QTimer(this);
 
-            // 连接信号槽（不需要指定连接类型，因为都在同一线程）
+            // Connect signals (same thread, no connection type needed)
             connect(m_tcpClient, &TcpClient::connected, this, &IXS120BP120P366::onTcpConnected);
             connect(m_tcpClient, &TcpClient::disconnected, this, &IXS120BP120P366::onTcpDisconnected);
             connect(m_tcpClient, &TcpClient::error, this, &IXS120BP120P366::onTcpError);
             connect(m_statusQueryTimer, &QTimer::timeout, this, &IXS120BP120P366::onQueryStatus);
 
-            qDebug() << "Child objects created and connected";
+            qDebug() << "[IXS120BP120P366] Initialization complete";
         },
         Qt::BlockingQueuedConnection);
-
-    qDebug() << "IXS120BP120P366 initialization complete";
 }
 
 IXS120BP120P366::~IXS120BP120P366()
 {
-    qDebug() << "Destroying IXS120BP120P366";
+    qDebug() << "[IXS120BP120P366] Destroying X-ray source controller";
 
-    // 在工作线程中清理资源
+    // Clean up resources in worker thread
     QMetaObject::invokeMethod(
         this,
         [this]()
         {
-            qDebug() << "Cleaning up in worker thread:" << QThread::currentThread();
+            qDebug() << "[IXS120BP120P366] Cleanup in worker thread:" << QThread::currentThread();
 
-            // 停止状态查询
+            // Stop status query
             if (m_statusQueryTimer && m_statusQueryTimer->isActive())
             {
                 m_statusQueryTimer->stop();
             }
             m_statusQueryEnabled = false;
 
-            // 断开连接
+            // Disconnect from host
             if (m_tcpClient && m_tcpClient->isConnected())
             {
                 m_tcpClient->disconnectFromHost();
             }
             m_connected = false;
 
-            qDebug() << "Cleanup complete";
+            qDebug() << "[IXS120BP120P366] Cleanup complete";
         },
         Qt::BlockingQueuedConnection);
 
-    // 停止并等待线程结束
+    // Stop and wait for thread to finish
     m_thread.quit();
     m_thread.wait();
 
-    qDebug() << "X-ray source thread stopped";
+    qDebug() << "[IXS120BP120P366] Worker thread stopped";
 }
+
+// ============================================================================
+// Public Interface Methods
+// ============================================================================
 
 IXS120BP120P366& IXS120BP120P366::Instance()
 {
@@ -109,25 +131,25 @@ IXS120BP120P366& IXS120BP120P366::Instance()
 
 bool IXS120BP120P366::connectToSource(const QString& host, quint16 port)
 {
-    qDebug() << "connectToSource called from thread:" << QThread::currentThread();
+    qDebug() << "[Connect] Request from thread:" << QThread::currentThread();
 
-    // 在工作线程中执行连接
     bool result = false;
     QMetaObject::invokeMethod(
         this,
         [this, host, port, &result]()
         {
-            qDebug() << "connectToSource executing in thread:" << QThread::currentThread();
+            qDebug() << "[Connect] Executing in worker thread:" << QThread::currentThread();
 
             if (m_connected)
             {
-                qDebug() << "Already connected to X-ray source";
+                qDebug() << "[Connect] Already connected to X-ray source";
                 result = true;
                 return;
             }
 
+            qDebug() << "[Connect] Connecting to" << host << ":" << port;
             result = m_tcpClient->connectToHost(host, port);
-            qDebug() << "Connect result:" << result;
+            qDebug() << "[Connect] Result:" << (result ? "Success" : "Failed");
         },
         Qt::BlockingQueuedConnection);
 
@@ -136,63 +158,67 @@ bool IXS120BP120P366::connectToSource(const QString& host, quint16 port)
 
 void IXS120BP120P366::disconnectFromSource()
 {
-    qDebug() << "disconnectFromSource called from thread:" << QThread::currentThread();
+    qDebug() << "[Disconnect] Request from thread:" << QThread::currentThread();
 
-    // 在工作线程中执行断开连接
     QMetaObject::invokeMethod(
         this,
         [this]()
         {
-            qDebug() << "disconnectFromSource executing in thread:" << QThread::currentThread();
+            qDebug() << "[Disconnect] Executing in worker thread:" << QThread::currentThread();
 
             if (m_tcpClient)
             {
                 m_tcpClient->disconnectFromHost();
             }
             m_connected = false;
+
+            qDebug() << "[Disconnect] Disconnected from X-ray source";
         },
         Qt::BlockingQueuedConnection);
 }
 
 bool IXS120BP120P366::isConnected() const
 {
-    return m_connected && m_tcpClient->isConnected();
+    return m_connected && m_tcpClient && m_tcpClient->isConnected();
 }
 
 bool IXS120BP120P366::setVoltage(int kV)
 {
-    // 将kV转换为xxxx的字符串形式，xxx.x = 030.0 – 120.0 KV
-    if (kV < 30 || kV > 120)
+    // Validate voltage range: 30.0 - 120.0 kV
+    if (kV < MIN_VOLTAGE || kV > MAX_VOLTAGE)
     {
-        qDebug() << "Invalid voltage value:" << kV;
+        qDebug() << "[SetVoltage] Invalid voltage:" << kV << "kV (valid range:" << MIN_VOLTAGE << "-" << MAX_VOLTAGE
+                 << "kV)";
         return false;
     }
 
-    // 在工作线程中执行命令
     bool result = false;
     QMetaObject::invokeMethod(
         this,
         [this, kV, &result]()
         {
-            char voltageStr[5];  // "xxxx"
+            // Format: "xxxx" representing xxx.x kV (e.g., "0300" = 30.0 kV)
+            char voltageStr[5];
             snprintf(voltageStr, sizeof(voltageStr), "%03d%1d", kV, 0);
             std::string paramStr(voltageStr);
 
-            // 构建完整命令: STX + VP + param + CR
+            // Build command: STX + VP + parameter + CR
             std::string cmd = CMD_PREFIX + CMD_SET_VOLTAGE + paramStr + CMD_SUFFIX;
             QByteArray cmdData = QByteArray::fromStdString(cmd);
-            qDebug() << "Voltage command:" << cmdData.toHex(' ') << "ASCII:" << cmdData;
+
+            qDebug() << "[SetVoltage] Setting to" << kV << "kV - Command:" << cmdData.toHex(' ');
+
             QByteArray response =
-                m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), 3000);
+                m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), DEFAULT_TIMEOUT);
 
             if (!response.isEmpty())
             {
-                qDebug() << "Voltage set successfully to" << kV << "kV, response:" << response;
+                qDebug() << "[SetVoltage] Success - Voltage set to" << kV << "kV";
                 result = true;
             }
             else
             {
-                qDebug() << "Failed to set voltage to" << kV << "kV";
+                qDebug() << "[SetVoltage] Failed - No response from X-ray source";
                 result = false;
             }
         },
@@ -203,38 +229,41 @@ bool IXS120BP120P366::setVoltage(int kV)
 
 bool IXS120BP120P366::setCurrent(int uA)
 {
-    // 将uA转换为xxxxx的字符串形式，x.xxxx = 0.2000 – 1.0000 mA
-    if (uA < 200 || uA > 1000)
+    // Validate current range: 0.2000 - 1.0000 mA (200 - 1000 uA)
+    if (uA < MIN_CURRENT || uA > MAX_CURRENT)
     {
-        qDebug() << "Invalid current value:" << uA;
+        qDebug() << "[SetCurrent] Invalid current:" << uA << "uA (valid range:" << MIN_CURRENT << "-" << MAX_CURRENT
+                 << "uA)";
         return false;
     }
 
-    // 在工作线程中执行命令
     bool result = false;
     QMetaObject::invokeMethod(
         this,
         [this, uA, &result]()
         {
-            char str[6];  // "xxxxx"
-            snprintf(str, sizeof(str), "%05d", uA * 10);
-            std::string paramStr(str);
+            // Format: "xxxxx" representing x.xxxx mA (e.g., "02000" = 0.2000 mA = 200 uA)
+            char currentStr[6];
+            snprintf(currentStr, sizeof(currentStr), "%05d", uA * 10);
+            std::string paramStr(currentStr);
 
-            // 构建完整命令: STX + CP + param + CR
+            // Build command: STX + CP + parameter + CR
             std::string cmd = CMD_PREFIX + CMD_SET_CURRENT + paramStr + CMD_SUFFIX;
             QByteArray cmdData = QByteArray::fromStdString(cmd);
-            qDebug() << "Current command:" << cmdData.toHex(' ') << "ASCII:" << cmdData;
+
+            qDebug() << "[SetCurrent] Setting to" << uA << "uA - Command:" << cmdData.toHex(' ');
+
             QByteArray response =
-                m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), 3000);
+                m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), DEFAULT_TIMEOUT);
 
             if (!response.isEmpty())
             {
-                qDebug() << "Current set successfully to" << uA << "uA, response:" << response;
+                qDebug() << "[SetCurrent] Success - Current set to" << uA << "uA";
                 result = true;
             }
             else
             {
-                qDebug() << "Failed to set current to" << uA << "uA";
+                qDebug() << "[SetCurrent] Failed - No response from X-ray source";
                 result = false;
             }
         },
@@ -245,51 +274,60 @@ bool IXS120BP120P366::setCurrent(int uA)
 
 bool IXS120BP120P366::startXRay()
 {
+    qDebug() << "[StartXRay] Enabling X-ray emission";
+
     bool result = false;
     QMetaObject::invokeMethod(
         this,
         [this, &result]()
         {
-            // 构建完整命令: STX + ENBL1 + CR
+            // Build command: STX + ENBL1 + CR
             std::string cmd = CMD_PREFIX + CMD_STARTXRAY + CMD_SUFFIX;
             QByteArray cmdData = QByteArray::fromStdString(cmd);
+
             QByteArray response =
-                m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), 3000);
+                m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), DEFAULT_TIMEOUT);
+
             if (!response.isEmpty())
             {
-                qDebug() << "X-ray started successfully, response:" << response.toHex();
+                qDebug() << "[StartXRay] Success - X-ray emission enabled";
                 result = true;
             }
             else
             {
-                qDebug() << "Failed to start X-ray";
+                qDebug() << "[StartXRay] Failed - No response from X-ray source";
                 result = false;
             }
         },
         Qt::BlockingQueuedConnection);
+
     return result;
 }
 
 bool IXS120BP120P366::stopXRay()
 {
+    qDebug() << "[StopXRay] Disabling X-ray emission";
+
     bool result = false;
     QMetaObject::invokeMethod(
         this,
         [this, &result]()
         {
-            // 构建完整命令: STX + ENBL0 + CR
+            // Build command: STX + ENBL0 + CR
             std::string cmd = CMD_PREFIX + CMD_STOPXRAY + CMD_SUFFIX;
             QByteArray cmdData = QByteArray::fromStdString(cmd);
+
             QByteArray response =
-                m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), 3000);
+                m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), DEFAULT_TIMEOUT);
+
             if (!response.isEmpty())
             {
-                qDebug() << "X-ray stopped successfully, response:" << response.toHex();
+                qDebug() << "[StopXRay] Success - X-ray emission disabled";
                 result = true;
             }
             else
             {
-                qDebug() << "Failed to stop X-ray";
+                qDebug() << "[StopXRay] Failed - No response from X-ray source";
                 result = false;
             }
         },
@@ -300,22 +338,26 @@ bool IXS120BP120P366::stopXRay()
 
 void IXS120BP120P366::clearErr()
 {
+    qDebug() << "[ClearError] Clearing X-ray source error state";
+
     QMetaObject::invokeMethod(
         this,
         [this]()
         {
-            // 构建完整命令: STX + CLR + CR
+            // Build command: STX + CLR + CR
             std::string cmd = CMD_PREFIX + CMD_CLR + CMD_SUFFIX;
             QByteArray cmdData = QByteArray::fromStdString(cmd);
+
             QByteArray response =
-                m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), 3000);
+                m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), DEFAULT_TIMEOUT);
+
             if (!response.isEmpty())
             {
-                qDebug() << "X-ray stopped successfully, response:" << response.toHex();
+                qDebug() << "[ClearError] Success - Error state cleared";
             }
             else
             {
-                qDebug() << "Failed to stop X-ray";
+                qDebug() << "[ClearError] Failed - No response from X-ray source";
             }
         },
         Qt::BlockingQueuedConnection);
@@ -323,31 +365,44 @@ void IXS120BP120P366::clearErr()
 
 int IXS120BP120P366::getPTST()
 {
+    qDebug() << "[GetPTST] Querying pre-warmup time";
+
     QByteArray response;
     QMetaObject::invokeMethod(
         this,
         [this, &response]()
         {
-            // 构建完整命令: STX + CLR + CR
+            // Build command: STX + PTST + CR
             std::string cmd = CMD_PREFIX + CMD_PTST + CMD_SUFFIX;
             QByteArray cmdData = QByteArray::fromStdString(cmd);
-            response = m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), 3000);
+
+            response =
+                m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), DEFAULT_TIMEOUT);
+
             if (!response.isEmpty())
             {
-                qDebug() << "successfully, response:" << response.toHex();
+                qDebug() << "[GetPTST] Received response:" << response.toHex(' ');
             }
             else
             {
-                qDebug() << "Failed";
+                qDebug() << "[GetPTST] Failed - No response from X-ray source";
             }
         },
         Qt::BlockingQueuedConnection);
 
-    qDebug() << response;
-    // 移除 STX 和 CR
+    if (response.size() < 3)
+    {
+        qDebug() << "[GetPTST] Invalid response format";
+        return 0;
+    }
+
+    // Remove STX and CR
     QByteArray actualData = response.mid(1, response.size() - 2);
     QString responseStr = QString::fromUtf8(actualData);
-    return responseStr.toInt();
+    int ptst = responseStr.toInt();
+
+    qDebug() << "[GetPTST] Pre-warmup time:" << ptst << "seconds";
+    return ptst;
 }
 
 QByteArray IXS120BP120P366::sendDataSyncWithEndMarker(const QByteArray& data, const QByteArray& endMarker, int timeout)
@@ -357,35 +412,40 @@ QByteArray IXS120BP120P366::sendDataSyncWithEndMarker(const QByteArray& data, co
         this,
         [this, data, endMarker, timeout, &response]()
         {
-            // 直接发送数据（调用者应该已经构建了完整命令）
+            // Forward data to TCP client (caller should have built complete command)
             response = m_tcpClient->sendDataSyncWithEndMarker(data, endMarker, timeout);
+
             if (!response.isEmpty())
             {
-                qDebug() << "sendDataSyncWithEndMarker response:" << response.toHex(' ');
+                qDebug() << "[SendData] Received response:" << response.toHex(' ');
             }
             else
             {
-                qDebug() << "sendDataSyncWithEndMarker failed: no response";
+                qDebug() << "[SendData] No response received";
             }
         },
-        Qt::BlockingQueuedConnection);  // 使用阻塞调用确保同步执行
+        Qt::BlockingQueuedConnection);
 
     return response;
 }
 
+// ============================================================================
+// Event Handlers
+// ============================================================================
+
 void IXS120BP120P366::onTcpConnected()
 {
-    qDebug() << "TCP connected to X-ray source" << "Thread:" << QThread::currentThread();
+    qDebug() << "[Event] TCP connected to X-ray source - Thread:" << QThread::currentThread();
     m_connected = true;
     emit connected();
 
-    // 在工作线程中启动状态查询
+    // Start status query in worker thread
     startStatusQuery(500);
 }
 
 void IXS120BP120P366::onTcpDisconnected()
 {
-    qDebug() << "TCP disconnected from X-ray source";
+    qDebug() << "[Event] TCP disconnected from X-ray source";
     m_connected = false;
 
     // Stop status query when disconnected
@@ -396,41 +456,45 @@ void IXS120BP120P366::onTcpDisconnected()
 
 void IXS120BP120P366::onTcpError(const QString& errorMsg)
 {
-    qDebug() << "TCP error:" << errorMsg;
+    qDebug() << "[Event] TCP error:" << errorMsg;
     emit error(errorMsg);
 }
 
+// ============================================================================
+// Status Query Control
+// ============================================================================
+
 void IXS120BP120P366::startStatusQuery(int intervalMs)
 {
-    qDebug() << "Starting status query with interval:" << intervalMs << "ms";
+    qDebug() << "[StatusQuery] Starting with interval:" << intervalMs << "ms";
 
     if (!isConnected())
     {
-        qDebug() << "Cannot start status query: not connected";
+        qDebug() << "[StatusQuery] Cannot start: not connected";
         return;
     }
 
     QMutexLocker locker(&m_statusMutex);
     m_statusQueryEnabled = true;
 
-    // Start timer in the worker thread using QMetaObject::invokeMethod
+    // Start timer in worker thread
     QMetaObject::invokeMethod(
         m_statusQueryTimer, [this, intervalMs]() { m_statusQueryTimer->start(intervalMs); }, Qt::QueuedConnection);
 
-    qDebug() << "Status query started";
+    qDebug() << "[StatusQuery] Started successfully";
 }
 
 void IXS120BP120P366::stopStatusQuery()
 {
-    qDebug() << "Stopping status query";
+    qDebug() << "[StatusQuery] Stopping";
 
     QMutexLocker locker(&m_statusMutex);
     m_statusQueryEnabled = false;
 
-    // Stop timer in the worker thread
+    // Stop timer in worker thread
     QMetaObject::invokeMethod(m_statusQueryTimer, [this]() { m_statusQueryTimer->stop(); }, Qt::QueuedConnection);
 
-    qDebug() << "Status query stopped";
+    qDebug() << "[StatusQuery] Stopped";
 }
 
 bool IXS120BP120P366::isStatusQueryRunning() const
@@ -452,67 +516,76 @@ void IXS120BP120P366::onQueryStatus()
         return;
     }
 
-    // 构建完整命令: STX + MON + CR
+    // Query MON (Monitor status)
     std::string cmd = CMD_PREFIX + CMD_MON + CMD_SUFFIX;
     QByteArray cmdData = QByteArray::fromStdString(cmd);
-    QByteArray response = m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), 1000);
+    QByteArray response =
+        m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), STATUS_QUERY_TIMEOUT);
 
     if (!response.isEmpty())
     {
-        // 验证响应格式并提取数据
+        // Validate response format (STX...CR)
         if (response.size() >= 2 && response.at(0) == 0x02 && response.at(response.size() - 1) == 0x0D)
         {
-            // 移除 STX 和 CR
+            // Remove STX and CR
             QByteArray actualData = response.mid(1, response.size() - 2);
             QString responseStr = QString::fromUtf8(actualData);
             parseMONResponse(responseStr);
         }
         else
         {
-            qDebug() << "Invalid status response format:" << response.toHex();
+            qDebug() << "[StatusQuery] Invalid MON response format:" << response.toHex();
         }
     }
 
+    // Query FLT (Fault status)
     cmd = CMD_PREFIX + CMD_FLT + CMD_SUFFIX;
     cmdData = QByteArray::fromStdString(cmd);
-    response = m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), 1000);
+    response =
+        m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), STATUS_QUERY_TIMEOUT);
 
     if (!response.isEmpty())
     {
-        // 处理 FLT 响应（类似处理 MON 响应）
+        // Validate response format (STX...CR)
         if (response.size() >= 2 && response.at(0) == 0x02 && response.at(response.size() - 1) == 0x0D)
         {
-            // 移除 STX 和 CR
+            // Remove STX and CR
             QByteArray actualData = response.mid(1, response.size() - 2);
             QString responseStr = QString::fromUtf8(actualData);
             parseFTLResponse(responseStr);
         }
         else
         {
-            qDebug() << "Invalid status response format:" << response.toHex();
+            qDebug() << "[StatusQuery] Invalid FLT response format:" << response.toHex();
         }
     }
 
     emit statusUpdated(m_currentStatus);
 }
 
+// ============================================================================
+// Response Parsing Methods
+// ============================================================================
+
 void IXS120BP120P366::parseMONResponse(const QString& response)
 {
-    // response的格式：vvvv<SP>ccccc<SP>tttt<SP>ffff <SP> bbbb
-    // vvv.v = 000.0 – [max] kV
-    // c.cccc = 0.0000 – [max] mA
-    // ttt.t = 000.0 – [070.0] °C
-    // f.fff = 0.000 – 9.999 A
-    // bb.bb = 00.00 – [29.99] VDC
+    // Response format: vvvv<SP>ccccc<SP>tttt<SP>ffff<SP>bbbb
+    // vvv.v = 000.0 – [max] kV (voltage)
+    // c.cccc = 0.0000 – [max] mA (current)
+    // ttt.t = 000.0 – 070.0 °C (temperature)
+    // f.fff = 0.000 – 9.999 A (filament current)
+    // bb.bb = 00.00 – 29.99 VDC (voltage DC)
+
     QStringList parts = response.split(' ', Qt::SkipEmptyParts);
     if (parts.size() < 5)
     {
-        qDebug() << "Incomplete MON response:" << response;
+        qDebug() << "[ParseMON] Incomplete response:" << response;
         return;
     }
 
     bool ok;
-    // 解析电压 (kV) - vvvv 格式，除以10得到 vvv.v
+
+    // Parse voltage (kV) - format: vvvv, divide by 10 to get vvv.v
     int voltageRaw = parts[0].toInt(&ok);
     if (ok)
     {
@@ -520,11 +593,11 @@ void IXS120BP120P366::parseMONResponse(const QString& response)
     }
     else
     {
-        qDebug() << "Failed to parse voltage:" << parts[0];
+        qDebug() << "[ParseMON] Failed to parse voltage:" << parts[0];
         m_currentStatus.voltage = 0.0;
     }
 
-    // 解析电流 (mA) - ccccc 格式，除以10000得到 c.cccc
+    // Parse current (mA) - format: ccccc, divide by 10000 to get c.cccc
     int currentRaw = parts[1].toInt(&ok);
     if (ok)
     {
@@ -532,25 +605,25 @@ void IXS120BP120P366::parseMONResponse(const QString& response)
     }
     else
     {
-        qDebug() << "Failed to parse current:" << parts[1];
+        qDebug() << "[ParseMON] Failed to parse current:" << parts[1];
         m_currentStatus.current = 0.0;
     }
 
-    // 解析温度 (°C) - tttt 格式，除以10得到 ttt.t (仅用于日志)
+    // Parse temperature (°C) - format: tttt, divide by 10 to get ttt.t
     int tempRaw = parts[2].toInt(&ok);
     if (ok)
     {
         m_currentStatus.temperature = tempRaw / 10.0;
     }
 
-    // 解析灯丝电流 (A) - ffff 格式，除以1000得到 f.fff (仅用于日志)
+    // Parse filament current (A) - format: ffff, divide by 1000 to get f.fff
     int filamentRaw = parts[3].toInt(&ok);
     if (ok)
     {
         m_currentStatus.filamentCurrent = filamentRaw / 1000.0;
     }
 
-    // 解析电压 (VDC) - bbbb 格式，除以100得到 bb.bb (仅用于日志)
+    // Parse bias voltage (VDC) - format: bbbb, divide by 100 to get bb.bb
     double vdc = 0.0;
     int vdcRaw = parts[4].toInt(&ok);
     if (ok)
@@ -558,27 +631,21 @@ void IXS120BP120P366::parseMONResponse(const QString& response)
         vdc = vdcRaw / 100.0;
     }
 
-    // 判断X射线是否开启（根据电流是否大于0）
-    m_currentStatus.xrayOn = (m_currentStatus.current > 0.001);  // 使用小阈值避免浮点误差
-    // qDebug() << "Status updated - X-ray:" << m_currentStatus.xrayOn << "Voltage:" << m_currentStatus.voltage << "kV"
-    //          << "Current:" << m_currentStatus.current << "uA"
-    //          << "Temperature:" << m_currentStatus.temperature << "°C"
-    //          << "Filament:" << m_currentStatus.filamentCurrent << "u"
-    //          << "VDC:" << vdc << "V"
-    //          << "Fault:" << m_currentStatus.faultStatus << "Warmup:" << m_currentStatus.warmupComplete
-    //          << "Interlock:" << m_currentStatus.interlock;
+    // Determine if X-ray is on (based on current > 0)
+    m_currentStatus.xrayOn = (m_currentStatus.current > 0.001);  // Use threshold to avoid floating-point errors
 }
 
 void IXS120BP120P366::parseFTLResponse(const QString& response)
 {
-    // FLT 响应格式: x<SP>x<SP>x<SP>x<SP>x<SP>x<SP>x<SP>x<SP>x<SP>x<SP>x
-    // 11个字段，每个字段表示不同的故障/状态位
-    // 0 = 正常, 1 = 故障/激活
+    // FLT response format: x<SP>x<SP>x<SP>x<SP>x<SP>x<SP>x<SP>x<SP>x<SP>x<SP>x
+    // 11 fields, each representing different fault/status bits
+    // 0 = Normal, 1 = Fault/Active
+    // Note: Specific bit mappings should be verified against device documentation
 
     QStringList parts = response.split(' ', Qt::SkipEmptyParts);
     if (parts.size() < 11)
     {
-        qDebug() << "Incomplete FLT response:" << response;
+        qDebug() << "[ParseFLT] Incomplete response:" << response;
         return;
     }
 
@@ -586,13 +653,13 @@ void IXS120BP120P366::parseFTLResponse(const QString& response)
     QVector<int> faultBits;
     bool anyFault = false;
 
-    // 解析所有11个故障位
+    // Parse all 11 fault bits
     for (int i = 0; i < 11; ++i)
     {
         int bit = parts[i].toInt(&ok);
         if (!ok)
         {
-            qDebug() << "Failed to parse fault bit" << i << ":" << parts[i];
+            qDebug() << "[ParseFLT] Failed to parse bit" << i << ":" << parts[i];
             bit = 0;
         }
         faultBits.append(bit);
@@ -602,22 +669,25 @@ void IXS120BP120P366::parseFTLResponse(const QString& response)
         }
     }
 
-    // 更新故障状态和相关字段
+    // Update fault status
     m_currentStatus.faultStatus = anyFault;
 
-    // 根据具体的故障位更新其他状态字段
-    m_currentStatus.interlock = faultBits[8];
+    // Update specific status fields based on fault bits
+    // Note: Bit 8 is assumed to be interlock status (verify with device manual)
+    if (faultBits.size() > 8)
+    {
+        m_currentStatus.interlock = faultBits[8];
+    }
 
-    // 输出详细的故障信息用于调试
+    // Log detailed fault information for debugging
     if (anyFault)
     {
-        QString faultInfo = "Fault detected - Bits:";
+        QString faultInfo = "[ParseFLT] Faults detected -";
         for (int i = 0; i < faultBits.size(); ++i)
         {
             if (faultBits[i] != 0)
             {
-                faultInfo += QString(" [%1]=%2").arg(i).arg(faultBits[i]);
-                emit error(QString("Fault bit %1 active (value=%2)").arg(i).arg(faultBits[i]));
+                faultInfo += QString(" Bit[%1]=%2").arg(i).arg(faultBits[i]);
             }
         }
         qDebug() << faultInfo;
@@ -626,5 +696,6 @@ void IXS120BP120P366::parseFTLResponse(const QString& response)
 
 int IXS120BP120P366::parsePTSTResponse(const QString& response)
 {
+    // This method is currently not used but kept for future implementation
     return 0;
 }

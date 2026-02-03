@@ -11,35 +11,101 @@
 CreateCorrectTemplateDlg::CreateCorrectTemplateDlg(QWidget* parent) : ElaDialog(parent)
 {
     ui.setupUi(this);
-    this->setWindowTitle("探测器校正");
-    this->setWindowButtonFlag(ElaAppBarType::StayTopButtonHint, false);
-    this->setWindowButtonFlag(ElaAppBarType::MinimizeButtonHint, false);
-    this->setWindowButtonFlag(ElaAppBarType::MaximizeButtonHint, false);
-    this->resize(800, 400);
-    this->moveToCenter();
 
-    auto scene = new QGraphicsScene(ui.graphicsView_GainImageView);
+    // Window setup
+    initializeWindow();
+
+    // Graphics views setup
+    initializeGraphicsViews();
+
+    // UI controls setup
+    initializeControls();
+
+    // Signal connections
+    connectSignals();
+
+    // Initialize detector mode
+    initializeDetectorMode();
+
+    // Set initial page
+    ui.stackedWidget->setCurrentIndex(0);
+}
+
+CreateCorrectTemplateDlg::~CreateCorrectTemplateDlg() {}
+
+// ============================================================================
+// Initialization Helper Methods
+// ============================================================================
+
+void CreateCorrectTemplateDlg::initializeWindow()
+{
+    setWindowTitle("探测器校正");
+    setWindowButtonFlag(ElaAppBarType::StayTopButtonHint, false);
+    setWindowButtonFlag(ElaAppBarType::MinimizeButtonHint, false);
+    setWindowButtonFlag(ElaAppBarType::MaximizeButtonHint, false);
+    resize(800, 400);
+    moveToCenter();
+}
+
+void CreateCorrectTemplateDlg::initializeGraphicsViews()
+{
+    // Gain image view
+    auto gainScene = new QGraphicsScene(ui.graphicsView_GainImageView);
     gainPixmapItem = new QGraphicsPixmapItem();
-    scene->addItem(gainPixmapItem);
-    ui.graphicsView_GainImageView->setScene(scene);
+    gainScene->addItem(gainPixmapItem);
+    ui.graphicsView_GainImageView->setScene(gainScene);
 
-    scene = new QGraphicsScene(ui.graphicsView_DefectImageView);
+    // Defect image view
+    auto defectScene = new QGraphicsScene(ui.graphicsView_DefectImageView);
     defectPixmapItem = new QGraphicsPixmapItem();
-    scene->addItem(defectPixmapItem);
-    ui.graphicsView_DefectImageView->setScene(scene);
+    defectScene->addItem(defectPixmapItem);
+    ui.graphicsView_DefectImageView->setScene(defectScene);
+}
 
-    ui.spinBox_GainVoltage->setMinimum(0);
-    ui.spinBox_GainVoltage->setMaximum(160);
-    ui.spinBox_GainCurrent->setMinimum(0);
-    ui.spinBox_GainCurrent->setMaximum(INT_MAX);
+void CreateCorrectTemplateDlg::initializeControls()
+{
+    // Voltage and current ranges
+    constexpr int MIN_VOLTAGE = 30;
+    constexpr int MAX_VOLTAGE = 120;
 
-    ui.spinBox_DefectVoltage->setMinimum(0);
-    ui.spinBox_DefectVoltage->setMaximum(160);
-    ui.spinBox_DefectCurrent->setMinimum(0);
-    ui.spinBox_DefectCurrent->setMaximum(INT_MAX);
+    // uA
+    constexpr int MIN_CURRENT = 200;
+    constexpr int MAX_CURRENT = 1000;
 
+    // Gain controls
+    ui.spinBox_GainVoltage->setRange(MIN_VOLTAGE, MAX_VOLTAGE);
+    ui.spinBox_GainCurrent->setRange(MIN_CURRENT, MAX_CURRENT);
+
+    // Defect controls
+    ui.spinBox_DefectVoltage->setRange(0, MAX_VOLTAGE);
+    ui.spinBox_DefectCurrent->setRange(MIN_CURRENT, MAX_CURRENT);
+
+    // Progress displays (read-only)
     ui.lineEdit_OffsetProgress->setEnabled(false);
+    ui.lineEdit_DefectGroup->setEnabled(false);
+    ui.lineEdit_DefectExceptedGray->setEnabled(false);
+    ui.lineEdit_DefectCurrentGray->setEnabled(false);
+    ui.lineEdit_DefectProgress->setEnabled(false);
 
+    // Buttons initial state
+    ui.pushButton_OffsetGenerationStart->setEnabled(true);
+    ui.pushButton_OffsetGenerationAbort->setEnabled(false);
+    ui.pushButton_DefectAbort->setEnabled(false);
+
+    // Disable defect voltage/current spinboxes (auto-adjusted)
+    ui.spinBox_DefectVoltage->setEnabled(false);
+    ui.spinBox_DefectCurrent->setEnabled(false);
+
+    // Stage label
+    ui.label_Stage->setEnabled(false);
+
+    // Detector mode combo box
+    ui.comboBox_mode->addItems({"1x1", "2x2", "3x3", "4x4"});
+}
+
+void CreateCorrectTemplateDlg::connectSignals()
+{
+    // Navigation buttons
     connect(ui.pushButton_ToGain, &QPushButton::clicked, this,
             [this]()
             {
@@ -54,10 +120,13 @@ CreateCorrectTemplateDlg::CreateCorrectTemplateDlg(QWidget* parent) : ElaDialog(
     connect(ui.pushButton_ToOffset, &QPushButton::clicked, this, [this]() { ui.stackedWidget->setCurrentIndex(0); });
 
     connect(ui.pushButton_ToDefect, &QPushButton::clicked, this, [this]() { ui.stackedWidget->setCurrentIndex(2); });
+
     connect(ui.pushButton_ReturnToGain, &QPushButton::clicked, this,
             [this]() { ui.stackedWidget->setCurrentIndex(1); });
-    connect(ui.pushButton_Done, &QPushButton::clicked, this, [this]() { this->accept(); });
 
+    connect(ui.pushButton_Done, &QPushButton::clicked, this, [this]() { accept(); });
+
+    // Calibration action buttons
     connect(ui.pushButton_OffsetGenerationStart, &QPushButton::clicked, this, &CreateCorrectTemplateDlg::Offset);
     connect(ui.pushButton_OffsetGenerationAbort, &QPushButton::clicked, this, &CreateCorrectTemplateDlg::Abort);
 
@@ -67,61 +136,94 @@ CreateCorrectTemplateDlg::CreateCorrectTemplateDlg(QWidget* parent) : ElaDialog(
     connect(ui.pushButton_Defect, &QPushButton::clicked, this, &CreateCorrectTemplateDlg::Defect);
     connect(ui.pushButton_DefectAbort, &QPushButton::clicked, this, &CreateCorrectTemplateDlg::Abort);
 
+    // Tips display
     connect(this, &CreateCorrectTemplateDlg::signalTipsChanged, this, &CreateCorrectTemplateDlg::ShowTips,
-            Qt::ConnectionType::UniqueConnection);
+            Qt::UniqueConnection);
 
-    ui.pushButton_OffsetGenerationStart->setEnabled(true);
-    ui.pushButton_OffsetGenerationAbort->setEnabled(false);
-
-    ui.pushButton_DefectAbort->setEnabled(false);
-    ui.lineEdit_DefectGroup->setEnabled(false);
-    ui.lineEdit_DefectExceptedGray->setEnabled(false);
-    ui.lineEdit_DefectCurrentGray->setEnabled(false);
-    ui.spinBox_DefectVoltage->setEnabled(false);
-    ui.spinBox_DefectCurrent->setEnabled(false);
-    ui.lineEdit_DefectProgress->setEnabled(false);
-
-    ui.label_Stage->setEnabled(false);
+    // Stage label update
     connect(ui.stackedWidget, &QStackedWidget::currentChanged, this,
             [this](int idx)
             {
-                if (idx == 0)
+                const QStringList stages = {"当前流程：暗场校正", "当前流程：亮场校正", "当前流程：缺陷校正"};
+                if (idx >= 0 && idx < stages.size())
                 {
-                    ui.label_Stage->setText("当前流程：暗场校正");
-                }
-                else if (idx == 1)
-                {
-                    ui.label_Stage->setText("当前流程：亮场校正");
-                }
-                else if (idx == 2)
-                {
-                    ui.label_Stage->setText("当前流程：缺陷校正");
+                    ui.label_Stage->setText(stages[idx]);
                 }
             });
-    ui.stackedWidget->setCurrentIndex(0);
 
-    ui.comboBox_mode->addItem("1x1");
-    ui.comboBox_mode->addItem("2x2");
-    ui.comboBox_mode->addItem("3x3");
-    ui.comboBox_mode->addItem("4x4");
-
-    // 先获取一次探测器当前的工作模式
-    std::string mode;
-    DET.GetMode(mode);
-    if (mode == "Mode5")
-        ui.comboBox_mode->setCurrentText("1x1");
-    else if (mode == "Mode6")
-        ui.comboBox_mode->setCurrentText("2x2");
-    else if (mode == "Mode7")
-        ui.comboBox_mode->setCurrentText("3x3");
-    else if (mode == "Mode8")
-        ui.comboBox_mode->setCurrentText("4x4");
-
+    // Detector mode change
     connect(ui.comboBox_mode, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             &CreateCorrectTemplateDlg::ModifyMode);
 }
 
-CreateCorrectTemplateDlg::~CreateCorrectTemplateDlg() {}
+void CreateCorrectTemplateDlg::initializeDetectorMode()
+{
+    // Get current detector mode
+    std::string mode;
+    DET.GetMode(mode);
+
+    // Map mode string to combo box index
+    const QMap<QString, QString> modeMap = {{"Mode5", "1x1"}, {"Mode6", "2x2"}, {"Mode7", "3x3"}, {"Mode8", "4x4"}};
+
+    QString currentMode = modeMap.value(QString::fromStdString(mode));
+    if (!currentMode.isEmpty())
+    {
+        ui.comboBox_mode->setCurrentText(currentMode);
+    }
+}
+
+// ============================================================================
+// X-ray Source Control Helpers
+// ============================================================================
+
+void CreateCorrectTemplateDlg::startXRaySource(int voltage, int current)
+{
+    qDebug() << "[X-Ray] Starting X-ray source - Voltage:" << voltage << "kV, Current:" << current << "uA";
+
+    IXS120BP120P366::Instance().setVoltage(voltage);
+    IXS120BP120P366::Instance().setCurrent(current);
+    IXS120BP120P366::Instance().startXRay();
+
+    int ptst = IXS120BP120P366::Instance().getPTST();
+    qDebug() << "[X-Ray] PTST (warmup time):" << ptst << "seconds";
+
+    QThread::msleep(ptst * 1000 + 3000);
+    emit signalTipsChanged("射线源已开启");
+}
+
+void CreateCorrectTemplateDlg::stopXRaySource()
+{
+    qDebug() << "[X-Ray] Stopping X-ray source";
+    IXS120BP120P366::Instance().stopXRay();
+    emit signalTipsChanged("射线源已关闭");
+}
+
+void CreateCorrectTemplateDlg::adjustCurrentUntilTargetGray(int& currentValue, int targetGray, int ptst)
+{
+    constexpr int MAX_CURRENT = 1000;
+    constexpr int CURRENT_STEP = 100;
+    constexpr int ADJUSTMENT_DELAY = 3000;  // milliseconds
+
+    while (nCurrentGray < targetGray)
+    {
+        if (currentValue >= MAX_CURRENT)
+        {
+            qDebug() << "[X-Ray] Maximum current reached:" << MAX_CURRENT << "uA";
+            break;
+        }
+
+        currentValue += CURRENT_STEP;
+        qDebug() << "[Adjustment] Target gray:" << targetGray << "Current gray:" << nCurrentGray
+                 << "New current:" << currentValue << "uA";
+
+        IXS120BP120P366::Instance().setCurrent(currentValue);
+        QThread::msleep(ptst * 1000 + ADJUSTMENT_DELAY);
+    }
+}
+
+// ============================================================================
+// Calibration Workflow Methods
+// ============================================================================
 
 void CreateCorrectTemplateDlg::Abort()
 {
@@ -130,20 +232,16 @@ void CreateCorrectTemplateDlg::Abort()
 
 void CreateCorrectTemplateDlg::Offset()
 {
+    qDebug() << "[Offset] Starting dark field calibration";
+
     ui.pushButton_OffsetGenerationStart->setEnabled(false);
     ui.pushButton_OffsetGenerationAbort->setEnabled(true);
-
     ui.lineEdit_OffsetProgress->clear();
 
     connect(&DET, &NDT1717MA::signalOffsetImageSelected, this, &CreateCorrectTemplateDlg::onOffsetImageSelected,
-            Qt::ConnectionType::UniqueConnection);
+            Qt::UniqueConnection);
 
-    auto future = QtConcurrent::run(
-        [this]()
-        {
-            bool bRet = DET.OffsetGeneration();
-            return bRet;
-        });
+    auto future = QtConcurrent::run([this]() { return DET.OffsetGeneration(); });
 
     auto* watcher = new QFutureWatcher<bool>(this);
     connect(watcher, &QFutureWatcher<bool>::finished, this,
@@ -151,14 +249,21 @@ void CreateCorrectTemplateDlg::Offset()
             {
                 ui.pushButton_OffsetGenerationStart->setEnabled(true);
                 ui.pushButton_OffsetGenerationAbort->setEnabled(false);
-                bool bRet = watcher->future().result();
-                qDebug() << "暗场校正流程结束，执行结果：" << bRet;
-                if (bRet)
+
+                bool result = watcher->future().result();
+                qDebug() << "[Offset] Calibration completed. Result:" << result;
+
+                if (result)
                 {
-                    emit this->signalTipsChanged("暗场校正完成，请进行下一步校正");
+                    emit signalTipsChanged("暗场校正完成，请进行下一步校正");
                 }
-                disconnect(&DET, &NDT1717MA::signalAcqImageReceived, this,
-                           &CreateCorrectTemplateDlg::onGainAcqImageReceived);
+                else
+                {
+                    emit signalTipsChanged("暗场校正失败");
+                }
+
+                disconnect(&DET, &NDT1717MA::signalOffsetImageSelected, this,
+                           &CreateCorrectTemplateDlg::onOffsetImageSelected);
                 watcher->deleteLater();
             });
     watcher->setFuture(future);
@@ -166,133 +271,143 @@ void CreateCorrectTemplateDlg::Offset()
 
 void CreateCorrectTemplateDlg::Gain()
 {
-    // if (!DET.OffsetValid())
-    //{
-    //     ShowTips("请先进行暗场校正");
-    //     return;
-    // }
+    qDebug() << "[Gain] Starting bright field calibration";
 
+    // Setup signal connections
     connect(this, &CreateCorrectTemplateDlg::signalGainVoltageCurrentChanged, this,
-            &CreateCorrectTemplateDlg::ModifyGainVoltageCurrent, Qt::ConnectionType::UniqueConnection);
-
+            &CreateCorrectTemplateDlg::ModifyGainVoltageCurrent, Qt::UniqueConnection);
     connect(&DET, &NDT1717MA::signalAcqImageReceived, this, &CreateCorrectTemplateDlg::onGainAcqImageReceived,
-            Qt::ConnectionType::UniqueConnection);
+            Qt::UniqueConnection);
     connect(&DET, &NDT1717MA::signalGainImageSelected, this, &CreateCorrectTemplateDlg::onGainImageSelected,
-            Qt::ConnectionType::UniqueConnection);
+            Qt::UniqueConnection);
 
+    // Update UI state
     ui.pushButton_Gain->setEnabled(false);
     ui.pushButton_GainAbort->setEnabled(true);
     ui.label_Tips->clear();
 
-    // 移到后台线程执行
+    // Execute calibration in background thread
     auto future = QtConcurrent::run(
         [this]()
         {
             nCurrentGray = 0;
-            emit this->signalTipsChanged("正在执行初始化");
-            bool bRet = DET.GainInit();
-            if (!bRet)
+
+            // Step 1: Initialize
+            qDebug() << "[Gain] Step 1: Initializing";
+            emit signalTipsChanged("正在执行初始化");
+            if (!DET.GainInit())
             {
-                emit this->signalTipsChanged("初始化失败！");
+                emit signalTipsChanged("初始化失败！");
                 return false;
             }
 
-            int nVoltage = DET.nGainVoltage;
-            int nBeginCurrent = DET.nGainBeginCurrent;
-            int nCurrent = nBeginCurrent;
-            emit this->signalTipsChanged("正在等待射线源开启");
-            // 等待射线源已开启
-            IXS120BP120P366::Instance().setVoltage(nVoltage);
-            IXS120BP120P366::Instance().setCurrent(nBeginCurrent);
+            // Step 2: Start X-ray source
+            int voltage = DET.nGainVoltage;
+            int current = DET.nGainBeginCurrent;
+            int ptst = 0;
+
+            qDebug() << "[Gain] Step 2: Starting X-ray source - Voltage:" << voltage << "kV, Current:" << current
+                     << "uA";
+            emit signalTipsChanged("正在等待射线源开启");
+
+            IXS120BP120P366::Instance().setVoltage(voltage);
+            IXS120BP120P366::Instance().setCurrent(current);
             IXS120BP120P366::Instance().startXRay();
-            int ptst = IXS120BP120P366::Instance().getPTST();
-            qDebug() << "ptst: " << ptst;
-            QThread::msleep(ptst * 1000 + 3000);
-            emit this->signalTipsChanged("射线源已开启");
 
-            emit this->signalTipsChanged("正在自动调整电压电流，并采集亮场");
-            bRet = DET.GainStartAcq();
-            if (!bRet)
+            ptst = IXS120BP120P366::Instance().getPTST();
+            qDebug() << "[Gain] X-ray warmup time (PTST):" << ptst << "seconds";
+            QThread::msleep(ptst * 1000 + 3000);
+
+            emit signalTipsChanged("射线源已开启");
+
+            // Step 3: Start acquisition
+            qDebug() << "[Gain] Step 3: Starting acquisition";
+            emit signalTipsChanged("正在自动调整电压电流，并采集亮场");
+
+            if (!DET.GainStartAcq())
             {
-                emit this->signalTipsChanged("开启采集失败！");
+                emit signalTipsChanged("开启采集失败！");
                 return false;
             }
 
-            // 先等待第一组数据到达
+            // Wait for first data
             QThread::msleep(2000);
-            emit this->signalGainVoltageCurrentChanged(nVoltage, nBeginCurrent);
-            // 等待 灰度值达到要求
+            emit signalGainVoltageCurrentChanged(voltage, current);
+
+            // Step 4: Adjust current until target gray value
+            qDebug() << "[Gain] Step 4: Adjusting current to reach target gray value";
             while (nCurrentGray < DET.nGainExpectedGray)
             {
                 if (DET.CurrentTransaction() != 1)
                 {
-                    qDebug() << "Aborted";
-                    break;
+                    qDebug() << "[Gain] Calibration aborted by user";
+                    return false;
                 }
 
-                qDebug() << "nCurrentGray: " << nCurrentGray << " nGainExpectedGray: " << DET.nGainExpectedGray
-                         << " nVoltage: " << nVoltage << " nBeginCurrent: " << nBeginCurrent
-                         << " nCurrent: " << nCurrent;
+                qDebug() << "[Gain] Gray level - Current:" << nCurrentGray << "Target:" << DET.nGainExpectedGray
+                         << "Current:" << current << "uA";
 
-                // 调整电压电流
-                if (nCurrent > 1000)
+                if (current >= 1000)
                 {
-                    qDebug() << "射线源已到达最大功率";
+                    qDebug() << "[Gain] Maximum current reached: 1000 uA";
                     break;
                 }
 
-                nCurrent += 100;
-                emit this->signalGainVoltageCurrentChanged(nVoltage, nCurrent);
-                IXS120BP120P366::Instance().setCurrent(nCurrent);
+                current += 100;
+                emit signalGainVoltageCurrentChanged(voltage, current);
+                IXS120BP120P366::Instance().setCurrent(current);
                 QThread::msleep(ptst * 1000 + 3000);
             }
 
-            if (DET.CurrentTransaction() == 1)
+            // Step 5: Select images
+            if (DET.CurrentTransaction() != 1)
             {
-                bRet = DET.GainSelectAll().get();
-                if (!bRet)
-                {
-                    emit this->signalTipsChanged("获取合适的图像失败！");
-                    return false;
-                }
-                emit this->signalTipsChanged("亮场采集结束");
-
-                emit this->signalTipsChanged("正在执行计算");
-                bRet = DET.GainGeneration();
-                if (!bRet)
-                {
-                    emit this->signalTipsChanged("计算失败！");
-                    return false;
-                }
-            }
-            else
-            {
-                bRet = false;
+                return false;
             }
 
-            return bRet;
+            qDebug() << "[Gain] Step 5: Selecting images";
+            if (!DET.GainSelectAll().get())
+            {
+                emit signalTipsChanged("获取合适的图像失败！");
+                return false;
+            }
+            emit signalTipsChanged("亮场采集结束");
+
+            // Step 6: Generate gain correction
+            qDebug() << "[Gain] Step 6: Generating gain correction";
+            emit signalTipsChanged("正在执行计算");
+            if (!DET.GainGeneration())
+            {
+                emit signalTipsChanged("计算失败！");
+                return false;
+            }
+
+            qDebug() << "[Gain] Calibration completed successfully";
+            return true;
         });
 
-    // 创建 watcher 监听完成事件
+    // Setup watcher for completion
     auto* watcher = new QFutureWatcher<bool>(this);
     connect(watcher, &QFutureWatcher<bool>::finished, this,
             [this, watcher]()
             {
-                // 任务完成，恢复按钮可用性
                 ui.pushButton_Gain->setEnabled(true);
                 ui.pushButton_GainAbort->setEnabled(false);
 
-                IXS120BP120P366::Instance().stopXRay();
-                bool bRet = watcher->future().result();
-                qDebug() << "亮场校正流程结束，执行结果：" << bRet;
-                if (bRet)
+                stopXRaySource();
+
+                bool result = watcher->future().result();
+                qDebug() << "[Gain] Workflow finished. Result:" << result;
+
+                if (result)
                 {
-                    emit this->signalTipsChanged("亮场校正完成，请进行下一步校正");
+                    emit signalTipsChanged("亮场校正完成，请进行下一步校正");
                 }
                 else
                 {
-                    emit this->signalTipsChanged("亮场校正流程失败！");
+                    emit signalTipsChanged("亮场校正流程失败！");
                 }
+
                 disconnect(&DET, &NDT1717MA::signalAcqImageReceived, this,
                            &CreateCorrectTemplateDlg::onGainAcqImageReceived);
                 watcher->deleteLater();
@@ -302,153 +417,185 @@ void CreateCorrectTemplateDlg::Gain()
 
 void CreateCorrectTemplateDlg::Defect()
 {
-    // if (!DET.GainValid())
-    //{
-    //     ShowTips("请先进行亮场校正");
-    //     return;
-    // }
+    qDebug() << "[Defect] Starting defect calibration";
 
+    // Setup signal connections
     connect(this, &CreateCorrectTemplateDlg::signalDefectVoltageCurrentChanged, this,
-            &CreateCorrectTemplateDlg::ModifyDefectVoltageCurrent, Qt::ConnectionType::UniqueConnection);
+            &CreateCorrectTemplateDlg::ModifyDefectVoltageCurrent, Qt::UniqueConnection);
     connect(this, &CreateCorrectTemplateDlg::signalDefectGroupChanged, this,
-            &CreateCorrectTemplateDlg::onDefectGroupChanged, Qt::ConnectionType::UniqueConnection);
+            &CreateCorrectTemplateDlg::onDefectGroupChanged, Qt::UniqueConnection);
     connect(&DET, &NDT1717MA::signalAcqImageReceived, this, &CreateCorrectTemplateDlg::onDefectAcqImageReceived,
-            Qt::ConnectionType::UniqueConnection);
+            Qt::UniqueConnection);
     connect(&DET, &NDT1717MA::signalDefectImageSelected, this, &CreateCorrectTemplateDlg::onDefectImageSelected,
-            Qt::ConnectionType::UniqueConnection);
+            Qt::UniqueConnection);
 
+    // Update UI state
     ui.pushButton_Defect->setEnabled(false);
     ui.pushButton_DefectAbort->setEnabled(true);
     ui.label_Tips->clear();
 
-    // 移到后台线程执行
+    // Execute calibration in background thread
     auto future = QtConcurrent::run(
         [this]()
         {
-            bool bRet{false};
-
             nCurrentGray = 0;
-            emit this->signalTipsChanged("正在执行初始化");
+
+            // Step 1: Initialize
+            qDebug() << "[Defect] Step 1: Initializing";
+            emit signalTipsChanged("正在执行初始化");
+
             if (!DET.DefectInit())
             {
-                emit this->signalTipsChanged("初始化失败！");
+                emit signalTipsChanged("初始化失败！");
                 return false;
             }
 
-            for (int idxGroup = 0; idxGroup < DET.nTotalGroup; idxGroup++)
+            // Process each group
+            for (int groupIdx = 0; groupIdx < DET.nTotalGroup; groupIdx++)
             {
-                emit this->signalDefectGroupChanged(idxGroup, DET.nTotalGroup);
-                int nVoltage = DET.nDefectVoltages[idxGroup];
-                int nBeginCurrent = DET.nDefectBeginCurrents[idxGroup];
-                int nCurrent = nBeginCurrent;
-                int nExceptedGray = DET.nDefectExpectedGrays[idxGroup];
-                emit this->signalTipsChanged("等待射线源开启");
-                IXS120BP120P366::Instance().setVoltage(nVoltage);
-                IXS120BP120P366::Instance().setCurrent(nBeginCurrent);
-                IXS120BP120P366::Instance().startXRay();
-                int ptst = IXS120BP120P366::Instance().getPTST();
-                qDebug() << "ptst: " << ptst;
-                QThread::msleep(ptst * 1000 + 3000);
-                emit this->signalTipsChanged("射线源已开启");
+                qDebug() << "[Defect] Processing group" << (groupIdx + 1) << "/" << DET.nTotalGroup;
+                emit signalDefectGroupChanged(groupIdx, DET.nTotalGroup);
 
-                emit this->signalTipsChanged("正在自动调整电压电流，并采集亮场");
+                int voltage = DET.nDefectVoltages[groupIdx];
+                int current = DET.nDefectBeginCurrents[groupIdx];
+                int targetGray = DET.nDefectExpectedGrays[groupIdx];
+                int ptst = 0;
+
+                // Step 2: Start X-ray source for this group
+                qDebug() << "[Defect] Group" << (groupIdx + 1) << "- Starting X-ray source"
+                         << "Voltage:" << voltage << "kV, Current:" << current << "uA, Target gray:" << targetGray;
+
+                emit signalTipsChanged("等待射线源开启");
+
+                IXS120BP120P366::Instance().setVoltage(voltage);
+                IXS120BP120P366::Instance().setCurrent(current);
+                IXS120BP120P366::Instance().startXRay();
+
+                ptst = IXS120BP120P366::Instance().getPTST();
+                qDebug() << "[Defect] Group" << (groupIdx + 1) << "- Warmup time (PTST):" << ptst << "seconds";
+                QThread::msleep(ptst * 1000 + 3000);
+
+                emit signalTipsChanged("射线源已开启");
+
+                // Step 3: Start acquisition
+                qDebug() << "[Defect] Group" << (groupIdx + 1) << "- Starting acquisition";
+                emit signalTipsChanged("正在自动调整电压电流，并采集亮场");
+
                 if (!DET.DefectStartAcq())
+                {
+                    emit signalTipsChanged("开启采集失败！");
+                    return false;
+                }
+
+                // Wait for first data
+                QThread::msleep(2000);
+
+                // Step 4: Adjust current until target gray value
+                qDebug() << "[Defect] Group" << (groupIdx + 1) << "- Adjusting current to reach target gray";
+
+                while (nCurrentGray < targetGray)
+                {
+                    if (DET.CurrentTransaction() != 2)
+                    {
+                        qDebug() << "[Defect] Calibration aborted by user";
+                        return false;
+                    }
+
+                    qDebug() << "[Defect] Group" << (groupIdx + 1) << "- Gray level - Current:" << nCurrentGray
+                             << "Target:" << targetGray << "Current:" << current << "uA";
+
+                    if (current >= 1000)
+                    {
+                        qDebug() << "[Defect] Maximum current reached: 1000 uA";
+                        break;
+                    }
+
+                    current += 100;
+                    emit signalDefectVoltageCurrentChanged(voltage, current);
+                    IXS120BP120P366::Instance().setCurrent(current);
+                    QThread::msleep(2000);
+                }
+
+                if (DET.CurrentTransaction() != 2)
                 {
                     return false;
                 }
 
-                // 先等待第一组数据到达
+                // Step 5: Select images
+                qDebug() << "[Defect] Group" << (groupIdx + 1) << "- Selecting images";
+                if (!DET.DefectSelectAll(groupIdx))
+                {
+                    emit signalTipsChanged("选择图像失败！");
+                    return false;
+                }
+                emit signalTipsChanged("亮场采集结束");
+
+                // Step 6: Stop X-ray and acquire dark field
+                qDebug() << "[Defect] Group" << (groupIdx + 1) << "- Stopping X-ray source";
+                emit signalTipsChanged("等待射线源关闭");
+
+                IXS120BP120P366::Instance().stopXRay();
                 QThread::msleep(2000);
-                qDebug() << "idxGroup: " << idxGroup << " nExceptedGray: " << nExceptedGray
-                         << " nCurrentGray: " << nCurrentGray << " nVoltage: " << nVoltage << " nCurrent: " << nCurrent;
+                emit signalTipsChanged("射线源已关闭");
 
-                while (nCurrentGray < nExceptedGray)
+                qDebug() << "[Defect] Group" << (groupIdx + 1) << "- Acquiring dark field";
+                emit signalTipsChanged("正在采集暗场");
+
+                if (!DET.DefectForceDarkContinuousAcq(groupIdx))
                 {
-                    if (DET.CurrentTransaction() != 2)
-                    {
-                        qDebug() << "Aborted";
-                        break;
-                    }
-
-                    qDebug() << "idxGroup: " << idxGroup << " nExceptedGray: " << nExceptedGray
-                             << " nCurrentGray: " << nCurrentGray << " nVoltage: " << nVoltage
-                             << " nCurrent: " << nCurrent;
-
-                    // 调整电压电流
-                    if (nCurrent > 1000)
-                    {
-                        qDebug() << "射线源已到达最大功率";
-                        break;
-                    }
-                    nCurrent += 100;
-                    emit this->signalDefectVoltageCurrentChanged(nVoltage, nCurrent);
-                    IXS120BP120P366::Instance().setCurrent(nCurrent);
-                    QThread::msleep(2000);
+                    emit signalTipsChanged("暗场采集失败！");
+                    return false;
                 }
-
-                if (DET.CurrentTransaction() == 2)
-                {
-                    if (!DET.DefectSelectAll(idxGroup))
-                    {
-                        return false;
-                    }
-                    emit this->signalTipsChanged("亮场采集结束");
-
-                    emit this->signalTipsChanged("等待射线源关闭");
-                    IXS120BP120P366::Instance().stopXRay();
-                    QThread::msleep(2000);
-                    emit this->signalTipsChanged("射线源已关闭");
-
-                    emit this->signalTipsChanged("正在采集暗场");
-                    if (!DET.DefectForceDarkContinuousAcq(idxGroup))
-                    {
-                        return false;
-                    }
-                    emit this->signalTipsChanged("暗场采集结束");
-                }
-                else
-                {
-                    bRet = false;
-                }
+                emit signalTipsChanged("暗场采集结束");
             }
 
-            if (DET.CurrentTransaction() == 2)
+            // Step 7: Generate defect correction
+            if (DET.CurrentTransaction() != 2)
             {
-                bRet = DET.DefectGeneration();
-            }
-            else
-            {
-                bRet = false;
+                return false;
             }
 
-            return bRet;
+            qDebug() << "[Defect] Generating defect correction";
+            emit signalTipsChanged("正在生成缺陷校正");
+
+            bool result = DET.DefectGeneration();
+            qDebug() << "[Defect] Calibration completed. Result:" << result;
+
+            return result;
         });
 
-    // 创建 watcher 监听完成事件
+    // Setup watcher for completion
     auto* watcher = new QFutureWatcher<bool>(this);
     connect(watcher, &QFutureWatcher<bool>::finished, this,
             [this, watcher]()
             {
-                // 任务完成，恢复按钮可用性
                 ui.pushButton_Defect->setEnabled(true);
                 ui.pushButton_DefectAbort->setEnabled(false);
-                IXS120BP120P366::Instance().stopXRay();
-                bool bRet = watcher->future().result();
-                qDebug() << "一键缺陷矫正流程结束，执行结果：" << bRet;
-                if (bRet)
+
+                stopXRaySource();
+
+                bool result = watcher->future().result();
+                qDebug() << "[Defect] Workflow finished. Result:" << result;
+
+                if (result)
                 {
-                    emit this->signalTipsChanged("陷矫正流程完成");
+                    emit signalTipsChanged("缺陷校正流程完成");
                 }
                 else
                 {
-                    emit this->signalTipsChanged("陷矫正流程失败！");
+                    emit signalTipsChanged("缺陷校正流程失败！");
                 }
+
                 disconnect(&DET, &NDT1717MA::signalAcqImageReceived, this,
                            &CreateCorrectTemplateDlg::onDefectAcqImageReceived);
                 watcher->deleteLater();
             });
     watcher->setFuture(future);
 }
+
+// ============================================================================
+// UI Update Methods
+// ============================================================================
 
 void CreateCorrectTemplateDlg::ShowTips(const QString& msg)
 {
@@ -469,46 +616,50 @@ void CreateCorrectTemplateDlg::ModifyDefectVoltageCurrent(int voltage, int curre
 
 void CreateCorrectTemplateDlg::ModifyMode(int modeIdx)
 {
-    modeIdx += 5;
+    // Convert combo box index to detector mode (Mode5-Mode8)
+    int modeNumber = modeIdx + 5;
+    std::string mode = "Mode" + std::to_string(modeNumber);
 
-    std::string mode = "Mode" + std::to_string(modeIdx);
-    qDebug() << "modeIdx: " << modeIdx << " mode: " << mode.c_str();
+    qDebug() << "[Mode] Changing detector mode to" << QString::fromStdString(mode) << "(index:" << modeIdx << ")";
 
-    // 移到后台线程执行
+    // Execute mode change in background thread
     auto future = QtConcurrent::run(
         [this, mode]()
         {
-            bool bRet{true};
-
             if (!DET.Initialized())
             {
+                qDebug() << "[Mode] Error: Detector not initialized";
                 emit signalTipsChanged("探测器未连接！");
                 return false;
             }
 
             if (!DET.CanModifyCfg())
             {
+                qDebug() << "[Mode] Error: Cannot modify configuration in current state";
                 emit signalTipsChanged("当前不允许修改参数！");
                 return false;
             }
 
+            qDebug() << "[Mode] Updating detector mode to" << QString::fromStdString(mode);
             return DET.UpdateMode(mode);
         });
 
     auto* watcher = new QFutureWatcher<bool>(this);
     connect(watcher, &QFutureWatcher<bool>::finished, this,
-            [this, watcher]()
+            [this, watcher, mode]()
             {
-                bool bRet = watcher->future().result();
-                qDebug() << "修改探测器模式结束，执行结果：" << watcher->future().result();
-                if (!bRet)
-                {
-                    emit signalTipsChanged("修改探测器模式失败！");
-                }
-                else
+                bool result = watcher->future().result();
+                qDebug() << "[Mode] Mode change completed. Result:" << result;
+
+                if (result)
                 {
                     emit signalTipsChanged("修改探测器模式成功！");
                 }
+                else
+                {
+                    emit signalTipsChanged("修改探测器模式失败！");
+                }
+
                 watcher->deleteLater();
             });
     watcher->setFuture(future);
@@ -516,39 +667,55 @@ void CreateCorrectTemplateDlg::ModifyMode(int modeIdx)
     future.waitForFinished();
 }
 
-void CreateCorrectTemplateDlg::onOffsetImageSelected(int nTotal, int nValid)
+// ============================================================================
+// Event Handlers - Image Selection Progress
+// ============================================================================
+
+void CreateCorrectTemplateDlg::onOffsetImageSelected(int total, int valid)
 {
-    ui.lineEdit_OffsetProgress->setText(QString("%1 / %2").arg(nValid).arg(nTotal));
+    ui.lineEdit_OffsetProgress->setText(QString("%1 / %2").arg(valid).arg(total));
 }
+
+void CreateCorrectTemplateDlg::onGainImageSelected(int total, int valid)
+{
+    ui.lineEdit_GainProgress->setText(QString("%1 / %2").arg(valid).arg(total));
+}
+
+void CreateCorrectTemplateDlg::onDefectImageSelected(int total, int valid)
+{
+    ui.lineEdit_DefectProgress->setText(QString("%1 / %2").arg(valid).arg(total));
+}
+
+// ============================================================================
+// Event Handlers - Image Acquisition
+// ============================================================================
 
 void CreateCorrectTemplateDlg::onGainAcqImageReceived(QSharedPointer<QImage> image, int idx, int grayValue)
 {
-    gainPixmapItem->setPixmap(QPixmap::fromImage(*image).scaled(ui.graphicsView_GainImageView->width() - 5,
-                                                                ui.graphicsView_GainImageView->height() - 5));
+    // Update preview image
+    const int viewWidth = ui.graphicsView_GainImageView->width() - 5;
+    const int viewHeight = ui.graphicsView_GainImageView->height() - 5;
+    gainPixmapItem->setPixmap(QPixmap::fromImage(*image).scaled(viewWidth, viewHeight));
+
+    // Update gray value display and internal state
     ui.lineEdit_GainCenterValue->setText(QString::number(grayValue));
     nCurrentGray = grayValue;
 }
 
-void CreateCorrectTemplateDlg::onGainImageSelected(int nTotal, int nValid)
-{
-    ui.lineEdit_GainProgress->setText(QString("%1 / %2").arg(nValid).arg(nTotal));
-}
-
 void CreateCorrectTemplateDlg::onDefectAcqImageReceived(QSharedPointer<QImage> image, int idx, int grayValue)
 {
-    defectPixmapItem->setPixmap(QPixmap::fromImage(*image).scaled(ui.graphicsView_DefectImageView->width() - 5,
-                                                                  ui.graphicsView_DefectImageView->height() - 5));
+    // Update preview image
+    const int viewWidth = ui.graphicsView_DefectImageView->width() - 5;
+    const int viewHeight = ui.graphicsView_DefectImageView->height() - 5;
+    defectPixmapItem->setPixmap(QPixmap::fromImage(*image).scaled(viewWidth, viewHeight));
+
+    // Update gray value display and internal state
     ui.lineEdit_DefectCurrentGray->setText(QString::number(grayValue));
     nCurrentGray = grayValue;
 }
 
-void CreateCorrectTemplateDlg::onDefectGroupChanged(int groupIdx, int nTotalGroup)
+void CreateCorrectTemplateDlg::onDefectGroupChanged(int groupIdx, int totalGroups)
 {
     ui.lineEdit_DefectExceptedGray->setText(QString::number(DET.nDefectExpectedGrays[groupIdx]));
-    ui.lineEdit_DefectGroup->setText(QString("%1 / %2").arg(groupIdx + 1).arg(nTotalGroup));
-}
-
-void CreateCorrectTemplateDlg::onDefectImageSelected(int nTotal, int nValid)
-{
-    ui.lineEdit_DefectProgress->setText(QString("%1 / %2").arg(nValid).arg(nTotal));
+    ui.lineEdit_DefectGroup->setText(QString("%1 / %2").arg(groupIdx + 1).arg(totalGroups));
 }

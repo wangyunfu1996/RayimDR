@@ -33,9 +33,6 @@
     <ClCompile Include="UI\CommonConfigUI.cpp">
       <Filter>UI</Filter>
     </ClCompile>
-    <ClCompile Include="UI\MainWindow.cpp">
-      <Filter>UI</Filter>
-    </ClCompile>
     <ClCompile Include="UI\MultiAcqCfgDialog.cpp">
       <Filter>UI</Filter>
     </ClCompile>
@@ -73,6 +70,9 @@
     <ClCompile Include="VJXRAY\IXS120BP120P366.cpp">
       <Filter>VJXRay</Filter>
     </ClCompile>
+    <ClCompile Include="UI\MainWindow.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Components\AcqTask.h">
@@ -91,9 +91,6 @@
       <Filter>UI</Filter>
     </QtMoc>
     <QtMoc Include="UI\CommonConfigUI.h">
-      <Filter>UI</Filter>
-    </QtMoc>
-    <QtMoc Include="UI\MainWindow.h">
       <Filter>UI</Filter>
     </QtMoc>
     <QtMoc Include="UI\MultiAcqCfgDialog.h">
@@ -131,6 +128,9 @@
     </QtMoc>
     <QtMoc Include="VJXRAY\IXS120BP120P366.h">
       <Filter>VJXRay</Filter>
+    </QtMoc>
+    <QtMoc Include="UI\MainWindow.h">
+      <Filter>UI</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

@@ -34,12 +34,38 @@ public:
     void onDRStopBtnClicked();
 
 private:
+    // Initialization methods
+    void setupWindowProperties();
+    void createUIComponents();
     void initMenuBar();
     void initToolBar();
+    void setupConnections();
 
+    // Device connection methods
     void connectToDevices();
     void connectToXRay();
     void connectToDet();
+
+    // Menu action handlers
+    void onMenuFileOpen();
+    void onMenuFileOpenFolder();
+    void onMenuFileSave();
+    void onMenuFileExit();
+    void onMenuXRayConfig();
+    void onMenuDetectorConfig();
+    void onMenuDetectorCalibration();
+    void onMenuCleanupLogs();
+
+    // Close event handlers
+    void onCloseButtonClicked();
+    void onCloseDialogConfirmed();
+
+    // Signal handlers
+    void onErrorMessageBar(const QString& msg);
+    void onSuccessMessageBar(const QString& msg);
+    void onAcqStatusMessage(const QString& msg, int errorCode);
+    void onImageFolderProgressChanged(int progress);
+    void onXRayStopRequested();
 
 private:
     ElaContentDialog* _closeDialog{nullptr};

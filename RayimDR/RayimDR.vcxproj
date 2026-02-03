@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Components\XGlobal.h" />
+    <QtMoc Include="UI\MainWindow.h" />
     <QtMoc Include="VJXRAY\IXS120BP120P366.h" />
     <QtMoc Include="VJXRAY\TcpClient.h" />
     <QtMoc Include="UI\XElaDialog.h" />
@@ -55,7 +56,6 @@
     <QtMoc Include="ImageRender\XGraphicsScene.h" />
     <QtMoc Include="UI\XRayCfgDialog.h" />
     <QtMoc Include="UI\MultiAcqCfgDialog.h" />
-    <QtMoc Include="UI\MainWindow.h" />
     <QtMoc Include="UI\CommonConfigUI.h" />
     <QtMoc Include="UI\AppCfgDialog.h" />
     <QtMoc Include="Components\XSignalsHelper.h" />

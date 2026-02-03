@@ -21,6 +21,7 @@ const std::string CMD_SNUM = "SNUM";
 const std::string CMD_STARTXRAY = "ENBL1";
 const std::string CMD_STOPXRAY = "ENBL0";
 const std::string CMD_CLR = "CLR";
+const std::string CMD_PTST = "PTST";
 
 }  // namespace
 
@@ -320,6 +321,35 @@ void IXS120BP120P366::clearErr()
         Qt::BlockingQueuedConnection);
 }
 
+int IXS120BP120P366::getPTST()
+{
+    QByteArray response;
+    QMetaObject::invokeMethod(
+        this,
+        [this, &response]()
+        {
+            // 构建完整命令: STX + CLR + CR
+            std::string cmd = CMD_PREFIX + CMD_PTST + CMD_SUFFIX;
+            QByteArray cmdData = QByteArray::fromStdString(cmd);
+            response = m_tcpClient->sendDataSyncWithEndMarker(cmdData, QByteArray::fromStdString(CMD_SUFFIX), 3000);
+            if (!response.isEmpty())
+            {
+                qDebug() << "successfully, response:" << response.toHex();
+            }
+            else
+            {
+                qDebug() << "Failed";
+            }
+        },
+        Qt::BlockingQueuedConnection);
+
+    qDebug() << response;
+    // 移除 STX 和 CR
+    QByteArray actualData = response.mid(1, response.size() - 2);
+    QString responseStr = QString::fromUtf8(actualData);
+    return responseStr.toInt();
+}
+
 QByteArray IXS120BP120P366::sendDataSyncWithEndMarker(const QByteArray& data, const QByteArray& endMarker, int timeout)
 {
     QByteArray response;
@@ -592,4 +622,9 @@ void IXS120BP120P366::parseFTLResponse(const QString& response)
         }
         qDebug() << faultInfo;
     }
+}
+
+int IXS120BP120P366::parsePTSTResponse(const QString& response)
+{
+    return 0;
 }

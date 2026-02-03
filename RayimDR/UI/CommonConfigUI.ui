@@ -192,17 +192,33 @@
        </widget>
       </item>
       <item row="6" column="2">
-       <widget class="ElaComboBox" name="comboBox"/>
+       <widget class="ElaComboBox" name="comboBox_preheat">
+        <item>
+         <property name="text">
+          <string>Idle 3 - 30 days</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Idle 1- 3 mons</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Idle &gt; 3 mons</string>
+         </property>
+        </item>
+       </widget>
       </item>
       <item row="6" column="3">
-       <widget class="ElaPushButton" name="pushButton">
+       <widget class="ElaPushButton" name="pushButton_startPreheat">
         <property name="text">
          <string>执行</string>
         </property>
        </widget>
       </item>
       <item row="6" column="4">
-       <widget class="ElaPushButton" name="pushButton_2">
+       <widget class="ElaPushButton" name="pushButton_stopPreheat">
         <property name="text">
          <string>取消</string>
         </property>

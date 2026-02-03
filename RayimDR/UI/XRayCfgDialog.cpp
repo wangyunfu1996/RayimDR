@@ -33,7 +33,7 @@ XRayCfgDialog::XRayCfgDialog(QWidget* parent) : ElaDialog(parent)
                 qDebug() << "Prepared to send command to X-ray source:" << QString::fromStdString(cmd)
                          << (param.empty() ? "" : (" with param: " + QString::fromStdString(param)));
                 auto response = IXS120BP120P366::Instance().sendDataSyncWithEndMarker(
-                    QByteArray::fromStdString(cmd + param), "\x0D");
+                    QByteArray::fromStdString("0x02" + cmd + param), "\x0D");
                 ui.label_cmdResult->setText(QString::fromStdString(response.toStdString()));
             });
 

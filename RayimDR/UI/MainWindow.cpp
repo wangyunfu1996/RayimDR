@@ -510,7 +510,7 @@ void MainWindow::connectToDevices()
 void MainWindow::connectToXRay()
 {
     emit xSignaHelper.signalUpdateStatusInfo("开始连接射线源");
-    bool bConnected = xRaySource.connectToSource("192.168.10.1", 10001);
+    bool bConnected = xRaySource.connectToSource("192.168.1.1", 10001);
     if (bConnected)
     {
         emit xSignaHelper.signalShowSuccessMessageBar("射线源已连接!");

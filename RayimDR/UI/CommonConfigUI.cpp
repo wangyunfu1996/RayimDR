@@ -11,6 +11,8 @@
 #include "IRayDetector/NDT1717MA.h"
 #include "VJXRAY/IXS120BP120P366.h"
 
+#pragma warning(disable : 4305)
+
 CommonConfigUI::CommonConfigUI(QWidget* parent) : QWidget(parent)
 {
     ui.setupUi(this);
@@ -26,6 +28,11 @@ CommonConfigUI::CommonConfigUI(QWidget* parent) : QWidget(parent)
 
     ui.lineEdit_ChargingStatus->setEnabled(false);
     ui.lineEdit_Battery_Remaining->setEnabled(false);
+
+    ui.label_5->setVisible(false);
+    ui.lineEdit_targetPower->setVisible(false);
+    ui.label_6->setVisible(false);
+    ui.lineEdit_currentPower->setVisible(false);
 
     initUIConnect();
 }
@@ -170,13 +177,82 @@ void CommonConfigUI::initUIConnect()
 
     connect(ui.pushButton_stopXRay, &QPushButton::clicked, this, [this]() { IXS120BP120P366::Instance().stopXRay(); });
 
-    connect(ui.pushButton_clearErr, &QPushButton::clicked, this, [this]() { IXS120BP120P366::Instance().clearErr(); });
+    connect(ui.pushButton_clearErr, &QPushButton::clicked, this,
+            [this]()
+            {
+                IXS120BP120P366::Instance().clearErr();
+                ui.lineEdit_errMsg->clear();
+                ui.lineEdit_errMsg->clear();
+            });
 
     connect(&IXS120BP120P366::Instance(), &IXS120BP120P366::error, this,
             [this](const QString& errorMsg)
             {
                 ui.lineEdit_errMsg->setText(errorMsg);
                 emit xSignaHelper.signalShowErrorMessageBar("X射线源错误: " + errorMsg);
+            });
+
+    connect(ui.pushButton_startPreheat, &QPushButton::clicked, this,
+            [this]()
+            {
+                ui.pushButton_startPreheat->setEnabled(false);
+                ui.pushButton_startXRay->setEnabled(false);
+                ui.pushButton_stopXRay->setEnabled(false);
+                int waitTime{3};
+                std::vector<int> voltages = {30, 40, 50, 60, 70, 80, 90, 100, 110, 120};
+                std::vector<float> currents = {0.2000, 0.2889, 0.3778, 0.4667, 0.5556,
+                                               0.6444, 0.7333, 0.8222, 0.9111, 1.0000};
+                if (ui.comboBox_preheat->currentIndex() == 0)
+                {
+                    waitTime = 3;
+                }
+                else if (ui.comboBox_preheat->currentIndex() == 1)
+                {
+                    waitTime = 6;
+                }
+                else
+                {
+                    waitTime = 30;
+                }
+
+                auto future = QtConcurrent::run(
+                    [this, waitTime, voltages, currents]()
+                    {
+                        IXS120BP120P366::Instance().setVoltage(voltages.at(0));
+                        IXS120BP120P366::Instance().setCurrent(currents.at(0) * 1000);
+                        IXS120BP120P366::Instance().startXRay();
+                        int ptst = IXS120BP120P366::Instance().getPTST();
+                        qDebug() << "ptst: " << ptst;
+                        QThread::msleep(waitTime * 1000 + ptst * 1000);
+                        for (int i(1); i < voltages.size(); i++)
+                        {
+                            IXS120BP120P366::Instance().setVoltage(voltages.at(i));
+                            IXS120BP120P366::Instance().setCurrent(currents.at(i) * 1000);
+                            QThread::msleep(waitTime * 1000);
+                        }
+                        IXS120BP120P366::Instance().stopXRay();
+                    });
+
+                auto* watcher = new QFutureWatcher<void>(this);
+                connect(watcher, &QFutureWatcher<void>::finished, this,
+                        [this, watcher]()
+                        {
+                            ui.pushButton_startPreheat->setEnabled(true);
+                            ui.pushButton_startXRay->setEnabled(true);
+                            ui.pushButton_stopXRay->setEnabled(true);
+                            emit xSignaHelper.signalShowSuccessMessageBar("训管结束");
+                        });
+                watcher->setFuture(future);
+            });
+
+    connect(ui.pushButton_stopPreheat, &QPushButton::clicked, this,
+            [this]()
+            {
+                IXS120BP120P366::Instance().getPTST();
+                IXS120BP120P366::Instance().stopXRay();
+                ui.pushButton_startPreheat->setEnabled(true);
+                ui.pushButton_startXRay->setEnabled(true);
+                ui.pushButton_stopXRay->setEnabled(true);
             });
 }
 

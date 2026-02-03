@@ -57,6 +57,8 @@ public:
     bool stopXRay();
     void clearErr();
 
+    int getPTST();
+
     QByteArray sendDataSyncWithEndMarker(const QByteArray& data, const QByteArray& endMarker, int timeout = 5000);
 
     // Status query control
@@ -80,6 +82,7 @@ private slots:
 private:
     void parseMONResponse(const QString& response);
     void parseFTLResponse(const QString& response);
+    int parsePTSTResponse(const QString& response);
 
 private:
     TcpClient* m_tcpClient{nullptr};

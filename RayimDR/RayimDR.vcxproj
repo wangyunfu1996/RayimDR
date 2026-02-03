@@ -71,6 +71,9 @@
   <ItemGroup>
     <None Include="VJXRAY\tcp_echo_server.py" />
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="RayimDR.rc" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0ECFFCB6-819D-42FD-A6E7-6F611AE46919}</ProjectGuid>
     <Keyword>QtVS_v304</Keyword>

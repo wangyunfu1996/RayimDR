@@ -71,7 +71,7 @@ const static int IMAGE_BUFFER_SIZE{10};
 
 const static int XRAY_MIN_VOLTAGE{30};    // kV
 const static int XRAY_MAX_VOLTAGE{120};   // kV
-const static int XRAY_MIN_CURRENT{100};   // mA
-const static int XRAY_MAX_CURRENT{1000};  // mA
+const static int XRAY_MIN_CURRENT{200};   // uA
+const static int XRAY_MAX_CURRENT{1000};  // uA
 
 static bool OPEN_DEBUG_LOG = true;

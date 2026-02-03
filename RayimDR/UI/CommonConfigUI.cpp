@@ -50,9 +50,9 @@ bool CommonConfigUI::checkInputValid()
         return false;
     }
 
-    if (ui.spinBox_targetCurrent->value() > XRAY_MAX_VOLTAGE || ui.spinBox_targetCurrent->value() < XRAY_MIN_VOLTAGE)
+    if (ui.spinBox_targetCurrent->value() > XRAY_MAX_CURRENT || ui.spinBox_targetCurrent->value() < XRAY_MIN_CURRENT)
     {
-        errMsg = QString("设置的电流值必须在 %1mA - %2mA 之间").arg(XRAY_MIN_CURRENT).arg(XRAY_MAX_CURRENT);
+        errMsg = QString("设置的电流值必须在 %1uA - %2uA 之间").arg(XRAY_MIN_CURRENT).arg(XRAY_MAX_CURRENT);
         qDebug() << errMsg;
         emit xSignaHelper.signalShowErrorMessageBar(errMsg);
         return false;

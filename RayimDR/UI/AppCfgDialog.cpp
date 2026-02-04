@@ -31,3 +31,13 @@ int AppCfgDialog::getLowBatteryPercent()
 {
     return ui.spinBox_detLowBattery->value();
 }
+
+bool AppCfgDialog::getAutoStartXrayOnAcq()
+{
+    return ui.checkBox_autoStartXRay->isChecked();
+}
+
+bool AppCfgDialog::getAutoStopXrayOnAcqStop()
+{
+    return ui.checkBox_autoStopXRay->isChecked();
+}

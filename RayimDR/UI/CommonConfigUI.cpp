@@ -74,7 +74,7 @@ bool CommonConfigUI::checkInputValid()
     if (!IXS120BP120P366::Instance().xRayIsOn())
     {
         XElaDialog dialog("射线源未开启，是否先开启射线源？", XElaDialogType::ASK);
-        if (dialog.showCentered() == QDialog::Accepted)
+        if (AUTO_START_XRAY_ON_ACQ || dialog.showCentered() == QDialog::Accepted)
         {
             bool bRet = IXS120BP120P366::Instance().setVoltage(ui.spinBox_targetVoltage->value());
             bRet = IXS120BP120P366::Instance().setCurrent(ui.spinBox_targetCurrent->value());

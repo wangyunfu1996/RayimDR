@@ -73,6 +73,9 @@
     <ClCompile Include="UI\MainWindow.cpp">
       <Filter>UI</Filter>
     </ClCompile>
+    <ClCompile Include="Components\XGlobal.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Components\AcqTask.h">

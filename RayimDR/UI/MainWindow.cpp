@@ -257,7 +257,7 @@ void MainWindow::onXRayStopRequested()
     if (IXS120BP120P366::Instance().xRayIsOn())
     {
         XElaDialog dialog("采集结束，是否关闭射线源？", XElaDialogType::ASK);
-        if (dialog.showCentered() == QDialog::Accepted)
+        if (AUTO_STOP_XRAY_ON_ACQ_STOP || dialog.showCentered() == QDialog::Accepted)
         {
             IXS120BP120P366::Instance().stopXRay();
         }
@@ -341,6 +341,8 @@ void MainWindow::onMenuAppCfg()
     if (dialog.exec() == QDialog::Accepted)
     {
         DET.SetLowBatteryPercent(dialog.getLowBatteryPercent());
+        AUTO_START_XRAY_ON_ACQ = dialog.getAutoStartXrayOnAcq();
+        AUTO_STOP_XRAY_ON_ACQ_STOP = dialog.getAutoStopXrayOnAcqStop();
     }
 }
 

@@ -74,7 +74,9 @@ const static int XRAY_MAX_VOLTAGE{120};   // kV
 const static int XRAY_MIN_CURRENT{200};   // uA
 const static int XRAY_MAX_CURRENT{1000};  // uA
 
-static bool OPEN_DEBUG_LOG = true;
-
 const static std::string XRAY_DEVICE_IP = "192.168.10.1";
 const static int XRAY_DEVICE_PORT = 10001;
+
+// inline 变量确保在所有编译单元中共享同一个实例 (C++17)
+inline bool AUTO_START_XRAY_ON_ACQ = false;
+inline bool AUTO_STOP_XRAY_ON_ACQ_STOP = false;

@@ -14,6 +14,7 @@
     <ClCompile Include="Components\AcqTask.cpp" />
     <ClCompile Include="Components\AcqTaskManager.cpp" />
     <ClCompile Include="Components\XFileHelper.cpp" />
+    <ClCompile Include="Components\XGlobal.cpp" />
     <ClCompile Include="Components\XSignalsHelper.cpp" />
     <ClCompile Include="ElaUIHepler.cpp" />
     <ClCompile Include="ImageRender\XGraphicsScene.cpp" />

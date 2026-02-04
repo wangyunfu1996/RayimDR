@@ -12,6 +12,8 @@ public:
     ~AppCfgDialog();
 
     int getLowBatteryPercent();
+    bool getAutoStartXrayOnAcq();
+    bool getAutoStopXrayOnAcqStop();
 
 private:
     Ui::AppCfgDialogClass ui;

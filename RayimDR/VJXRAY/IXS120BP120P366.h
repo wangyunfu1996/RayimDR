@@ -13,21 +13,13 @@ class TcpClient;
 // X-ray source status structure
 struct XRaySourceStatus
 {
-    bool xrayOn;          // X-ray is on/off
-    double voltage;       // Current voltage in kV
-    double current;       // Current in uA
-    bool faultStatus;     // Fault status
-    bool warmupComplete;  // Warmup status
-    int interlock;        // Interlock status
-
-    double temperature;  // Temperature in Celsius
-
+    double voltage;          // Current voltage in kV
+    double current;          // Current in uA
+    double temperature;      // Temperature in Celsius
     double filamentCurrent;  // Filament current in uA
-
-    XRaySourceStatus()
-        : xrayOn(false), voltage(0.0), current(0.0), faultStatus(false), warmupComplete(false), interlock(0)
-    {
-    }
+    double battery;
+    std::vector<int> faultBits;
+    int interlock;  // Interlock status
 };
 
 #define xRaySource IXS120BP120P366::Instance()
@@ -72,6 +64,7 @@ signals:
     void connected();
     void disconnected();
     void xrayError(const QString& errorMsg);
+    void xrayErrorCleared();  // 错误已清除信号
     void statusUpdated(const XRaySourceStatus& status);
 
 private slots:
@@ -83,7 +76,6 @@ private slots:
 private:
     void parseMONResponse(const QString& response);
     void parseFTLResponse(const QString& response);
-    int parsePTSTResponse(const QString& response);
 
 private:
     TcpClient* m_tcpClient{nullptr};

@@ -189,6 +189,19 @@ void MainWindow::setupConnections()
     // Image helper connections
     connect(&XImageHelper::Instance(), &XImageHelper::signalOpenImageFolderProgressChanged, this,
             &MainWindow::onImageFolderProgressChanged);
+
+    connect(&IXS120BP120P366::Instance(), &IXS120BP120P366::xrayError, this,
+            [this]()
+            {
+                if (AcqTaskManager::Instance().isAcquiring())
+                {
+                    XElaDialog dialog("检测到射线源错误，是否停止采集？", XElaDialogType::ERR);
+                    if (dialog.showCentered() == QDialog::Accepted)
+                    {
+                        AcqTaskManager::Instance().stopAcq();
+                    }
+                }
+            });
 }
 
 // ============================================================================

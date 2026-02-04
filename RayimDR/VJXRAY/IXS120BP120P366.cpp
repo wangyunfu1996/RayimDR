@@ -665,9 +665,6 @@ void IXS120BP120P366::parseMONResponse(const QString& response)
     {
         vdc = vdcRaw / 100.0;
     }
-
-    // Determine if X-ray is on (based on current > 0)
-    m_currentStatus.xrayOn = (m_currentStatus.current > 0.001);  // Use threshold to avoid floating-point errors
 }
 
 void IXS120BP120P366::parseFTLResponse(const QString& response)
@@ -685,10 +682,11 @@ void IXS120BP120P366::parseFTLResponse(const QString& response)
     }
 
     bool ok;
-    QVector<int> faultBits;
-    bool anyFault = false;
+    bool hasError = false;
+    bool stateChanged = false;
 
-    // Parse all 11 fault bits
+    // 解析当前的故障位
+    std::vector<int> currentFaultBits(11, 0);
     for (int i = 0; i < 11; ++i)
     {
         int bit = parts[i].toInt(&ok);
@@ -697,40 +695,62 @@ void IXS120BP120P366::parseFTLResponse(const QString& response)
             qDebug() << "[ParseFLT] Failed to parse bit" << i << ":" << parts[i];
             bit = 0;
         }
-        faultBits.append(bit);
+        currentFaultBits[i] = bit;
         if (bit != 0)
         {
-            anyFault = true;
+            hasError = true;
         }
     }
 
-    // Update fault status
-    m_currentStatus.faultStatus = anyFault;
+    // 比较当前状态与上一次状态是否一致
+    if (m_currentStatus.faultBits.size() == currentFaultBits.size())
+    {
+        for (size_t i = 0; i < currentFaultBits.size(); ++i)
+        {
+            if (m_currentStatus.faultBits[i] != currentFaultBits[i])
+            {
+                stateChanged = true;
+                break;
+            }
+        }
+    }
+    else
+    {
+        // 首次初始化或大小不匹配，视为状态变化
+        stateChanged = true;
+    }
+
+    // 只有在状态发生变化且存在错误时才触发 anyFault
+    bool anyFault = stateChanged && hasError;
+
+    // 更新当前状态
+    m_currentStatus.faultBits = currentFaultBits;
 
     // Update specific status fields based on fault bits
     // Note: Bit 8 is assumed to be interlock status (verify with device manual)
-    if (faultBits.size() > 8)
+    if (currentFaultBits.size() > 8)
     {
-        m_currentStatus.interlock = faultBits[8];
+        m_currentStatus.interlock = currentFaultBits[8];
     }
 
-    // Log detailed fault information for debugging
+    // Log detailed fault information for debugging (only when fault state changes and has errors)
     if (anyFault)
     {
-        QString faultInfo = "[ParseFLT] Faults detected -";
-        for (int i = 0; i < faultBits.size(); ++i)
+        QString faultInfo = "[ParseFLT] Fault state changed - New faults detected:";
+        for (size_t i = 0; i < currentFaultBits.size(); ++i)
         {
-            if (faultBits[i] != 0)
+            if (currentFaultBits[i] != 0)
             {
-                faultInfo += QString(" Bit[%1]=%2").arg(i).arg(faultBits[i]);
+                faultInfo += QString(" Bit[%1]=%2").arg(i).arg(currentFaultBits[i]);
             }
         }
         qDebug() << faultInfo;
+        emit xrayError(faultInfo);
     }
-}
-
-int IXS120BP120P366::parsePTSTResponse(const QString& response)
-{
-    // This method is currently not used but kept for future implementation
-    return 0;
+    else if (stateChanged && !hasError)
+    {
+        // 状态变化但无错误（故障已清除）
+        qDebug() << "[ParseFLT] Fault state changed - All faults cleared";
+        emit xrayErrorCleared();
+    }
 }

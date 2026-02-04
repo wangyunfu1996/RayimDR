@@ -335,6 +335,15 @@ void MainWindow::onMenuDetectorCalibration()
     dialog.exec();
 }
 
+void MainWindow::onMenuAppCfg()
+{
+    AppCfgDialog dialog;
+    if (dialog.exec() == QDialog::Accepted)
+    {
+        DET.SetLowBatteryPercent(dialog.getLowBatteryPercent());
+    }
+}
+
 void MainWindow::onMenuCleanupLogs()
 {
     qDebug() << "[MainWindow] Menu: Cleanup logs";
@@ -373,6 +382,7 @@ void MainWindow::initMenuBar()
     connect(configMenu->addAction("射线源设置"), &QAction::triggered, this, &MainWindow::onMenuXRayConfig);
     connect(configMenu->addAction("探测器设置"), &QAction::triggered, this, &MainWindow::onMenuDetectorConfig);
     connect(configMenu->addAction("探测器校正"), &QAction::triggered, this, &MainWindow::onMenuDetectorCalibration);
+    connect(configMenu->addAction("软件配置"), &QAction::triggered, this, &MainWindow::onMenuAppCfg);
     connect(configMenu->addAction("清理日志"), &QAction::triggered, this, &MainWindow::onMenuCleanupLogs);
 
     qDebug() << "[MainWindow] Menu bar initialized";

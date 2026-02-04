@@ -62,6 +62,14 @@ bool CommonConfigUI::checkInputValid()
         return false;
     }
 
+    // 探测器点亮低于阈值则不允许进行采集
+    if (!DET.CheckBatteryStateOK())
+    {
+        errMsg = "探测器电池电量过低，请先连接探测器电源或者充电后再进行采集！";
+        emit xSignaHelper.signalShowErrorMessageBar(errMsg);
+        return false;
+    }
+
     // Check X-ray source status
     if (!IXS120BP120P366::Instance().xRayIsOn())
     {
@@ -141,12 +149,10 @@ void CommonConfigUI::initUIConnect()
     connect(&DET, &NDT1717MA::signalStatusChanged, this,
             [this]()
             {
-                qDebug() << "Detector status changed signal received.";
                 auto status = DET.Status();
                 ui.lineEdit_ChargingStatus->setText(status.Battery_ChargingStatus == 1 ? "充电中" : "未充电");
                 ui.lineEdit_Battery_Remaining->setText(QString::number(status.Battery_Remaining) + "%");
                 ui.lineEdit_connState->setText(status.Connected ? "已连接" : "未连接");
-                qDebug() << "Detector State:" << status.State;
                 if (status.State == 0)
                 {
                     ui.lineEdit_detStat->setText("未知");
@@ -163,13 +169,6 @@ void CommonConfigUI::initUIConnect()
                 {
                     ui.lineEdit_detStat->setText("休眠");
                 }
-
-                // if (!status.connected)
-                // {
-                //     // DET.Restart();
-                //     emit xSignaHelper.signalShowErrorMessageBar("探测器连接已断开，请检查连接并重启探测器后重试！",
-                //                                                 10000);
-                // }
             });
 
     connect(&DET, &NDT1717MA::signalErrorOccurred, this, [this](const QString& msg) { qDebug() << msg; });
@@ -185,6 +184,7 @@ void CommonConfigUI::initUIConnect()
                                       { IXS120BP120P366::Instance().setCurrent(ui.spinBox_targetCurrent->value()); });
                 });
     }
+
     if (auto* voltageLineEdit = ui.spinBox_targetVoltage->findChild<QLineEdit*>())
     {
         connect(voltageLineEdit, &QLineEdit::returnPressed, this,
@@ -350,7 +350,7 @@ void CommonConfigUI::changeMode(const QString& modeText)
                 setUIEnable(true);
             });
     watcher->setFuture(future);
-    future.waitForFinished();
+    // future.waitForFinished();
 }
 
 void CommonConfigUI::changeFrameRate(int nFrameRateComboboxIdx)

@@ -11,6 +11,8 @@ public:
     AppCfgDialog(QWidget* parent = nullptr);
     ~AppCfgDialog();
 
+    int getLowBatteryPercent();
+
 private:
     Ui::AppCfgDialogClass ui;
 };

@@ -54,6 +54,7 @@ private:
     void onMenuXRayConfig();
     void onMenuDetectorConfig();
     void onMenuDetectorCalibration();
+    void onMenuAppCfg();
     void onMenuCleanupLogs();
 
     // Close event handlers

@@ -22,6 +22,12 @@ AppCfgDialog::AppCfgDialog(QWidget* parent) : ElaDialog(parent)
     connect(ui.pushButton_cancel, &QPushButton::clicked, this, [this]() { this->reject(); });
 
     ElaUIHepler::ChangeToNormalStyle(this);
+    ui.spinBox_detLowBattery->setRange(20, 100);
 }
 
 AppCfgDialog::~AppCfgDialog() {}
+
+int AppCfgDialog::getLowBatteryPercent()
+{
+    return ui.spinBox_detLowBattery->value();
+}

@@ -77,6 +77,9 @@ const static int XRAY_MAX_CURRENT{1000};  // uA
 const static std::string XRAY_DEVICE_IP = "192.168.10.1";
 const static int XRAY_DEVICE_PORT = 10001;
 
+const static std::string DET_HOST_IP_WIRED = "192.168.10.101";
+const static std::string DET_HOST_IP_WIRELESS = "192.168.10.102";
+
 // inline 变量确保在所有编译单元中共享同一个实例 (C++17)
 inline bool AUTO_START_XRAY_ON_ACQ = false;
 inline bool AUTO_STOP_XRAY_ON_ACQ_STOP = false;

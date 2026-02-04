@@ -15,6 +15,7 @@
     <ClCompile Include="Components\AcqTaskManager.cpp" />
     <ClCompile Include="Components\XFileHelper.cpp" />
     <ClCompile Include="Components\XGlobal.cpp" />
+    <ClCompile Include="Components\XNetworkInfo.cpp" />
     <ClCompile Include="Components\XSignalsHelper.cpp" />
     <ClCompile Include="ElaUIHepler.cpp" />
     <ClCompile Include="ImageRender\XGraphicsScene.cpp" />
@@ -44,6 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Components\XGlobal.h" />
+    <QtMoc Include="Components\XNetworkInfo.h" />
     <QtMoc Include="UI\MainWindow.h" />
     <QtMoc Include="VJXRAY\IXS120BP120P366.h" />
     <QtMoc Include="VJXRAY\TcpClient.h" />

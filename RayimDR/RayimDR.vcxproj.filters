@@ -76,6 +76,7 @@
     <ClCompile Include="Components\XGlobal.cpp">
       <Filter>Components</Filter>
     </ClCompile>
+    <ClCompile Include="Components\XNetworkInfo.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Components\AcqTask.h">
@@ -135,6 +136,7 @@
     <QtMoc Include="UI\MainWindow.h">
       <Filter>UI</Filter>
     </QtMoc>
+    <QtMoc Include="Components\XNetworkInfo.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Components\XGlobal.h">

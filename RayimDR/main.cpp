@@ -4,12 +4,13 @@
 #include <qdatetime.h>
 #include <qtimer.h>
 #include <qthread.h>
+#include <qmessagebox.h>
 
 #include "ElaApplication.h"
 #include "UI/MainWindow.h"
-#include "Components/XGlobal.h"
 #include "IRayDetector/QtLogger.h"
-#include "VJXRAY/TcpClient.h"
+#include "Components/XNetworkInfo.h"
+#include "Components/XGlobal.h"
 
 int main(int argc, char* argv[])
 {
@@ -46,12 +47,36 @@ int main(int argc, char* argv[])
 
     QtLogger::initialize();
 
+    int connectType = -1;
+    for (const QHostAddress& addr : xNetworkInfo.getAllIPv4Addresses(false))
+    {
+        qDebug() << "addr: " << addr.toString() << " DET_HOST_IP_WIRED:" << DET_HOST_IP_WIRED << "DET_HOST_IP_WIRELESS "
+                 << DET_HOST_IP_WIRELESS;
+        if (addr.toString() == QString::fromStdString(DET_HOST_IP_WIRED))
+        {
+            qDebug() << "当前为有线连接";
+            connectType = 0;
+            break;
+        }
+        else if (addr.toString() == QString::fromStdString(DET_HOST_IP_WIRELESS))
+        {
+            qDebug() << "当前为无线连接";
+            connectType = 1;
+            break;
+        }
+    }
+
+    if (connectType != 0 && connectType != 1)
+    {
+        QMessageBox::critical(nullptr, "网络连接错误", "未检测到与探测器的网络连接，请检查网络设置后重试！",
+                              QMessageBox::Ok);
+        return 0;
+    }
+
     qDebug() << "程序运行，当前时间：" << QDateTime::currentDateTime();
     MainWindow w;
     w.setGeometry(QApplication::screens().last()->availableGeometry());
     w.showMaximized();
 
-    // 启动Qt事件循环，使信号槽机制正常工作
-    int exitCode = a.exec();
-    return exitCode;
+    return a.exec();
 }

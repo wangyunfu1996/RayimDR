@@ -35,6 +35,9 @@ CommonConfigUI::CommonConfigUI(QWidget* parent) : QWidget(parent)
     ui.label_6->setVisible(false);
     ui.lineEdit_currentPower->setVisible(false);
 
+    ui.label_18->setVisible(false);
+    ui.lineEdit_detErr->setVisible(false);
+
     initUIConnect();
 }
 
@@ -135,13 +138,41 @@ void CommonConfigUI::initUIConnect()
     connect(ui.comboBox_frameRate, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             &CommonConfigUI::changeFrameRate);
 
-    connect(&DET, &NDT1717MA::signalBatteryStatusChanged, this,
+    connect(&DET, &NDT1717MA::signalStatusChanged, this,
             [this]()
             {
+                qDebug() << "Detector status changed signal received.";
                 auto status = DET.Status();
                 ui.lineEdit_ChargingStatus->setText(status.Battery_ChargingStatus == 1 ? "充电中" : "未充电");
                 ui.lineEdit_Battery_Remaining->setText(QString::number(status.Battery_Remaining) + "%");
+                ui.lineEdit_connState->setText(status.Connected ? "已连接" : "未连接");
+                qDebug() << "Detector State:" << status.State;
+                if (status.State == 0)
+                {
+                    ui.lineEdit_detStat->setText("未知");
+                }
+                else if (status.State == 1)
+                {
+                    ui.lineEdit_detStat->setText("就绪");
+                }
+                else if (status.State == 2)
+                {
+                    ui.lineEdit_detStat->setText("忙碌");
+                }
+                else if (status.State == 3)
+                {
+                    ui.lineEdit_detStat->setText("休眠");
+                }
+
+                // if (!status.connected)
+                // {
+                //     // DET.Restart();
+                //     emit xSignaHelper.signalShowErrorMessageBar("探测器连接已断开，请检查连接并重启探测器后重试！",
+                //                                                 10000);
+                // }
             });
+
+    connect(&DET, &NDT1717MA::signalErrorOccurred, this, [this](const QString& msg) { qDebug() << msg; });
 
     // 只在按下回车键时触发，不在失去焦点时触发
     // 通过 findChild 获取 QSpinBox 内部的 QLineEdit
@@ -203,7 +234,7 @@ void CommonConfigUI::initUIConnect()
                 ui.lineEdit_errMsg->clear();
             });
 
-    connect(&IXS120BP120P366::Instance(), &IXS120BP120P366::error, this,
+    connect(&IXS120BP120P366::Instance(), &IXS120BP120P366::xrayError, this,
             [this](const QString& errorMsg)
             {
                 ui.lineEdit_errMsg->setText(errorMsg);

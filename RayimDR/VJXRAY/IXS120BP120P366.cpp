@@ -64,8 +64,8 @@ IXS120BP120P366::IXS120BP120P366(QObject* parent)
             qDebug() << "[IXS120BP120P366] Creating child objects in worker thread:" << QThread::currentThread();
 
             // Create TCP client and status query timer
-            m_tcpClient = new TcpClient(this);
-            m_statusQueryTimer = new QTimer(this);
+            m_tcpClient = new TcpClient();
+            m_statusQueryTimer = new QTimer();
 
             // Connect signals (same thread, no connection type needed)
             connect(m_tcpClient, &TcpClient::connected, this, &IXS120BP120P366::onTcpConnected);
@@ -492,7 +492,7 @@ void IXS120BP120P366::onTcpDisconnected()
 void IXS120BP120P366::onTcpError(const QString& errorMsg)
 {
     qDebug() << "[Event] TCP error:" << errorMsg;
-    emit error(errorMsg);
+    emit xrayError(errorMsg);
 }
 
 // ============================================================================

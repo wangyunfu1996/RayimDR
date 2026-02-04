@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>520</width>
-    <height>470</height>
+    <width>528</width>
+    <height>528</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -187,7 +187,7 @@
       <item row="6" column="1">
        <widget class="ElaText" name="label_15">
         <property name="text">
-         <string>预热程序：</string>
+         <string>预热程序</string>
         </property>
        </widget>
       </item>
@@ -233,37 +233,10 @@
       <string>探测器设置</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3" columnstretch="1,1,1,1,1,1">
-      <item row="3" column="2">
-       <widget class="ElaLineEdit" name="lineEdit_ChargingStatus"/>
-      </item>
-      <item row="1" column="1">
-       <widget class="ElaText" name="label_9">
-        <property name="text">
-         <string>帧率</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="4">
-       <widget class="ElaLineEdit" name="lineEdit_Battery_Remaining"/>
-      </item>
-      <item row="0" column="1">
-       <widget class="ElaText" name="label_7">
-        <property name="text">
-         <string>模式</string>
-        </property>
-       </widget>
-      </item>
       <item row="3" column="1">
        <widget class="ElaText" name="label_10">
         <property name="text">
-         <string>充电状态：</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="3">
-       <widget class="ElaText" name="label_11">
-        <property name="text">
-         <string>当前电量：</string>
+         <string>充电状态</string>
         </property>
        </widget>
       </item>
@@ -280,6 +253,25 @@
         </property>
        </spacer>
       </item>
+      <item row="3" column="4">
+       <widget class="ElaLineEdit" name="lineEdit_Battery_Remaining"/>
+      </item>
+      <item row="4" column="2">
+       <widget class="ElaLineEdit" name="lineEdit_connState"/>
+      </item>
+      <item row="3" column="3">
+       <widget class="ElaText" name="label_11">
+        <property name="text">
+         <string>当前电量</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="ElaComboBox" name="comboBox_frameRate"/>
+      </item>
+      <item row="1" column="4">
+       <widget class="ElaComboBox" name="comboBox_stakcedNum"/>
+      </item>
       <item row="0" column="5">
        <spacer name="horizontalSpacer_2">
         <property name="orientation">
@@ -293,8 +285,29 @@
         </property>
        </spacer>
       </item>
-      <item row="1" column="2">
-       <widget class="ElaComboBox" name="comboBox_frameRate"/>
+      <item row="3" column="2">
+       <widget class="ElaLineEdit" name="lineEdit_ChargingStatus"/>
+      </item>
+      <item row="4" column="1">
+       <widget class="ElaText" name="label_16">
+        <property name="text">
+         <string>连接状态</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="ElaText" name="label_7">
+        <property name="text">
+         <string>模式</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="ElaText" name="label_9">
+        <property name="text">
+         <string>帧率</string>
+        </property>
+       </widget>
       </item>
       <item row="1" column="3">
        <widget class="ElaText" name="label_8">
@@ -302,9 +315,6 @@
          <string>叠加帧数</string>
         </property>
        </widget>
-      </item>
-      <item row="1" column="4">
-       <widget class="ElaComboBox" name="comboBox_stakcedNum"/>
       </item>
       <item row="0" column="2" colspan="3">
        <widget class="ElaComboBox" name="comboBox_mode">
@@ -329,6 +339,26 @@
          </property>
         </item>
        </widget>
+      </item>
+      <item row="4" column="3">
+       <widget class="ElaText" name="label_17">
+        <property name="text">
+         <string>运行状态</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="4">
+       <widget class="ElaLineEdit" name="lineEdit_detStat"/>
+      </item>
+      <item row="5" column="1">
+       <widget class="ElaText" name="label_18">
+        <property name="text">
+         <string>错误信息</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="2" colspan="3">
+       <widget class="ElaLineEdit" name="lineEdit_detErr"/>
       </item>
      </layout>
     </widget>

@@ -71,7 +71,7 @@ public:
 signals:
     void connected();
     void disconnected();
-    void error(const QString& errorMsg);
+    void xrayError(const QString& errorMsg);
     void statusUpdated(const XRaySourceStatus& status);
 
 private slots:

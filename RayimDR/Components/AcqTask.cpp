@@ -103,7 +103,7 @@ void AcqTask::onErrorOccurred(const QString& msg)
     qCritical() << "[错误] 采集失败 - 消息:" << msg << ", 时间:" << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz") << ", 线程:" << QThread::currentThreadId() << ", 已接收:" << nReceivedIdx.load() << ", 已处理:" << nProcessedStacekd.load() << ", 缓冲大小:" << AcqTaskManager::Instance().stackedImageList.size();
 
     bStopRequested.store(true);
-    emit AcqTaskManager::Instance().signalAcqStatusMsg(msg, 1);
+    emit AcqTaskManager::Instance().signalAcqErr(msg);
 }
 
 void AcqTask::onProgressChanged(const QString& msg)
@@ -115,7 +115,7 @@ void AcqTask::onProgressChanged(const QString& msg)
                 << "(" << nReceivedIdx.load() << "/" << acqCondition.frame << ")";
         lastLogTime.start();
     }
-    emit AcqTaskManager::Instance().signalAcqStatusMsg(msg, 0);
+    emit AcqTaskManager::Instance().signalAcqProgressChanged(msg);
 }
 
 void AcqTask::startAcq()

@@ -103,7 +103,4 @@ void XElaDialog::moveToCurrentScreen()
 
     // 移动弹窗
     this->move(x, y);
-
-    qDebug() << "弹窗定位 - 屏幕:" << currentScreen->name() << "位置(" << x << "," << y << ") "
-             << "屏幕哲学:" << screenGeometry;
 }

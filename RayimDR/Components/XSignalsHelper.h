@@ -20,6 +20,6 @@ public:
 
 signals:
     void signalUpdateStatusInfo(const QString& msg);
-    void signalShowErrorMessageBar(const QString& msg);
-    void signalShowSuccessMessageBar(const QString& msg);
+    void signalShowErrorMessageBar(const QString& msg, int time = 3000);
+    void signalShowSuccessMessageBar(const QString& msg, int time = 3000);
 };

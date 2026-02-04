@@ -152,7 +152,18 @@ void MainWindow::setupConnections()
     connect(&xSignaHelper, &XSignalsHelper::signalUpdateStatusInfo, this, &MainWindow::updateStatusText);
     connect(&xSignaHelper, &XSignalsHelper::signalShowErrorMessageBar, this, &MainWindow::onErrorMessageBar);
     connect(&xSignaHelper, &XSignalsHelper::signalShowSuccessMessageBar, this, &MainWindow::onSuccessMessageBar);
-
+    connect(&DET, &NDT1717MA::signalStatusChanged, this,
+            [this]()
+            {
+                auto status = DET.Status();
+                if (!status.Connected)
+                {
+                    XElaDialog dialog("探测器连接已断开，请检查连接，重启探测器，并重新启动本程序",
+                                      XElaDialogType::ERR);
+                    dialog.showCentered();
+                    this->close();
+                }
+            });
     // Graphics view and adjustment tool connections
     connect(_XImageAdjustTool, &XImageAdjustTool::signalAdjustWL, _XGraphicsView, &XGraphicsView::setWindowLevel);
     connect(_XImageAdjustTool, &XImageAdjustTool::signalSetROIEnable, _XGraphicsView, &XGraphicsView::setROIEnable);
@@ -171,7 +182,9 @@ void MainWindow::setupConnections()
     connect(&AcqTaskManager::Instance(), &AcqTaskManager::signalAcqTaskStopped, this, &MainWindow::onAcqStopped);
     connect(&AcqTaskManager::Instance(), &AcqTaskManager::signalAcqTaskReceivedIdxChanged, this,
             &MainWindow::onAcqImageReceived);
-    connect(&AcqTaskManager::Instance(), &AcqTaskManager::signalAcqStatusMsg, this, &MainWindow::onAcqStatusMessage);
+    connect(&AcqTaskManager::Instance(), &AcqTaskManager::signalAcqErr, this, &MainWindow::onAcqErr);
+    connect(&AcqTaskManager::Instance(), &AcqTaskManager::signalAcqProgressChanged, this,
+            &MainWindow::onAcqProgressChanged);
 
     // Image helper connections
     connect(&XImageHelper::Instance(), &XImageHelper::signalOpenImageFolderProgressChanged, this,
@@ -210,23 +223,25 @@ void MainWindow::onCloseDialogConfirmed()
 // Signal Handlers
 // ============================================================================
 
-void MainWindow::onErrorMessageBar(const QString& msg)
+void MainWindow::onErrorMessageBar(const QString& msg, int displayMsec)
 {
+    ElaMessageBar::error(ElaMessageBarType::TopRight, "错误", msg, displayMsec);
+}
+
+void MainWindow::onSuccessMessageBar(const QString& msg, int displayMsec)
+{
+    ElaMessageBar::success(ElaMessageBarType::TopRight, "成功", msg, displayMsec);
+}
+
+void MainWindow::onAcqErr(const QString& msg)
+{
+    updateStatusText(msg);
     ElaMessageBar::error(ElaMessageBarType::TopRight, "错误", msg, 4000);
 }
 
-void MainWindow::onSuccessMessageBar(const QString& msg)
-{
-    ElaMessageBar::success(ElaMessageBarType::TopRight, "成功", msg, 4000);
-}
-
-void MainWindow::onAcqStatusMessage(const QString& msg, int errorCode)
+void MainWindow::onAcqProgressChanged(const QString& msg)
 {
     updateStatusText(msg);
-    if (errorCode == 1)
-    {
-        ElaMessageBar::error(ElaMessageBarType::TopRight, "错误", msg, 4000);
-    }
 }
 
 void MainWindow::onImageFolderProgressChanged(int progress)
@@ -238,10 +253,18 @@ void MainWindow::onXRayStopRequested()
 {
     qDebug() << "[MainWindow] X-ray stop requested";
 
-    XElaDialog dialog("采集结束，是否关闭射线源？", XElaDialogType::ASK);
-    if (dialog.showCentered() == QDialog::Accepted)
+    // 检查当前是否已经开启射线源
+    if (IXS120BP120P366::Instance().xRayIsOn())
     {
-        IXS120BP120P366::Instance().stopXRay();
+        XElaDialog dialog("采集结束，是否关闭射线源？", XElaDialogType::ASK);
+        if (dialog.showCentered() == QDialog::Accepted)
+        {
+            IXS120BP120P366::Instance().stopXRay();
+        }
+    }
+    else
+    {
+        qDebug() << "[MainWindow] X-ray is already off, no action needed";
     }
 }
 

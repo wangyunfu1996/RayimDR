@@ -61,9 +61,10 @@ private:
     void onCloseDialogConfirmed();
 
     // Signal handlers
-    void onErrorMessageBar(const QString& msg);
-    void onSuccessMessageBar(const QString& msg);
-    void onAcqStatusMessage(const QString& msg, int errorCode);
+    void onErrorMessageBar(const QString& msg, int displayMsec);
+    void onSuccessMessageBar(const QString& msg, int displayMsec);
+    void onAcqErr(const QString& msg);
+    void onAcqProgressChanged(const QString& msg);
     void onImageFolderProgressChanged(int progress);
     void onXRayStopRequested();
 

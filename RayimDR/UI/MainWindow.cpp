@@ -678,7 +678,6 @@ void MainWindow::connectToDet()
     QThread::currentThread()->msleep(1000);
     emit xSignaHelper.signalUpdateStatusInfo("探测器已连接");
     emit xSignaHelper.signalShowSuccessMessageBar("探测器已连接");
-
 #elif DET_TYPE == DET_TYPE_IRAY
     if (!DET.Initialize())
     {

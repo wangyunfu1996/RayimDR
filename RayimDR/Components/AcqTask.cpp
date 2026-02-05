@@ -186,54 +186,7 @@ void AcqTask::startAcq()
 
     int totalStackFrames = (acqCondition.stackedFrame == 0) ? 1 : (1 + acqCondition.stackedFrame);
     qDebug() << "[初始化] 堆栈配置: 需要采集" << totalStackFrames << "帧进行叠加";
-
-#if DET_TYPE == DET_TYPE_VIRTUAL
-    int width{0};
-    int height{0};
-    if (acqCondition.mode == "Mode5")
-    {
-        width = DET_WIDTH_1X1;
-        height = DET_HEIGHT_1X1;
-        qDebug() << "[虚拟模式] 检测器: 1X1, 分辨率:" << width << "x" << height;
-    }
-    else if (acqCondition.mode == "Mode6")
-    {
-        width = DET_WIDTH_2X2;
-        height = DET_HEIGHT_2X2;
-        qDebug() << "[虚拟模式] 检测器: 2X2, 分辨率:" << width << "x" << height;
-    }
-    else
-    {
-        qWarning() << "[虚拟模式] 未知模式:" << acqCondition.mode.c_str();
-    }
-
-    qDebug() << "[虚拟模式] 预期帧数:" << acqCondition.frame << ", 帧间隔:" << (1000 / acqCondition.frameRate)
-             << "ms, 开始采集...";
-
-    int frameCount = 0;
-    do
-    {
-        if (frameCount % 10 == 0)
-        {
-            qDebug() << "[虚拟采集] 进度: 已采集" << frameCount << "帧";
-        }
-
-        QSharedPointer<QImage> image =
-            QSharedPointer<QImage>::create(XImageHelper::generateRandomGaussianGrayImage(width, height));
-        int grayValue = 400 + QRandomGenerator::global()->bounded(100);
-
-        onImageReceived(image, nReceivedIdx.load(), grayValue);
-        nReceivedIdx.fetch_add(1);
-        frameCount++;
-
-        QThread::msleep(1000 / acqCondition.frameRate);
-    } while (!bStopRequested.load());
-
-    qDebug() << "[虚拟采集] 完成, 总帧数:" << frameCount;
-
-#elif DET_TYPE == DET_TYPE_IRAY
     qDebug() << "[硬件采集] 准备启动, 修改工作模式为:" << acqCondition.mode.c_str();
-
     if (!DET.UpdateMode(acqCondition.mode))
     {
         QString errMsg = "修改探测器的工作模式失败";
@@ -287,7 +240,6 @@ void AcqTask::startAcq()
              << "帧, 处理:" << nProcessedStacekd.load() << "帧";
 
     return;
-#endif
 }
 
 void AcqTask::stopAcq()
@@ -321,10 +273,7 @@ void AcqTask::onImageReceived(QSharedPointer<QImage> image, int idx, int grayVal
     {
         qDebug() << "[接收] idx=" << idx << ", 已采集足够数据, 处理数:" << nProcessedStacekd.load() << ", 停止采集";
         bStopRequested.store(true);
-#if DET_TYPE == DET_TYPE_VIRTUAL
-#elif DET_TYPE == DET_TYPE_IRAY
         DET.StopAcq();
-#endif
         return;
     }
 

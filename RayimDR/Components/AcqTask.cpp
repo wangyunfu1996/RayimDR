@@ -38,7 +38,7 @@ void AcqTask::processStackedFrames(const QVector<QImage>& imagesToStack)
              << ", 帧数:" << imagesToStack.size();
 
     // Execute stacking in background thread
-    QtConcurrent::run(
+    auto future = QtConcurrent::run(
         [this, imagesToStack, vecIdx, processStartTime]()
         {
             QImage stackedImage = stackImages(imagesToStack);
@@ -136,6 +136,15 @@ void AcqTask::processStackedFrames(const QVector<QImage>& imagesToStack)
             emit AcqTaskManager::Instance().signalAcqTaskReceivedIdxChanged(acqCondition, nProcessedStacekd.load());
             nProcessedStacekd.fetch_add(1);
         });
+
+    auto* watcher = new QFutureWatcher<void>(this);
+    connect(watcher, &QFutureWatcher<void>::finished, this,
+            [this, watcher]()
+            {
+                qDebug() << "[异步处理] 处理任务完成信号接收";
+                watcher->deleteLater();
+            });
+    watcher->setFuture(future);
 }
 
 void AcqTask::onErrorOccurred(const QString& msg)

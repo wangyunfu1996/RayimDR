@@ -191,8 +191,11 @@ void CommonConfigUI::initUIConnect()
         connect(currentLineEdit, &QLineEdit::returnPressed, this,
                 [this]()
                 {
-                    QtConcurrent::run([this]()
-                                      { IXS120BP120P366::Instance().setCurrent(ui.spinBox_targetCurrent->value()); });
+                    auto future = QtConcurrent::run(
+                        [this]() { IXS120BP120P366::Instance().setCurrent(ui.spinBox_targetCurrent->value()); });
+                    auto* watcher = new QFutureWatcher<void>(this);
+                    connect(watcher, &QFutureWatcher<void>::finished, this,
+                            [this, watcher]() { watcher->deleteLater(); });
                 });
     }
 
@@ -201,8 +204,11 @@ void CommonConfigUI::initUIConnect()
         connect(voltageLineEdit, &QLineEdit::returnPressed, this,
                 [this]()
                 {
-                    QtConcurrent::run([this]()
-                                      { IXS120BP120P366::Instance().setVoltage(ui.spinBox_targetVoltage->value()); });
+                    auto future = QtConcurrent::run(
+                        [this]() { IXS120BP120P366::Instance().setVoltage(ui.spinBox_targetVoltage->value()); });
+                    auto* watcher = new QFutureWatcher<void>(this);
+                    connect(watcher, &QFutureWatcher<void>::finished, this,
+                            [this, watcher]() { watcher->deleteLater(); });
                 });
     }
 

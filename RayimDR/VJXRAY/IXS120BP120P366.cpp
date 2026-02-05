@@ -33,7 +33,7 @@ const std::string CMD_STAT = "STAT";        // X-ray is on or off
 
 // Protocol parameters
 constexpr int DEFAULT_TIMEOUT = 3000;       // milliseconds
-constexpr int STATUS_QUERY_TIMEOUT = 1000;  // milliseconds
+constexpr int STATUS_QUERY_TIMEOUT = 3000;  // milliseconds
 }  // namespace
 
 // ============================================================================
@@ -546,6 +546,7 @@ XRaySourceStatus IXS120BP120P366::getCurrentStatus() const
 
 void IXS120BP120P366::onQueryStatus()
 {
+    qDebug() << "[StatusQuery] Querying status from X-ray source";
     if (!m_statusQueryEnabled || !isConnected())
     {
         return;

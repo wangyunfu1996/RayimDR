@@ -666,7 +666,7 @@ void IXS120BP120P366::parseMONResponse(const QString& response)
     {
         vdc = vdcRaw / 100.0;
     }
-    m_currentStatus.battery = vdc;
+    m_currentStatus.vdc = vdc;
 }
 
 void IXS120BP120P366::parseFTLResponse(const QString& response)

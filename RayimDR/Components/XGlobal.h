@@ -107,6 +107,13 @@ public:
     bool SEND_SUBFRAME_FRAME_ON_ACQ = true;
 
     int DET_LOW_BATTERY_THRESHOLD = 20;  // 探测器低电量阈值，百分比
+
+    // 1 2 3 4 的含义为 射线源自带的软件通过VDC的阈值判断当前还剩几格电，剩一格电时开光会报错
+    int XRAY_LOW_BATTERY_THRESHOLD_1 = 20;  // 根据射线源的VDC判断
+    int XRAY_LOW_BATTERY_THRESHOLD_2 = 21;  // 根据射线源的VDC判断
+    int XRAY_LOW_BATTERY_THRESHOLD_3 = 22;  // 根据射线源的VDC判断
+    int XRAY_LOW_BATTERY_THRESHOLD_4 = 23;  // 根据射线源的VDC判断
+
 private:
     // 私有构造函数
     XGlobal() = default;

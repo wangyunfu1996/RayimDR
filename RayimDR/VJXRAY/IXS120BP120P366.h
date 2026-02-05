@@ -16,8 +16,8 @@ struct XRaySourceStatus
     double voltage;          // Current voltage in kV
     double current;          // Current in uA
     double temperature;      // Temperature in Celsius
-    double filamentCurrent;  // Filament current in uA
-    double battery;
+    double filamentCurrent;  // Filament current in A
+    double vdc;              // kVoltage in VDC
     std::vector<int> faultBits;
     int interlock;  // Interlock status
 };

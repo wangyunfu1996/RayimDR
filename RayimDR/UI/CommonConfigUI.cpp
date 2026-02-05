@@ -46,23 +46,36 @@ CommonConfigUI::~CommonConfigUI() {}
 bool CommonConfigUI::checkInputValid()
 {
     QString errMsg;
-    if (ui.spinBox_targetVoltage->value() > xGlobal.XRAY_MAX_VOLTAGE || ui.spinBox_targetVoltage->value() < xGlobal.XRAY_MIN_VOLTAGE)
+    if (ui.spinBox_targetVoltage->value() > xGlobal.XRAY_MAX_VOLTAGE ||
+        ui.spinBox_targetVoltage->value() < xGlobal.XRAY_MIN_VOLTAGE)
     {
-        errMsg = QString("设置的电压值必须在 %1kV - %2kV 之间").arg(xGlobal.XRAY_MIN_VOLTAGE).arg(xGlobal.XRAY_MAX_VOLTAGE);
+        errMsg =
+            QString("设置的电压值必须在 %1kV - %2kV 之间").arg(xGlobal.XRAY_MIN_VOLTAGE).arg(xGlobal.XRAY_MAX_VOLTAGE);
         qDebug() << errMsg;
         emit xSignaHelper.signalShowErrorMessageBar(errMsg);
         return false;
     }
 
-    if (ui.spinBox_targetCurrent->value() > xGlobal.XRAY_MAX_CURRENT || ui.spinBox_targetCurrent->value() < xGlobal.XRAY_MIN_CURRENT)
+    if (ui.spinBox_targetCurrent->value() > xGlobal.XRAY_MAX_CURRENT ||
+        ui.spinBox_targetCurrent->value() < xGlobal.XRAY_MIN_CURRENT)
     {
-        errMsg = QString("设置的电流值必须在 %1uA - %2uA 之间").arg(xGlobal.XRAY_MIN_CURRENT).arg(xGlobal.XRAY_MAX_CURRENT);
+        errMsg =
+            QString("设置的电流值必须在 %1uA - %2uA 之间").arg(xGlobal.XRAY_MIN_CURRENT).arg(xGlobal.XRAY_MAX_CURRENT);
         qDebug() << errMsg;
         emit xSignaHelper.signalShowErrorMessageBar(errMsg);
         return false;
     }
+    // 如果射线源电压低则不允许进行采集
 
-    // 探测器点亮低于阈值则不允许进行采集
+    auto xRayStatus = IXS120BP120P366::Instance().getCurrentStatus();
+    if (xRayStatus.vdc < xGlobal.XRAY_LOW_BATTERY_THRESHOLD_2)
+    {
+        errMsg = "射线源电池电量过低，请先连接射线源电源或者充电后再进行采集！";
+        emit xSignaHelper.signalShowErrorMessageBar(errMsg);
+        return false;
+    }
+
+    // 探测器电量低于阈值则不允许进行采集
     if (!DET.CheckBatteryStateOK())
     {
         errMsg = "探测器电池电量过低，请先连接探测器电源或者充电后再进行采集！";
@@ -231,7 +244,13 @@ void CommonConfigUI::initUIConnect()
                     ui.lineEdit_interlock->setText("互锁激活");
                     ui.lineEdit_interlock->setStyleSheet("QLineEdit { color: red; }");
                 }
-                ui.lineEdit_vdc->setText(QString::number(status.battery, 'f', 2) + " V");
+                ui.lineEdit_vdc->setText(QString::number(status.vdc, 'f', 2) + " V");
+
+                if (status.vdc < xGlobal.XRAY_LOW_BATTERY_THRESHOLD_2)
+                {
+                    QString msg = QString("射线源电源电压过低，请进行充电！");
+                    ui.lineEdit_errMsg->setText(msg);
+                }
             });
 
     connect(ui.pushButton_startXRay, &QPushButton::clicked, this,

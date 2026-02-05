@@ -347,9 +347,7 @@ void MainWindow::onMenuAppCfg()
     AppCfgDialog dialog;
     if (dialog.exec() == QDialog::Accepted)
     {
-        DET.SetLowBatteryPercent(dialog.getLowBatteryPercent());
-        xGlobal.AUTO_START_XRAY_ON_ACQ = dialog.getAutoStartXrayOnAcq();
-        xGlobal.AUTO_STOP_XRAY_ON_ACQ_STOP = dialog.getAutoStopXrayOnAcqStop();
+        DET.SetLowBatteryPercent(xGlobal.DET_LOW_BATTERY_THRESHOLD);
     }
 }
 

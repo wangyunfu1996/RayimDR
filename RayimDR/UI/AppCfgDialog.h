@@ -11,10 +11,6 @@ public:
     AppCfgDialog(QWidget* parent = nullptr);
     ~AppCfgDialog();
 
-    int getLowBatteryPercent();
-    bool getAutoStartXrayOnAcq();
-    bool getAutoStopXrayOnAcqStop();
-
 private:
     Ui::AppCfgDialogClass ui;
 };

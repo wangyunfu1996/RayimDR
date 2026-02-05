@@ -87,7 +87,6 @@ public:
     int DET_HEIGHT_1X1{4300};
     int IMAGE_BUFFER_SIZE{10};
 
-
     int XRAY_MIN_VOLTAGE{30};    // kV
     int XRAY_MAX_VOLTAGE{120};   // kV
     int XRAY_MIN_CURRENT{200};   // uA
@@ -107,6 +106,7 @@ public:
     // 采集时发送子帧数据
     bool SEND_SUBFRAME_FRAME_ON_ACQ = true;
 
+    int DET_LOW_BATTERY_THRESHOLD = 20;  // 探测器低电量阈值，百分比
 private:
     // 私有构造函数
     XGlobal() = default;

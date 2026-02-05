@@ -112,18 +112,6 @@ void AcqTaskManager::updateAcqDetMode(std::string mode)
     acqCondition->mode = mode;
 }
 
-void AcqTaskManager::updateFlipHorizontal(bool enable)
-{
-    acqCondition->enableFlipHorizontal = enable;
-    qDebug() << "[配置更新] 水平翻转:" << (enable ? "启用" : "禁用");
-}
-
-void AcqTaskManager::updateFlipVertical(bool enable)
-{
-    acqCondition->enableFlipVertical = enable;
-    qDebug() << "[配置更新] 垂直翻转:" << (enable ? "启用" : "禁用");
-}
-
 QImage AcqTaskManager::receivedImage(int idx)
 {
     if (idx < 0)

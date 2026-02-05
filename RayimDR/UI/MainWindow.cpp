@@ -162,7 +162,17 @@ void MainWindow::setupConnections()
                     dialog.showCentered();
                     this->close();
                 }
+
+                if (!status.Connected || status.State != 1)
+                {
+                    enableAcq(false);
+                }
+                else
+                {
+                    enableAcq(!AcqTaskManager::Instance().isAcquiring());
+                }
             });
+
     // Graphics view and adjustment tool connections
     connect(_XImageAdjustTool, &XImageAdjustTool::signalAdjustWL, _XGraphicsView, &XGraphicsView::setWindowLevel);
     connect(_XImageAdjustTool, &XImageAdjustTool::signalSetROIEnable, _XGraphicsView, &XGraphicsView::setROIEnable);
@@ -280,6 +290,13 @@ void MainWindow::onXRayStopRequested()
     {
         qDebug() << "[MainWindow] X-ray is already off, no action needed";
     }
+}
+
+void MainWindow::enableAcq(bool enable)
+{
+    toolButtonDR->setEnabled(enable);
+    toolButtonDRMulti->setEnabled(enable);
+    toolButtonRealTimeDR->setEnabled(enable);
 }
 
 // ============================================================================

@@ -69,6 +69,8 @@ private:
     void onImageFolderProgressChanged(int progress);
     void onXRayStopRequested();
 
+    void enableAcq(bool enable);
+
 private:
     ElaContentDialog* _closeDialog{nullptr};
     ElaText* _statusText{nullptr};

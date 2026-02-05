@@ -32,8 +32,6 @@ public:
     void updateAcqFrame(int frame);
     void updateAcqStackedFrame(int stackedFrame);
     void updateAcqDetMode(std::string mode);
-    void updateFlipHorizontal(bool enable);
-    void updateFlipVertical(bool enable);
     QImage receivedImage(int idx);
 
 signals:

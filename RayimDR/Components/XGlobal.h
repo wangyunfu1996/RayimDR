@@ -30,10 +30,6 @@ struct AcqCondition
     bool saveToFiles{false};
     QString savePath;
     QString saveType;
-
-    // 图像翻转和镜像选项
-    bool enableFlipHorizontal{true};  // 水平翻转（镜像）
-    bool enableFlipVertical{false};   // 垂直翻转（上下翻转）
 };
 
 // 重载 QDebug 输出运算符
@@ -113,6 +109,9 @@ public:
     int XRAY_LOW_BATTERY_THRESHOLD_2 = 21;  // 根据射线源的VDC判断
     int XRAY_LOW_BATTERY_THRESHOLD_3 = 22;  // 根据射线源的VDC判断
     int XRAY_LOW_BATTERY_THRESHOLD_4 = 23;  // 根据射线源的VDC判断
+
+    bool FLIP_HORIZONTAL = true;
+    bool FLIP_VERTICAL = false;
 
 private:
     // 私有构造函数

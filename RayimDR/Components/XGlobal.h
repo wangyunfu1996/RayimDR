@@ -21,6 +21,10 @@ struct AcqCondition
     bool saveToFiles{false};
     QString savePath;
     QString saveType;
+
+    // 图像翻转和镜像选项
+    bool enableFlipHorizontal{true};  // 水平翻转（镜像）
+    bool enableFlipVertical{false};   // 垂直翻转（上下翻转）
 };
 
 // 重载 QDebug 输出运算符
@@ -84,4 +88,4 @@ const static std::string DET_HOST_IP_WIRELESS = "192.168.10.102";
 inline bool AUTO_START_XRAY_ON_ACQ = false;
 inline bool AUTO_STOP_XRAY_ON_ACQ_STOP = false;
 
-//const static std::string NDT1717MA_WORK_DIR = "D:\\NDT1717MA";
+// const static std::string NDT1717MA_WORK_DIR = "D:\\NDT1717MA";

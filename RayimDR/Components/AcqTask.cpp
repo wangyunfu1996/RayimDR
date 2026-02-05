@@ -49,6 +49,41 @@ void AcqTask::processStackedFrames(const QVector<QImage>& imagesToStack)
                 return;
             }
 
+
+            // 在此处增加一个可选的 是否对图像进行翻转和镜像
+            if (acqCondition.enableFlipHorizontal || acqCondition.enableFlipVertical)
+            {
+                qint64 transformStartTime = QDateTime::currentMSecsSinceEpoch();
+
+                qDebug() << "[图像变换] 开始处理 - 水平翻转:" << (acqCondition.enableFlipHorizontal ? "是" : "否")
+                         << ", 垂直翻转:" << (acqCondition.enableFlipVertical ? "是" : "否");
+
+                // 执行图像变换
+                if (acqCondition.enableFlipHorizontal && acqCondition.enableFlipVertical)
+                {
+                    // 水平+垂直翻转 = 旋转180度
+                    stackedImage = stackedImage.flipped(Qt::Horizontal | Qt::Vertical);
+                    qDebug() << "[图像变换] 执行: 水平+垂直翻转 (旋转180度)";
+                }
+                else if (acqCondition.enableFlipHorizontal)
+                {
+                    // 仅水平翻转（镜像）
+                    stackedImage = stackedImage.flipped(Qt::Horizontal);
+                    qDebug() << "[图像变换] 执行: 水平翻转（左右镜像）";
+                }
+                else if (acqCondition.enableFlipVertical)
+                {
+                    // 仅垂直翻转（上下翻转）
+                    stackedImage = stackedImage.flipped(Qt::Vertical);
+                    qDebug() << "[图像变换] 执行: 垂直翻转（上下翻转）";
+                }
+
+                qint64 transformTime = QDateTime::currentMSecsSinceEpoch() - transformStartTime;
+                qDebug() << "[图像变换] 完成, 耗时:" << transformTime << "ms, 结果尺寸:" << stackedImage.width() << "x"
+                         << stackedImage.height();
+            }
+            // 可选操作结束
+
             AcqTaskManager::Instance().receivedImageList[vecIdx] = stackedImage;
             qDebug() << "[异步处理] 叠加完成, 结果尺寸:" << stackedImage.width() << "x" << stackedImage.height()
                      << ", 缓冲索引:" << vecIdx;
@@ -135,7 +170,9 @@ void AcqTask::startAcq()
              << ", 工作模式:" << acqCondition.mode.c_str() << ", 帧数:" << acqCondition.frame
              << (acqCondition.frame == INT_MAX ? " (连续)" : "") << ", 帧率:" << acqCondition.frameRate
              << "fps, 叠加:" << acqCondition.stackedFrame << ", 电压:" << acqCondition.voltage
-             << "kV, 电流:" << acqCondition.current << "mA, 保存:" << (acqCondition.saveToFiles ? "是" : "否");
+             << "kV, 电流:" << acqCondition.current << "mA, 保存:" << (acqCondition.saveToFiles ? "是" : "否")
+             << ", 水平翻转:" << (acqCondition.enableFlipHorizontal ? "是" : "否")
+             << ", 垂直翻转:" << (acqCondition.enableFlipVertical ? "是" : "否");
 
     if (acqCondition.saveToFiles)
     {

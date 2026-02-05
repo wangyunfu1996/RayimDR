@@ -2,7 +2,6 @@
 
 #include <QThread>
 #include <QPointer>
-#include <QSharedPointer>
 
 #include "XGlobal.h"
 
@@ -21,7 +20,7 @@ protected:
     virtual void run() override;
 
 private:
-    void onImageReceived(QSharedPointer<QImage> image, int idx, int grayValue);
+    void onImageReceived(QImage image, int idx, int grayValue);
     QImage stackImages(const QVector<QImage>& images);
     void processStackedFrames(const QVector<QImage>& imagesToStack);
     void onErrorOccurred(const QString& msg);

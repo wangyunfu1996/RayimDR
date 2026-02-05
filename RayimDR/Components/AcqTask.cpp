@@ -261,7 +261,7 @@ void AcqTask::run()
     startAcq();
 }
 
-void AcqTask::onImageReceived(QSharedPointer<QImage> image, int idx, int grayValue)
+void AcqTask::onImageReceived(QImage image, int idx, int grayValue)
 {
     if (bStopRequested.load())
     {
@@ -277,19 +277,19 @@ void AcqTask::onImageReceived(QSharedPointer<QImage> image, int idx, int grayVal
         return;
     }
 
-    if (!image)
+    if (image.isNull())
     {
         qCritical() << "[接收] idx=" << idx << ", 接收到空指针";
         return;
     }
 
-    if (image->width() <= 0 || image->height() <= 0)
+    if (image.width() <= 0 || image.height() <= 0)
     {
-        qWarning() << "[接收] idx=" << idx << ", 图像尺寸异常:" << image->width() << "x" << image->height();
+        qWarning() << "[接收] idx=" << idx << ", 图像尺寸异常:" << image.width() << "x" << image.height();
         return;
     }
 
-    AcqTaskManager::Instance().stackedImageList.append(*image);
+    AcqTaskManager::Instance().stackedImageList.append(image);
     nReceivedIdx.fetch_add(1);
 
     int currentBufferSize = AcqTaskManager::Instance().stackedImageList.size();
@@ -299,7 +299,7 @@ void AcqTask::onImageReceived(QSharedPointer<QImage> image, int idx, int grayVal
     if (nReceivedIdx.load() % 10 == 0 || currentBufferSize == 1)
     {
         qDebug() << "[接收] idx=" << idx << ", 缓冲:" << currentBufferSize << "/" << expectedStackCount
-                 << ", 尺寸:" << image->width() << "x" << image->height() << ", 灰度:" << grayValue
+                 << ", 尺寸:" << image.width() << "x" << image.height() << ", 灰度:" << grayValue
                  << ", 累计:" << nReceivedIdx.load() << "帧";
     }
 

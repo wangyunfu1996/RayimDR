@@ -2,7 +2,6 @@
 
 #include "ElaDialog.h"
 #include "ui_CreateCorrectTemplateDlg.h"
-#include <QSharedPointer>
 
 class CreateCorrectTemplateDlg : public ElaDialog
 {
@@ -13,35 +12,35 @@ public:
     ~CreateCorrectTemplateDlg();
 
 private:
-// Calibration workflow methods
-void Abort();
-void Offset();   // Dark field calibration
-void Gain();     // Bright field calibration
-void Defect();   // Defect calibration
+    // Calibration workflow methods
+    void Abort();
+    void Offset();  // Dark field calibration
+    void Gain();    // Bright field calibration
+    void Defect();  // Defect calibration
 
-// UI helper methods
-void ShowTips(const QString& msg);
-void ModifyGainVoltageCurrent(int voltage, int current);
-void ModifyDefectVoltageCurrent(int voltage, int current);
-void ModifyMode(int modeIdx);
+    // UI helper methods
+    void ShowTips(const QString& msg);
+    void ModifyGainVoltageCurrent(int voltage, int current);
+    void ModifyDefectVoltageCurrent(int voltage, int current);
+    void ModifyMode(int modeIdx);
 
-// Initialization helper methods
-void initializeWindow();
-void initializeGraphicsViews();
-void initializeControls();
-void connectSignals();
-void initializeDetectorMode();
+    // Initialization helper methods
+    void initializeWindow();
+    void initializeGraphicsViews();
+    void initializeControls();
+    void connectSignals();
+    void initializeDetectorMode();
 
-// X-ray source control helpers
-void startXRaySource(int voltage, int current);
-void stopXRaySource();
-void adjustCurrentUntilTargetGray(int& currentValue, int targetGray, int ptst);
+    // X-ray source control helpers
+    void startXRaySource(int voltage, int current);
+    void stopXRaySource();
+    void adjustCurrentUntilTargetGray(int& currentValue, int targetGray, int ptst);
 
 private:
     void onOffsetImageSelected(int nTotal, int nValid);
-    void onGainAcqImageReceived(QSharedPointer<QImage> image, int idx, int grayValue);
+    void onGainAcqImageReceived(QImage image, int idx, int grayValue);
     void onGainImageSelected(int nTotal, int nValid);
-    void onDefectAcqImageReceived(QSharedPointer<QImage> image, int idx, int grayValue);
+    void onDefectAcqImageReceived(QImage image, int idx, int grayValue);
     void onDefectGroupChanged(int groupIdx, int nTotalGroup);
     void onDefectImageSelected(int nTotal, int nValid);
 

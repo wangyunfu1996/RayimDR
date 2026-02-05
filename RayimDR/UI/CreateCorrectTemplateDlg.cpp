@@ -690,24 +690,24 @@ void CreateCorrectTemplateDlg::onDefectImageSelected(int total, int valid)
 // Event Handlers - Image Acquisition
 // ============================================================================
 
-void CreateCorrectTemplateDlg::onGainAcqImageReceived(QSharedPointer<QImage> image, int idx, int grayValue)
+void CreateCorrectTemplateDlg::onGainAcqImageReceived(QImage image, int idx, int grayValue)
 {
     // Update preview image
     const int viewWidth = ui.graphicsView_GainImageView->width() - 5;
     const int viewHeight = ui.graphicsView_GainImageView->height() - 5;
-    gainPixmapItem->setPixmap(QPixmap::fromImage(*image).scaled(viewWidth, viewHeight));
+    gainPixmapItem->setPixmap(QPixmap::fromImage(image).scaled(viewWidth, viewHeight));
 
     // Update gray value display and internal state
     ui.lineEdit_GainCenterValue->setText(QString::number(grayValue));
     nCurrentGray = grayValue;
 }
 
-void CreateCorrectTemplateDlg::onDefectAcqImageReceived(QSharedPointer<QImage> image, int idx, int grayValue)
+void CreateCorrectTemplateDlg::onDefectAcqImageReceived(QImage image, int idx, int grayValue)
 {
     // Update preview image
     const int viewWidth = ui.graphicsView_DefectImageView->width() - 5;
     const int viewHeight = ui.graphicsView_DefectImageView->height() - 5;
-    defectPixmapItem->setPixmap(QPixmap::fromImage(*image).scaled(viewWidth, viewHeight));
+    defectPixmapItem->setPixmap(QPixmap::fromImage(image).scaled(viewWidth, viewHeight));
 
     // Update gray value display and internal state
     ui.lineEdit_DefectCurrentGray->setText(QString::number(grayValue));

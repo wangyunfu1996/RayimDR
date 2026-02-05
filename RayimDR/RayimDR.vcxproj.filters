@@ -36,9 +36,6 @@
     <ClCompile Include="UI\MultiAcqCfgDialog.cpp">
       <Filter>UI</Filter>
     </ClCompile>
-    <ClCompile Include="UI\XRayCfgDialog.cpp">
-      <Filter>UI</Filter>
-    </ClCompile>
     <ClCompile Include="ImageRender\XGraphicsScene.cpp">
       <Filter>ImageRender</Filter>
     </ClCompile>
@@ -104,9 +101,6 @@
     <QtMoc Include="UI\MultiAcqCfgDialog.h">
       <Filter>UI</Filter>
     </QtMoc>
-    <QtMoc Include="UI\XRayCfgDialog.h">
-      <Filter>UI</Filter>
-    </QtMoc>
     <QtMoc Include="ImageRender\XGraphicsScene.h">
       <Filter>ImageRender</Filter>
     </QtMoc>
@@ -159,9 +153,6 @@
       <Filter>UI</Filter>
     </QtUic>
     <QtUic Include="UI\MultiAcqCfgDialog.ui">
-      <Filter>UI</Filter>
-    </QtUic>
-    <QtUic Include="UI\XRayCfgDialog.ui">
       <Filter>UI</Filter>
     </QtUic>
     <QtUic Include="UI\CreateCorrectTemplateDlg.ui">

@@ -34,7 +34,6 @@
 
 #include "UI/XElaDialog.h"
 #include "UI/CommonConfigUI.h"
-#include "UI/XRayCfgDialog.h"
 #include "UI/CreateCorrectTemplateDlg.h"
 #include "UI/AppCfgDialog.h"
 #include "UI/MultiAcqCfgDialog.h"
@@ -319,13 +318,6 @@ void MainWindow::onMenuFileExit()
     _closeDialog->exec();
 }
 
-void MainWindow::onMenuXRayConfig()
-{
-    qDebug() << "[MainWindow] Menu: X-ray configuration";
-    XRayCfgDialog dialog;
-    dialog.exec();
-}
-
 void MainWindow::onMenuDetectorConfig()
 {
     qDebug() << "[MainWindow] Menu: Detector configuration";
@@ -394,10 +386,10 @@ void MainWindow::initMenuBar()
 
     // Settings menu
     ElaMenu* configMenu = menuBar->addMenu("设置");
-    connect(configMenu->addAction("射线源设置"), &QAction::triggered, this, &MainWindow::onMenuXRayConfig);
+    connect(configMenu->addAction("软件配置"), &QAction::triggered, this, &MainWindow::onMenuAppCfg);
     connect(configMenu->addAction("探测器设置"), &QAction::triggered, this, &MainWindow::onMenuDetectorConfig);
     connect(configMenu->addAction("探测器校正"), &QAction::triggered, this, &MainWindow::onMenuDetectorCalibration);
-    connect(configMenu->addAction("软件配置"), &QAction::triggered, this, &MainWindow::onMenuAppCfg);
+    configMenu->addSeparator();
     connect(configMenu->addAction("清理日志"), &QAction::triggered, this, &MainWindow::onMenuCleanupLogs);
 
     qDebug() << "[MainWindow] Menu bar initialized";

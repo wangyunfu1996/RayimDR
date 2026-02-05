@@ -51,7 +51,6 @@ private:
     void onMenuFileOpenFolder();
     void onMenuFileSave();
     void onMenuFileExit();
-    void onMenuXRayConfig();
     void onMenuDetectorConfig();
     void onMenuDetectorCalibration();
     void onMenuAppCfg();

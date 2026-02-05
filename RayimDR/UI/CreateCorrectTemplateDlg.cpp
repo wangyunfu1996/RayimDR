@@ -237,6 +237,7 @@ void CreateCorrectTemplateDlg::Offset()
 
     ui.pushButton_OffsetGenerationStart->setEnabled(false);
     ui.pushButton_OffsetGenerationAbort->setEnabled(true);
+    ui.pushButton_ToGain->setEnabled(false);
     ui.lineEdit_OffsetProgress->clear();
 
     connect(&DET, &NDT1717MA::signalOffsetImageSelected, this, &CreateCorrectTemplateDlg::onOffsetImageSelected,
@@ -250,6 +251,7 @@ void CreateCorrectTemplateDlg::Offset()
             {
                 ui.pushButton_OffsetGenerationStart->setEnabled(true);
                 ui.pushButton_OffsetGenerationAbort->setEnabled(false);
+                ui.pushButton_ToGain->setEnabled(true);
 
                 bool result = watcher->future().result();
                 qDebug() << "[Offset] Calibration completed. Result:" << result;
@@ -285,6 +287,8 @@ void CreateCorrectTemplateDlg::Gain()
     // Update UI state
     ui.pushButton_Gain->setEnabled(false);
     ui.pushButton_GainAbort->setEnabled(true);
+    ui.pushButton_ToOffset->setEnabled(false);
+    ui.pushButton_ToDefect->setEnabled(false);
     ui.label_Tips->clear();
 
     // Execute calibration in background thread
@@ -394,7 +398,8 @@ void CreateCorrectTemplateDlg::Gain()
             {
                 ui.pushButton_Gain->setEnabled(true);
                 ui.pushButton_GainAbort->setEnabled(false);
-
+                ui.pushButton_ToOffset->setEnabled(true);
+                ui.pushButton_ToDefect->setEnabled(true);
                 stopXRaySource();
 
                 bool result = watcher->future().result();
@@ -433,6 +438,8 @@ void CreateCorrectTemplateDlg::Defect()
     // Update UI state
     ui.pushButton_Defect->setEnabled(false);
     ui.pushButton_DefectAbort->setEnabled(true);
+    ui.pushButton_ReturnToGain->setEnabled(false);
+    ui.pushButton_Done->setEnabled(false);
     ui.label_Tips->clear();
 
     // Execute calibration in background thread
@@ -572,7 +579,8 @@ void CreateCorrectTemplateDlg::Defect()
             {
                 ui.pushButton_Defect->setEnabled(true);
                 ui.pushButton_DefectAbort->setEnabled(false);
-
+                ui.pushButton_ReturnToGain->setEnabled(true);
+                ui.pushButton_Done->setEnabled(true);
                 stopXRaySource();
 
                 bool result = watcher->future().result();

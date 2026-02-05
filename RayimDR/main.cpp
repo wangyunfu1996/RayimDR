@@ -7,10 +7,15 @@
 #include <qmessagebox.h>
 
 #include "ElaApplication.h"
+
 #include "UI/MainWindow.h"
-#include "IRayDetector/QtLogger.h"
+
+#include "Components/QtLogger.h"
 #include "Components/XNetworkInfo.h"
 #include "Components/XGlobal.h"
+#include "Components/IniReader.h"
+
+#include "IRayDetector/NDT1717MA.h"
 
 int main(int argc, char* argv[])
 {
@@ -72,6 +77,40 @@ int main(int argc, char* argv[])
                               QMessageBox::Ok);
         return 0;
     }
+
+    // 读取配置文件
+    QString configPath = QApplication::applicationDirPath() + "/config.ini";
+    IniReader iniReader(configPath);
+    if (!iniReader.isLoaded())
+    {
+        QMessageBox::critical(nullptr, "配置文件错误", "配置文件加载失败，请检查配置文件后重试！", QMessageBox::Ok);
+        return 0;
+    }
+    for (auto section : iniReader.getSections())
+    {
+        qDebug() << "Section:" << section;
+        for (auto key : iniReader.getKeys(section))
+        {
+            qDebug() << "  Key:" << key << "Value:" << iniReader.getString(section, key);
+        }
+    }
+
+    if (connectType == 0)
+    {
+        iniReader.setValue("Connection", "Cfg_HostIP", QString::fromUtf8(DET_HOST_IP_WIRED));
+        iniReader.setValue("FTP", "Cfg_FTP_Download_HostIP", QString::fromUtf8(DET_HOST_IP_WIRED));
+        iniReader.setValue("FTP", "Cfg_FTP_Upload_HostIP", QString::fromUtf8(DET_HOST_IP_WIRED));
+    }
+    else if (connectType == 1)
+    {
+        iniReader.setValue("Connection", "Cfg_HostIP", QString::fromUtf8(DET_HOST_IP_WIRELESS));
+        iniReader.setValue("FTP", "Cfg_FTP_Download_HostIP", QString::fromUtf8(DET_HOST_IP_WIRELESS));
+        iniReader.setValue("FTP", "Cfg_FTP_Upload_HostIP", QString::fromUtf8(DET_HOST_IP_WIRELESS));
+    }
+    iniReader.save();
+
+
+    NDT1717MA::Instance().SetWorkDirPath(QApplication::applicationDirPath().toStdString() + "/NDT1717MA");
 
     qDebug() << "程序运行，当前时间：" << QDateTime::currentDateTime();
     MainWindow w;

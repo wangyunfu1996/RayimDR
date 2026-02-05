@@ -26,6 +26,7 @@
 #include "Components/XSignalsHelper.h"
 #include "Components/AcqTaskManager.h"
 #include "Components/XGlobal.h"
+#include "Components/QtLogger.h"
 
 #include "ImageRender/XGraphicsView.h"
 #include "ImageRender/XImageAdjustTool.h"
@@ -40,7 +41,6 @@
 
 #include "IRayDetector/NDT1717MA.h"
 #include "IRayDetector/IRayDetectorWidget.h"
-#include "IRayDetector/QtLogger.h"
 
 #include "VJXRAY/IXS120BP120P366.h"
 

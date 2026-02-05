@@ -77,6 +77,10 @@
       <Filter>Components</Filter>
     </ClCompile>
     <ClCompile Include="Components\XNetworkInfo.cpp" />
+    <ClCompile Include="Components\IniReader.cpp" />
+    <ClCompile Include="Components\QtLogger.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Components\AcqTask.h">
@@ -137,9 +141,13 @@
       <Filter>UI</Filter>
     </QtMoc>
     <QtMoc Include="Components\XNetworkInfo.h" />
+    <QtMoc Include="Components\IniReader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Components\XGlobal.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\QtLogger.h">
       <Filter>Components</Filter>
     </ClInclude>
   </ItemGroup>

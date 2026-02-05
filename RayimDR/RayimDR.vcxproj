@@ -13,6 +13,8 @@
   <ItemGroup>
     <ClCompile Include="Components\AcqTask.cpp" />
     <ClCompile Include="Components\AcqTaskManager.cpp" />
+    <ClCompile Include="Components\IniReader.cpp" />
+    <ClCompile Include="Components\QtLogger.cpp" />
     <ClCompile Include="Components\XFileHelper.cpp" />
     <ClCompile Include="Components\XGlobal.cpp" />
     <ClCompile Include="Components\XNetworkInfo.cpp" />
@@ -44,6 +46,7 @@
     <QtMoc Include="Components\AcqTaskManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Components\QtLogger.h" />
     <ClInclude Include="Components\XGlobal.h" />
     <QtMoc Include="Components\XNetworkInfo.h" />
     <QtMoc Include="UI\MainWindow.h" />
@@ -62,6 +65,7 @@
     <QtMoc Include="UI\CommonConfigUI.h" />
     <QtMoc Include="UI\AppCfgDialog.h" />
     <QtMoc Include="Components\XSignalsHelper.h" />
+    <QtMoc Include="Components\IniReader.h" />
     <QtMoc Include="Components\XFileHelper.h" />
   </ItemGroup>
   <ItemGroup>

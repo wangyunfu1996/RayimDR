@@ -83,3 +83,5 @@ const static std::string DET_HOST_IP_WIRELESS = "192.168.10.102";
 // inline 变量确保在所有编译单元中共享同一个实例 (C++17)
 inline bool AUTO_START_XRAY_ON_ACQ = false;
 inline bool AUTO_STOP_XRAY_ON_ACQ_STOP = false;
+
+//const static std::string NDT1717MA_WORK_DIR = "D:\\NDT1717MA";

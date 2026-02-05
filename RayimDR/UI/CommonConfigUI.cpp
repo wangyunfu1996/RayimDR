@@ -70,6 +70,15 @@ bool CommonConfigUI::checkInputValid()
         return false;
     }
 
+    // 如果射线源没有连接，不允许进行采集
+
+    if (!IXS120BP120P366::Instance().isConnected())
+    {
+        errMsg = "射线源未连接，请检查连接后再进行采集！";
+        emit xSignaHelper.signalShowErrorMessageBar(errMsg);
+        return false;
+    }
+
     // Check X-ray source status
     if (!IXS120BP120P366::Instance().xRayIsOn())
     {

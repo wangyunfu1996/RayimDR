@@ -2,6 +2,15 @@
 
 #include <qdebug.h>
 
+#define DET_TYPE_VIRTUAL 0
+#define DET_TYPE_IRAY 1
+
+#define DET_TYPE DET_TYPE_IRAY
+
+#if DET_TYPE == DET_TYPE_VIRTUAL
+#elif DET_TYPE == DET_TYPE_IRAY
+#endif  // DET_TYPE
+
 enum class AcqType
 {
     DR = 0,
@@ -57,32 +66,49 @@ inline QDebug operator<<(QDebug debug, const AcqCondition& cond)
     return debug;
 }
 
-const static int DET_WIDTH_1X1{4300};
-const static int DET_HEIGHT_1X1{4300};
-const static int IMAGE_BUFFER_SIZE{10};
+#define xGlobal XGlobal::Instance()
 
-#define DET_TYPE_VIRTUAL 0
-#define DET_TYPE_IRAY 1
+// XGlobal 单例类 - 管理全局配置参数
+class XGlobal
+{
+public:
+    // 获取单例实例（线程安全，C++11）
+    static XGlobal& Instance()
+    {
+        static XGlobal instance;
+        return instance;
+    }
 
-#define DET_TYPE DET_TYPE_IRAY
+    // 删除拷贝构造和赋值操作
+    XGlobal(const XGlobal&) = delete;
+    XGlobal& operator=(const XGlobal&) = delete;
 
-#if DET_TYPE == DET_TYPE_VIRTUAL
-#elif DET_TYPE == DET_TYPE_IRAY
-#endif  // DET_TYPE
+    int DET_WIDTH_1X1{4300};
+    int DET_HEIGHT_1X1{4300};
+    int IMAGE_BUFFER_SIZE{10};
 
-const static int XRAY_MIN_VOLTAGE{30};    // kV
-const static int XRAY_MAX_VOLTAGE{120};   // kV
-const static int XRAY_MIN_CURRENT{200};   // uA
-const static int XRAY_MAX_CURRENT{1000};  // uA
 
-const static std::string XRAY_DEVICE_IP = "192.168.10.1";
-const static int XRAY_DEVICE_PORT = 10001;
+    int XRAY_MIN_VOLTAGE{30};    // kV
+    int XRAY_MAX_VOLTAGE{120};   // kV
+    int XRAY_MIN_CURRENT{200};   // uA
+    int XRAY_MAX_CURRENT{1000};  // uA
 
-const static std::string DET_HOST_IP_WIRED = "192.168.10.101";
-const static std::string DET_HOST_IP_WIRELESS = "192.168.10.102";
+    std::string XRAY_DEVICE_IP = "192.168.10.1";
+    int XRAY_DEVICE_PORT = 10001;
 
-// inline 变量确保在所有编译单元中共享同一个实例 (C++17)
-inline bool AUTO_START_XRAY_ON_ACQ = true;
-inline bool AUTO_STOP_XRAY_ON_ACQ_STOP = true;
+    std::string DET_HOST_IP_WIRED = "192.168.10.101";
+    std::string DET_HOST_IP_WIRELESS = "192.168.10.102";
 
-// const static std::string NDT1717MA_WORK_DIR = "D:\\NDT1717MA";
+    // 采集时自动启动X射线
+    bool AUTO_START_XRAY_ON_ACQ = true;
+    // 采集停止时自动关闭X射线
+    bool AUTO_STOP_XRAY_ON_ACQ_STOP = true;
+
+    // 采集时发送子帧数据
+    bool SEND_SUBFRAME_FRAME_ON_ACQ = true;
+
+private:
+    // 私有构造函数
+    XGlobal() = default;
+    ~XGlobal() = default;
+};

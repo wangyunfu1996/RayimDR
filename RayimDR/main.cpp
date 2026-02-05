@@ -55,15 +55,14 @@ int main(int argc, char* argv[])
     int connectType = -1;
     for (const QHostAddress& addr : xNetworkInfo.getAllIPv4Addresses(false))
     {
-        qDebug() << "addr: " << addr.toString() << " DET_HOST_IP_WIRED:" << DET_HOST_IP_WIRED << "DET_HOST_IP_WIRELESS "
-                 << DET_HOST_IP_WIRELESS;
-        if (addr.toString() == QString::fromStdString(DET_HOST_IP_WIRED))
+        qDebug() << "addr: " << addr.toString() << " DET_HOST_IP_WIRED:" << xGlobal.DET_HOST_IP_WIRED << " DET_HOST_IP_WIRELESS " << xGlobal.DET_HOST_IP_WIRELESS;
+        if (addr.toString() == QString::fromStdString(xGlobal.DET_HOST_IP_WIRED))
         {
             qDebug() << "当前为有线连接";
             connectType = 0;
             break;
         }
-        else if (addr.toString() == QString::fromStdString(DET_HOST_IP_WIRELESS))
+        else if (addr.toString() == QString::fromStdString(xGlobal.DET_HOST_IP_WIRELESS))
         {
             qDebug() << "当前为无线连接";
             connectType = 1;
@@ -97,15 +96,15 @@ int main(int argc, char* argv[])
 
     if (connectType == 0)
     {
-        iniReader.setValue("Connection", "Cfg_HostIP", QString::fromUtf8(DET_HOST_IP_WIRED));
-        iniReader.setValue("FTP", "Cfg_FTP_Download_HostIP", QString::fromUtf8(DET_HOST_IP_WIRED));
-        iniReader.setValue("FTP", "Cfg_FTP_Upload_HostIP", QString::fromUtf8(DET_HOST_IP_WIRED));
+        iniReader.setValue("Connection", "Cfg_HostIP", QString::fromUtf8(xGlobal.DET_HOST_IP_WIRED));
+        iniReader.setValue("FTP", "Cfg_FTP_Download_HostIP", QString::fromUtf8(xGlobal.DET_HOST_IP_WIRED));
+        iniReader.setValue("FTP", "Cfg_FTP_Upload_HostIP", QString::fromUtf8(xGlobal.DET_HOST_IP_WIRED));
     }
     else if (connectType == 1)
     {
-        iniReader.setValue("Connection", "Cfg_HostIP", QString::fromUtf8(DET_HOST_IP_WIRELESS));
-        iniReader.setValue("FTP", "Cfg_FTP_Download_HostIP", QString::fromUtf8(DET_HOST_IP_WIRELESS));
-        iniReader.setValue("FTP", "Cfg_FTP_Upload_HostIP", QString::fromUtf8(DET_HOST_IP_WIRELESS));
+        iniReader.setValue("Connection", "Cfg_HostIP", QString::fromUtf8(xGlobal.DET_HOST_IP_WIRELESS));
+        iniReader.setValue("FTP", "Cfg_FTP_Download_HostIP", QString::fromUtf8(xGlobal.DET_HOST_IP_WIRELESS));
+        iniReader.setValue("FTP", "Cfg_FTP_Upload_HostIP", QString::fromUtf8(xGlobal.DET_HOST_IP_WIRELESS));
     }
     iniReader.save();
 

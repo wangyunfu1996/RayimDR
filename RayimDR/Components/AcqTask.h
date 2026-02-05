@@ -26,6 +26,10 @@ private:
     void onErrorOccurred(const QString& msg);
     void onProgressChanged(const QString& msg);
 
+    // Helper methods for code reusability
+    QImage applyImageTransform(const QImage& image);
+    void saveStackedImage(const QImage& stackedImage, int frameIndex);
+
     AcqCondition acqCondition;
     std::atomic_bool bStopRequested{false};
     std::atomic_int nReceivedIdx{0};

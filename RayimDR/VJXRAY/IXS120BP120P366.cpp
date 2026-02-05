@@ -180,10 +180,10 @@ bool IXS120BP120P366::isConnected() const
 bool IXS120BP120P366::setVoltage(int kV)
 {
     // Validate voltage range: 30.0 - 120.0 kV
-    if (kV < XRAY_MIN_VOLTAGE || kV > XRAY_MAX_VOLTAGE)
+    if (kV < xGlobal.XRAY_MIN_VOLTAGE || kV > xGlobal.XRAY_MAX_VOLTAGE)
     {
-        qDebug() << "[SetVoltage] Invalid voltage:" << kV << "kV (valid range:" << XRAY_MIN_VOLTAGE << "-"
-                 << XRAY_MAX_VOLTAGE << "kV)";
+        qDebug() << "[SetVoltage] Invalid voltage:" << kV << "kV (valid range:" << xGlobal.XRAY_MIN_VOLTAGE << "-"
+                 << xGlobal.XRAY_MAX_VOLTAGE << "kV)";
         return false;
     }
 
@@ -225,10 +225,10 @@ bool IXS120BP120P366::setVoltage(int kV)
 bool IXS120BP120P366::setCurrent(int uA)
 {
     // Validate current range: 0.2000 - 1.0000 mA (200 - 1000 uA)
-    if (uA < XRAY_MIN_CURRENT || uA > XRAY_MAX_CURRENT)
+    if (uA < xGlobal.XRAY_MIN_CURRENT || uA > xGlobal.XRAY_MAX_CURRENT)
     {
-        qDebug() << "[SetCurrent] Invalid current:" << uA << "uA (valid range:" << XRAY_MIN_CURRENT << "-"
-                 << XRAY_MAX_CURRENT << "uA)";
+        qDebug() << "[SetCurrent] Invalid current:" << uA << "uA (valid range:" << xGlobal.XRAY_MIN_CURRENT << "-"
+                 << xGlobal.XRAY_MAX_CURRENT << "uA)";
         return false;
     }
 
@@ -546,7 +546,7 @@ XRaySourceStatus IXS120BP120P366::getCurrentStatus() const
 
 void IXS120BP120P366::onQueryStatus()
 {
-    qDebug() << "[StatusQuery] Querying status from X-ray source";
+    // qDebug() << "[StatusQuery] Querying status from X-ray source";
     if (!m_statusQueryEnabled || !isConnected())
     {
         return;
@@ -743,7 +743,50 @@ void IXS120BP120P366::parseFTLResponse(const QString& response)
         {
             if (currentFaultBits[i] != 0)
             {
-                faultInfo += QString(" Bit[%1]=%2").arg(i).arg(currentFaultBits[i]);
+                if (i == 1)
+                {
+                    faultInfo += QString(" Bit[%1]=%2").arg(i).arg("FAULT: Overvoltage");
+                }
+                else if (i == 2)
+                {
+                    faultInfo += QString(" Bit[%1]=%2").arg(i).arg("FAULT: Power limit exceeded");
+                }
+                else if (i == 3)
+                {
+                    faultInfo += QString(" Bit[%1]=%2").arg(i).arg("FAULT: Overcurrent");
+                }
+                else if (i == 4)
+                {
+                    faultInfo += QString(" Bit[%1]=%2").arg(i).arg("WARNING or FAULT: Arc");
+                }
+                else if (i == 5)
+                {
+                    faultInfo += QString(" Bit[%1]=%2").arg(i).arg("FAULT: Over temperature");
+                }
+                else if (i == 6)
+                {
+                    faultInfo += QString(" Bit[%1]=%2").arg(i).arg("FAULT: Anode overvoltage");
+                }
+                else if (i == 7)
+                {
+                    faultInfo += QString(" Bit[%1]=%2").arg(i).arg("FAULT: Cathode overvoltage");
+                }
+                else if (i == 8)
+                {
+                    faultInfo += QString(" Bit[%1]=%2").arg(i).arg("FAULT: INTERLOCK open");
+                }
+                else if (i == 9)
+                {
+                    faultInfo += QString(" Bit[%1]=%2").arg(i).arg("FAULT: Regulation");
+                }
+                else if (i == 10)
+                {
+                    faultInfo += QString(" Bit[%1]=%2").arg(i).arg(" FAULT: Battery low");
+                }
+                else
+                {
+                    faultInfo += QString(" Bit[%1]=%2").arg(i).arg(currentFaultBits[i]);
+                }
             }
         }
         qDebug() << faultInfo;

@@ -28,10 +28,90 @@ AcqTask::~AcqTask()
     AcqTaskManager::Instance().stackedImageList.clear();
 }
 
+// Apply image transformation (flip horizontal/vertical) based on acquisition conditions
+QImage AcqTask::applyImageTransform(const QImage& image)
+{
+    if (!acqCondition.enableFlipHorizontal && !acqCondition.enableFlipVertical)
+    {
+        return image;
+    }
+
+    qint64 transformStartTime = QDateTime::currentMSecsSinceEpoch();
+
+    qDebug() << "[图像变换] 开始处理 - 水平翻转:" << (acqCondition.enableFlipHorizontal ? "是" : "否")
+             << ", 垂直翻转:" << (acqCondition.enableFlipVertical ? "是" : "否");
+
+    QImage transformedImage;
+
+    if (acqCondition.enableFlipHorizontal && acqCondition.enableFlipVertical)
+    {
+        transformedImage = image.flipped(Qt::Horizontal | Qt::Vertical);
+        qDebug() << "[图像变换] 执行: 水平+垂直翻转 (旋转180度)";
+    }
+    else if (acqCondition.enableFlipHorizontal)
+    {
+        transformedImage = image.flipped(Qt::Horizontal);
+        qDebug() << "[图像变换] 执行: 水平翻转（左右镜像）";
+    }
+    else if (acqCondition.enableFlipVertical)
+    {
+        transformedImage = image.flipped(Qt::Vertical);
+        qDebug() << "[图像变换] 执行: 垂直翻转（上下翻转）";
+    }
+
+    qint64 transformTime = QDateTime::currentMSecsSinceEpoch() - transformStartTime;
+    qDebug() << "[图像变换] 完成, 耗时:" << transformTime << "ms, 结果尺寸:" << transformedImage.width() << "x"
+             << transformedImage.height();
+
+    return transformedImage;
+}
+
+// Save stacked image to file based on acquisition conditions
+void AcqTask::saveStackedImage(const QImage& stackedImage, int frameIndex)
+{
+    if (!acqCondition.saveToFiles || acqCondition.frame == INT_MAX)
+    {
+        return;
+    }
+
+    qint64 saveStartTime = QDateTime::currentMSecsSinceEpoch();
+
+    try
+    {
+        if (acqCondition.saveType == ".RAW")
+        {
+            QString fileName = QString("%1/Image%2_%3x%4.raw")
+                                   .arg(acqCondition.savePath)
+                                   .arg(frameIndex)
+                                   .arg(stackedImage.width())
+                                   .arg(stackedImage.height());
+
+            XImageHelper::Instance().saveImageU16Raw(stackedImage, fileName);
+            qint64 saveTime = QDateTime::currentMSecsSinceEpoch() - saveStartTime;
+            qDebug() << "[文件保存] RAW文件保存成功, 文件:" << fileName << ", 耗时:" << saveTime << "ms";
+        }
+        else if (acqCondition.saveType == ".TIFF")
+        {
+            QString fileName = QString("%1/Image%2.tif").arg(acqCondition.savePath).arg(frameIndex);
+            TiffHelper::SaveImage(stackedImage, fileName.toStdString());
+            qint64 saveTime = QDateTime::currentMSecsSinceEpoch() - saveStartTime;
+            qDebug() << "[文件保存] TIFF文件保存成功, 文件:" << fileName << ", 耗时:" << saveTime << "ms";
+        }
+        else
+        {
+            qWarning() << "[文件保存] 未知的保存格式:" << acqCondition.saveType;
+        }
+    }
+    catch (const std::exception& e)
+    {
+        qCritical() << "[文件保存] 文件保存异常:" << e.what();
+    }
+}
+
 // Helper function to process stacked frames and save results
 void AcqTask::processStackedFrames(const QVector<QImage>& imagesToStack)
 {
-    int vecIdx = nProcessedStacekd.load() % IMAGE_BUFFER_SIZE;
+    int vecIdx = nProcessedStacekd.load() % xGlobal.IMAGE_BUFFER_SIZE;
     qint64 processStartTime = QDateTime::currentMSecsSinceEpoch();
 
     qDebug() << "[处理叠加] 第" << (nProcessedStacekd.load() + 1) << "组数据, 缓冲索引:" << vecIdx
@@ -49,40 +129,8 @@ void AcqTask::processStackedFrames(const QVector<QImage>& imagesToStack)
                 return;
             }
 
-
-            // 在此处增加一个可选的 是否对图像进行翻转和镜像
-            if (acqCondition.enableFlipHorizontal || acqCondition.enableFlipVertical)
-            {
-                qint64 transformStartTime = QDateTime::currentMSecsSinceEpoch();
-
-                qDebug() << "[图像变换] 开始处理 - 水平翻转:" << (acqCondition.enableFlipHorizontal ? "是" : "否")
-                         << ", 垂直翻转:" << (acqCondition.enableFlipVertical ? "是" : "否");
-
-                // 执行图像变换
-                if (acqCondition.enableFlipHorizontal && acqCondition.enableFlipVertical)
-                {
-                    // 水平+垂直翻转 = 旋转180度
-                    stackedImage = stackedImage.flipped(Qt::Horizontal | Qt::Vertical);
-                    qDebug() << "[图像变换] 执行: 水平+垂直翻转 (旋转180度)";
-                }
-                else if (acqCondition.enableFlipHorizontal)
-                {
-                    // 仅水平翻转（镜像）
-                    stackedImage = stackedImage.flipped(Qt::Horizontal);
-                    qDebug() << "[图像变换] 执行: 水平翻转（左右镜像）";
-                }
-                else if (acqCondition.enableFlipVertical)
-                {
-                    // 仅垂直翻转（上下翻转）
-                    stackedImage = stackedImage.flipped(Qt::Vertical);
-                    qDebug() << "[图像变换] 执行: 垂直翻转（上下翻转）";
-                }
-
-                qint64 transformTime = QDateTime::currentMSecsSinceEpoch() - transformStartTime;
-                qDebug() << "[图像变换] 完成, 耗时:" << transformTime << "ms, 结果尺寸:" << stackedImage.width() << "x"
-                         << stackedImage.height();
-            }
-            // 可选操作结束
+            // Apply image transformation if enabled
+            stackedImage = applyImageTransform(stackedImage);
 
             AcqTaskManager::Instance().receivedImageList[vecIdx] = stackedImage;
             qDebug() << "[异步处理] 叠加完成, 结果尺寸:" << stackedImage.width() << "x" << stackedImage.height()
@@ -92,48 +140,13 @@ void AcqTask::processStackedFrames(const QVector<QImage>& imagesToStack)
                 onProgressChanged("数据叠加完成");
 
             // Save files if specified
-            if (acqCondition.saveToFiles && acqCondition.frame != INT_MAX)
-            {
-                qint64 saveStartTime = QDateTime::currentMSecsSinceEpoch();
-
-                try
-                {
-                    if (acqCondition.saveType == ".RAW")
-                    {
-                        QString fileName = QString("%1/Image%2_%3x%4.raw")
-                                               .arg(acqCondition.savePath)
-                                               .arg(nProcessedStacekd.load())
-                                               .arg(stackedImage.width())
-                                               .arg(stackedImage.height());
-
-                        XImageHelper::Instance().saveImageU16Raw(stackedImage, fileName);
-                        qint64 saveTime = QDateTime::currentMSecsSinceEpoch() - saveStartTime;
-                        qDebug() << "[文件保存] RAW文件保存成功, 文件:" << fileName << ", 耗时:" << saveTime << "ms";
-                    }
-                    else if (acqCondition.saveType == ".TIFF")
-                    {
-                        QString fileName =
-                            QString("%1/Image%2.tif").arg(acqCondition.savePath).arg(nProcessedStacekd.load());
-                        TiffHelper::SaveImage(stackedImage, fileName.toStdString());
-                        qint64 saveTime = QDateTime::currentMSecsSinceEpoch() - saveStartTime;
-                        qDebug() << "[文件保存] TIFF文件保存成功, 文件:" << fileName << ", 耗时:" << saveTime << "ms";
-                    }
-                    else
-                    {
-                        qWarning() << "[文件保存] 未知的保存格式:" << acqCondition.saveType;
-                    }
-                }
-                catch (const std::exception& e)
-                {
-                    qCritical() << "[文件保存] 文件保存异常:" << e.what();
-                }
-            }
+            saveStackedImage(stackedImage, nProcessedStacekd.load());
 
             qint64 totalProcessTime = QDateTime::currentMSecsSinceEpoch() - processStartTime;
             qDebug() << "[异步处理] 第" << (nProcessedStacekd.load() + 1) << "组数据处理完成, 耗时:" << totalProcessTime
                      << "ms";
 
-            emit AcqTaskManager::Instance().signalAcqTaskReceivedIdxChanged(acqCondition, nProcessedStacekd.load());
+            emit AcqTaskManager::Instance().acqTaskFrameStacked(acqCondition, nProcessedStacekd.load(), stackedImage);
             nProcessedStacekd.fetch_add(1);
         });
 
@@ -172,9 +185,6 @@ void AcqTask::onProgressChanged(const QString& msg)
 
 void AcqTask::startAcq()
 {
-    qDebug() << "[采集开始] 线程:" << QThread::currentThreadId()
-             << ", 时间:" << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz");
-
     qDebug() << "[采集参数] 模式:" << (acqCondition.acqType == AcqType::DR ? "DR" : "其他")
              << ", 工作模式:" << acqCondition.mode.c_str() << ", 帧数:" << acqCondition.frame
              << (acqCondition.frame == INT_MAX ? " (连续)" : "") << ", 帧率:" << acqCondition.frameRate
@@ -205,11 +215,11 @@ void AcqTask::startAcq()
     }
     qDebug() << "[硬件采集] 工作模式修改成功";
 
-    connect(&DET, &NDT1717MA::signalErrorOccurred, this, &AcqTask::onErrorOccurred,
-            Qt::ConnectionType::UniqueConnection);
+    connect(&DET, &NDT1717MA::signalErrorOccurred, this, &AcqTask::onErrorOccurred, Qt::UniqueConnection);
 
-    bool connected = connect(&DET, &NDT1717MA::signalAcqImageReceived, this, &AcqTask::onImageReceived,
-                             Qt::ConnectionType::UniqueConnection);
+    bool connected =
+        connect(&DET, &NDT1717MA::signalAcqImageReceived, this, &AcqTask::onImageReceived, Qt::UniqueConnection);
+
     if (!connected)
     {
         qCritical() << "[硬件采集] 连接signalAcqImageReceived失败";
@@ -301,11 +311,19 @@ void AcqTask::onImageReceived(QImage image, int idx, int grayValue)
     AcqTaskManager::Instance().stackedImageList.append(image);
     nReceivedIdx.fetch_add(1);
 
+    if (acqCondition.stackedFrame > 0 && xGlobal.SEND_SUBFRAME_FRAME_ON_ACQ)
+    {
+        // Apply image transformation for display/emission
+        QImage processedImage = applyImageTransform(image);
+        emit AcqTaskManager::Instance().acqTaskFrameReceived(
+            acqCondition, nProcessedStacekd.load(), nReceivedIdx % (acqCondition.stackedFrame + 1), processedImage);
+    }
+
     int currentBufferSize = AcqTaskManager::Instance().stackedImageList.size();
     int expectedStackCount = acqCondition.stackedFrame + 1;
 
     // 定期输出接收进度
-    if (nReceivedIdx.load() % 10 == 0 || currentBufferSize == 1)
+    if (true || nReceivedIdx.load() % 10 == 0 || currentBufferSize == 1)
     {
         qDebug() << "[接收] idx=" << idx << ", 缓冲:" << currentBufferSize << "/" << expectedStackCount
                  << ", 尺寸:" << image.width() << "x" << image.height() << ", 灰度:" << grayValue

@@ -26,7 +26,8 @@ public:
     void updateStatusText(const QString& msg);
     void onAcqStarted(const AcqCondition& acqCond);
     void onAcqStopped();
-    void onAcqImageReceived(AcqCondition condition, int receivedIdx);
+    void onAcqTaskFrameReceived(AcqCondition condition, int frameIdx, int subFrameIdx, QImage image);
+    void onAacqTaskFrameStacked(AcqCondition condition, int frameIdx, QImage stackedImage);
 
     void onDROnceTimeBtnClicked();
     void onDRMutliBtnClicked();

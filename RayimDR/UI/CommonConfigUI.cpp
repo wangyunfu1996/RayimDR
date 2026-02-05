@@ -46,17 +46,17 @@ CommonConfigUI::~CommonConfigUI() {}
 bool CommonConfigUI::checkInputValid()
 {
     QString errMsg;
-    if (ui.spinBox_targetVoltage->value() > XRAY_MAX_VOLTAGE || ui.spinBox_targetVoltage->value() < XRAY_MIN_VOLTAGE)
+    if (ui.spinBox_targetVoltage->value() > xGlobal.XRAY_MAX_VOLTAGE || ui.spinBox_targetVoltage->value() < xGlobal.XRAY_MIN_VOLTAGE)
     {
-        errMsg = QString("设置的电压值必须在 %1kV - %2kV 之间").arg(XRAY_MIN_VOLTAGE).arg(XRAY_MAX_VOLTAGE);
+        errMsg = QString("设置的电压值必须在 %1kV - %2kV 之间").arg(xGlobal.XRAY_MIN_VOLTAGE).arg(xGlobal.XRAY_MAX_VOLTAGE);
         qDebug() << errMsg;
         emit xSignaHelper.signalShowErrorMessageBar(errMsg);
         return false;
     }
 
-    if (ui.spinBox_targetCurrent->value() > XRAY_MAX_CURRENT || ui.spinBox_targetCurrent->value() < XRAY_MIN_CURRENT)
+    if (ui.spinBox_targetCurrent->value() > xGlobal.XRAY_MAX_CURRENT || ui.spinBox_targetCurrent->value() < xGlobal.XRAY_MIN_CURRENT)
     {
-        errMsg = QString("设置的电流值必须在 %1uA - %2uA 之间").arg(XRAY_MIN_CURRENT).arg(XRAY_MAX_CURRENT);
+        errMsg = QString("设置的电流值必须在 %1uA - %2uA 之间").arg(xGlobal.XRAY_MIN_CURRENT).arg(xGlobal.XRAY_MAX_CURRENT);
         qDebug() << errMsg;
         emit xSignaHelper.signalShowErrorMessageBar(errMsg);
         return false;
@@ -83,7 +83,7 @@ bool CommonConfigUI::checkInputValid()
     if (!IXS120BP120P366::Instance().xRayIsOn())
     {
         XElaDialog dialog("射线源未开启，是否先开启射线源？", XElaDialogType::ASK);
-        if (AUTO_START_XRAY_ON_ACQ || dialog.showCentered() == QDialog::Accepted)
+        if (xGlobal.AUTO_START_XRAY_ON_ACQ || dialog.showCentered() == QDialog::Accepted)
         {
             bool bRet = IXS120BP120P366::Instance().setVoltage(ui.spinBox_targetVoltage->value());
             bRet = IXS120BP120P366::Instance().setCurrent(ui.spinBox_targetCurrent->value());
@@ -250,7 +250,7 @@ void CommonConfigUI::initUIConnect()
             [this](const QString& errorMsg)
             {
                 ui.lineEdit_errMsg->setText(errorMsg);
-                emit xSignaHelper.signalShowErrorMessageBar("X射线源错误: " + errorMsg);
+                // emit xSignaHelper.signalShowErrorMessageBar("X射线源错误: " + errorMsg);
             });
 
     connect(&IXS120BP120P366::Instance(), &IXS120BP120P366::xrayErrorCleared, this,

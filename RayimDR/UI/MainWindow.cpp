@@ -179,8 +179,10 @@ void MainWindow::setupConnections()
 
     // Acquisition task manager connections
     connect(&AcqTaskManager::Instance(), &AcqTaskManager::signalAcqTaskStopped, this, &MainWindow::onAcqStopped);
-    connect(&AcqTaskManager::Instance(), &AcqTaskManager::signalAcqTaskReceivedIdxChanged, this,
-            &MainWindow::onAcqImageReceived);
+    connect(&AcqTaskManager::Instance(), &AcqTaskManager::acqTaskFrameReceived, this,
+            &MainWindow::onAcqTaskFrameReceived);
+    connect(&AcqTaskManager::Instance(), &AcqTaskManager::acqTaskFrameStacked, this,
+            &MainWindow::onAacqTaskFrameStacked);
     connect(&AcqTaskManager::Instance(), &AcqTaskManager::signalAcqErr, this, &MainWindow::onAcqErr);
     connect(&AcqTaskManager::Instance(), &AcqTaskManager::signalAcqProgressChanged, this,
             &MainWindow::onAcqProgressChanged);
@@ -269,7 +271,7 @@ void MainWindow::onXRayStopRequested()
     if (IXS120BP120P366::Instance().xRayIsOn())
     {
         XElaDialog dialog("采集结束，是否关闭射线源？", XElaDialogType::ASK);
-        if (AUTO_STOP_XRAY_ON_ACQ_STOP || dialog.showCentered() == QDialog::Accepted)
+        if (xGlobal.AUTO_STOP_XRAY_ON_ACQ_STOP || dialog.showCentered() == QDialog::Accepted)
         {
             IXS120BP120P366::Instance().stopXRay();
         }
@@ -346,8 +348,8 @@ void MainWindow::onMenuAppCfg()
     if (dialog.exec() == QDialog::Accepted)
     {
         DET.SetLowBatteryPercent(dialog.getLowBatteryPercent());
-        AUTO_START_XRAY_ON_ACQ = dialog.getAutoStartXrayOnAcq();
-        AUTO_STOP_XRAY_ON_ACQ_STOP = dialog.getAutoStopXrayOnAcqStop();
+        xGlobal.AUTO_START_XRAY_ON_ACQ = dialog.getAutoStartXrayOnAcq();
+        xGlobal.AUTO_STOP_XRAY_ON_ACQ_STOP = dialog.getAutoStopXrayOnAcqStop();
     }
 }
 
@@ -535,13 +537,23 @@ void MainWindow::onAcqStopped()
     onXRayStopRequested();
 }
 
-void MainWindow::onAcqImageReceived(AcqCondition condition, int receivedIdx)
+void MainWindow::onAcqTaskFrameReceived(AcqCondition condition, int frameIdx, int subFrameIdx, QImage image)
 {
-    qDebug() << "[MainWindow] Image received - Frame" << receivedIdx << "Condition:" << condition;
+    qDebug() << "[MainWindow] Image received - Frame" << frameIdx << "Condition:" << condition;
 
     if (condition.acqType == AcqType::DR)
     {
-        _XGraphicsView->updateImage(AcqTaskManager::Instance().receivedImage(receivedIdx));
+        _XGraphicsView->updateImage(image);
+    }
+}
+
+void MainWindow::onAacqTaskFrameStacked(AcqCondition condition, int frameIdx, QImage stackedImage)
+{
+    qDebug() << "[MainWindow] Image received - Frame" << frameIdx << "Condition:" << condition;
+
+    if (condition.acqType == AcqType::DR)
+    {
+        _XGraphicsView->updateImage(stackedImage);
 
         if (condition.frame == 1)
         {
@@ -549,13 +561,12 @@ void MainWindow::onAcqImageReceived(AcqCondition condition, int receivedIdx)
         }
         else if (condition.frame == INT_MAX)
         {
-            updateStatusText(QString("连续DR采集，当前接收帧数：%1").arg(receivedIdx + 1));
+            updateStatusText(QString("连续DR采集，当前接收帧数：%1").arg(frameIdx + 1));
         }
         else
         {
-            _XGraphicsView->addImageToList(AcqTaskManager::Instance().receivedImage(receivedIdx));
-            updateStatusText(
-                QString("多张DR采集，当前接收帧数：%1，共 %2 帧").arg(receivedIdx + 1).arg(condition.frame));
+            _XGraphicsView->addImageToList(stackedImage);
+            updateStatusText(QString("多张DR采集，当前接收帧数：%1，共 %2 帧").arg(frameIdx + 1).arg(condition.frame));
         }
     }
 }
@@ -651,7 +662,7 @@ void MainWindow::connectToXRay()
     qDebug() << "[MainWindow] Connecting to X-ray source";
     emit xSignaHelper.signalUpdateStatusInfo("开始连接射线源");
 
-    bool connected = xRaySource.connectToSource(XRAY_DEVICE_IP.c_str(), XRAY_DEVICE_PORT);
+    bool connected = xRaySource.connectToSource(xGlobal.XRAY_DEVICE_IP.c_str(), xGlobal.XRAY_DEVICE_PORT);
     if (connected)
     {
         emit xSignaHelper.signalShowSuccessMessageBar("射线源已连接!");

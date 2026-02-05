@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>380</width>
-    <height>191</height>
+    <height>218</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -76,7 +76,7 @@
    <item row="1" column="1">
     <widget class="ElaText" name="label">
      <property name="text">
-      <string>探测器电量阈值</string>
+      <string>探测器低电量阈值</string>
      </property>
     </widget>
    </item>
@@ -101,6 +101,20 @@
     <widget class="ElaCheckBox" name="checkBox_autoStopXRay">
      <property name="text">
       <string>采集后自动关闭射线</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="2">
+    <widget class="QRadioButton" name="radioButton_everyFrame">
+     <property name="text">
+      <string>显示每一帧数据</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QRadioButton" name="radioButton_stackedFrame">
+     <property name="text">
+      <string>显示叠加之后数据</string>
      </property>
     </widget>
    </item>

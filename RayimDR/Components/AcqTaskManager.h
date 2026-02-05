@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QImage>
 
 #include "XGlobal.h"
 
@@ -36,7 +37,8 @@ public:
     QImage receivedImage(int idx);
 
 signals:
-    void signalAcqTaskReceivedIdxChanged(AcqCondition condition, int receivedIdx);
+    void acqTaskFrameReceived(AcqCondition condition, int frameIdx, int subFrameIdx, QImage image);
+    void acqTaskFrameStacked(AcqCondition condition, int frameIdx, QImage stackedImage);
     void signalAcqTaskStopped();
     void signalAcqErr(const QString& msg);
     void signalAcqProgressChanged(const QString& msg);

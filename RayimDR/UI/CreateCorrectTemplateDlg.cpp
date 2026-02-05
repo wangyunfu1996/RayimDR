@@ -7,6 +7,7 @@
 
 #include "IRayDetector/NDT1717MA.h"
 #include "VJXRAY/IXS120BP120P366.h"
+#include "ImageRender/XImageHelper.h"
 
 CreateCorrectTemplateDlg::CreateCorrectTemplateDlg(QWidget* parent) : ElaDialog(parent)
 {
@@ -692,26 +693,98 @@ void CreateCorrectTemplateDlg::onDefectImageSelected(int total, int valid)
 
 void CreateCorrectTemplateDlg::onGainAcqImageReceived(QImage image, int idx, int grayValue)
 {
-    // Update preview image
-    const int viewWidth = ui.graphicsView_GainImageView->width() - 5;
-    const int viewHeight = ui.graphicsView_GainImageView->height() - 5;
-    gainPixmapItem->setPixmap(QPixmap::fromImage(image).scaled(viewWidth, viewHeight));
-
-    // Update gray value display and internal state
+    // Update gray value display immediately (lightweight operation)
     ui.lineEdit_GainCenterValue->setText(QString::number(grayValue));
     nCurrentGray = grayValue;
+
+    // Process image in background thread to avoid UI blocking
+    const int viewWidth = ui.graphicsView_GainImageView->width() - 5;
+    const int viewHeight = ui.graphicsView_GainImageView->height() - 5;
+
+    auto future = QtConcurrent::run(
+        [image, viewWidth, viewHeight]() -> QPixmap
+        {
+            // Calculate window/level from image statistics for optimal display
+            int maxVal = -1;
+            int minVal = -1;
+            XImageHelper::calculateMaxMinValue(image, maxVal, minVal);
+
+            int width = 0;
+            int level = 0;
+            XImageHelper::calculateWLAdvanced(maxVal, minVal, width, level,
+                                              1);  // mode 1: optimized display (85% range)
+
+            // Apply window/level adjustment and convert to 8-bit for display
+            QImage displayImage = XImageHelper::adjustWL(image, width, level);
+            if (displayImage.isNull())
+            {
+                return QPixmap();
+            }
+
+            return QPixmap::fromImage(displayImage)
+                .scaled(viewWidth, viewHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        });
+
+    auto* watcher = new QFutureWatcher<QPixmap>(this);
+    connect(watcher, &QFutureWatcher<QPixmap>::finished, this,
+            [this, watcher]()
+            {
+                QPixmap pixmap = watcher->future().result();
+                if (!pixmap.isNull())
+                {
+                    gainPixmapItem->setPixmap(pixmap);
+                }
+                watcher->deleteLater();
+            });
+    watcher->setFuture(future);
 }
 
 void CreateCorrectTemplateDlg::onDefectAcqImageReceived(QImage image, int idx, int grayValue)
 {
-    // Update preview image
-    const int viewWidth = ui.graphicsView_DefectImageView->width() - 5;
-    const int viewHeight = ui.graphicsView_DefectImageView->height() - 5;
-    defectPixmapItem->setPixmap(QPixmap::fromImage(image).scaled(viewWidth, viewHeight));
-
-    // Update gray value display and internal state
+    // Update gray value display immediately (lightweight operation)
     ui.lineEdit_DefectCurrentGray->setText(QString::number(grayValue));
     nCurrentGray = grayValue;
+
+    // Process image in background thread to avoid UI blocking
+    const int viewWidth = ui.graphicsView_DefectImageView->width() - 5;
+    const int viewHeight = ui.graphicsView_DefectImageView->height() - 5;
+
+    auto future = QtConcurrent::run(
+        [image, viewWidth, viewHeight]() -> QPixmap
+        {
+            // Calculate window/level from image statistics for optimal display
+            int maxVal = -1;
+            int minVal = -1;
+            XImageHelper::calculateMaxMinValue(image, maxVal, minVal);
+
+            int width = 0;
+            int level = 0;
+            XImageHelper::calculateWLAdvanced(maxVal, minVal, width, level,
+                                              1);  // mode 1: optimized display (85% range)
+
+            // Apply window/level adjustment and convert to 8-bit for display
+            QImage displayImage = XImageHelper::adjustWL(image, width, level);
+            if (displayImage.isNull())
+            {
+                return QPixmap();
+            }
+
+            return QPixmap::fromImage(displayImage)
+                .scaled(viewWidth, viewHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        });
+
+    auto* watcher = new QFutureWatcher<QPixmap>(this);
+    connect(watcher, &QFutureWatcher<QPixmap>::finished, this,
+            [this, watcher]()
+            {
+                QPixmap pixmap = watcher->future().result();
+                if (!pixmap.isNull())
+                {
+                    defectPixmapItem->setPixmap(pixmap);
+                }
+                watcher->deleteLater();
+            });
+    watcher->setFuture(future);
 }
 
 void CreateCorrectTemplateDlg::onDefectGroupChanged(int groupIdx, int totalGroups)

@@ -28,8 +28,8 @@ AppCfgDialog::AppCfgDialog(QWidget* parent) : ElaDialog(parent)
     ui.spinBox_detLowBattery->setValue(xGlobal.DET_LOW_BATTERY_THRESHOLD);
     ui.checkBox_autoStartXRay->setChecked(xGlobal.AUTO_START_XRAY_ON_ACQ);
     ui.checkBox_autoStopXRay->setChecked(xGlobal.AUTO_STOP_XRAY_ON_ACQ_STOP);
-    ui.radioButton_everyFrame->setChecked(xGlobal.SEND_SUBFRAME_FRAME_ON_ACQ);
-    ui.radioButton_stackedFrame->setChecked(!xGlobal.SEND_SUBFRAME_FRAME_ON_ACQ);
+    ui.radioButton_everyFrame->setChecked(xGlobal.SEND_SUBFRAME_ON_ACQ);
+    ui.radioButton_stackedFrame->setChecked(!xGlobal.SEND_SUBFRAME_ON_ACQ);
     ui.checkBox_FlipHorizontal->setChecked(xGlobal.FLIP_HORIZONTAL);
     ui.checkBox_FlipVertical->setChecked(xGlobal.FLIP_VERTICAL);
 
@@ -39,7 +39,7 @@ AppCfgDialog::AppCfgDialog(QWidget* parent) : ElaDialog(parent)
                 qDebug() << "DET_LOW_BATTERY_THRESHOLD: " << xGlobal.DET_LOW_BATTERY_THRESHOLD
                          << " AUTO_START_XRAY_ON_ACQ: " << xGlobal.AUTO_START_XRAY_ON_ACQ
                          << " AUTO_STOP_XRAY_ON_ACQ_STOP: " << xGlobal.AUTO_STOP_XRAY_ON_ACQ_STOP
-                         << " SEND_SUBFRAME_FRAME_ON_ACQ: " << xGlobal.SEND_SUBFRAME_FRAME_ON_ACQ;
+                         << " SEND_SUBFRAME_ON_ACQ: " << xGlobal.SEND_SUBFRAME_ON_ACQ;
 
                 this->accept();
             });
@@ -52,7 +52,7 @@ AppCfgDialog::AppCfgDialog(QWidget* parent) : ElaDialog(parent)
     connect(ui.checkBox_autoStopXRay, &QCheckBox::toggled, this,
             [this]() { xGlobal.AUTO_STOP_XRAY_ON_ACQ_STOP = ui.checkBox_autoStopXRay->isChecked(); });
     connect(ui.radioButton_everyFrame, &QRadioButton::toggled, this,
-            [this](bool checked) { xGlobal.SEND_SUBFRAME_FRAME_ON_ACQ = checked; });
+            [this](bool checked) { xGlobal.SEND_SUBFRAME_ON_ACQ = checked; });
     connect(ui.checkBox_FlipHorizontal, &QCheckBox::toggled, this,
             [this]() { xGlobal.FLIP_HORIZONTAL = ui.checkBox_FlipHorizontal->isChecked(); });
     connect(ui.checkBox_FlipVertical, &QCheckBox::toggled, this,

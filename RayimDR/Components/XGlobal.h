@@ -100,7 +100,7 @@ public:
     bool AUTO_STOP_XRAY_ON_ACQ_STOP = true;
 
     // 采集时发送子帧数据
-    bool SEND_SUBFRAME_FRAME_ON_ACQ = true;
+    bool SEND_SUBFRAME_ON_ACQ = true;
 
     int DET_LOW_BATTERY_THRESHOLD = 20;  // 探测器低电量阈值，百分比
 

@@ -311,7 +311,7 @@ void AcqTask::onImageReceived(QImage image, int idx, int grayValue)
     AcqTaskManager::Instance().stackedImageList.append(image);
     nReceivedIdx.fetch_add(1);
 
-    if (acqCondition.stackedFrame > 0 && xGlobal.SEND_SUBFRAME_FRAME_ON_ACQ)
+    if (acqCondition.stackedFrame > 0 && xGlobal.SEND_SUBFRAME_ON_ACQ)
     {
         // Apply image transformation for display/emission
         QImage processedImage = applyImageTransform(image);

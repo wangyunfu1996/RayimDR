@@ -59,9 +59,6 @@ inline QDebug operator<<(QDebug debug, const AcqCondition& cond)
 
 const static int DET_WIDTH_1X1{4300};
 const static int DET_HEIGHT_1X1{4300};
-const static int DET_WIDTH_2X2{2133};
-const static int DET_HEIGHT_2X2{2133};
-
 const static int IMAGE_BUFFER_SIZE{10};
 
 #define DET_TYPE_VIRTUAL 0
@@ -85,7 +82,7 @@ const static std::string DET_HOST_IP_WIRED = "192.168.10.101";
 const static std::string DET_HOST_IP_WIRELESS = "192.168.10.102";
 
 // inline 变量确保在所有编译单元中共享同一个实例 (C++17)
-inline bool AUTO_START_XRAY_ON_ACQ = false;
-inline bool AUTO_STOP_XRAY_ON_ACQ_STOP = false;
+inline bool AUTO_START_XRAY_ON_ACQ = true;
+inline bool AUTO_STOP_XRAY_ON_ACQ_STOP = true;
 
 // const static std::string NDT1717MA_WORK_DIR = "D:\\NDT1717MA";

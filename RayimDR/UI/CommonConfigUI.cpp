@@ -97,6 +97,8 @@ bool CommonConfigUI::checkInputValid()
             return true;
         }
     }
+
+    return true;
 }
 
 AcqCondition CommonConfigUI::getAcqCondition()
@@ -223,6 +225,7 @@ void CommonConfigUI::initUIConnect()
                     ui.lineEdit_interlock->setText("互锁激活");
                     ui.lineEdit_interlock->setStyleSheet("QLineEdit { color: red; }");
                 }
+                ui.lineEdit_vdc->setText(QString::number(status.battery, 'f', 2) + " V");
             });
 
     connect(ui.pushButton_startXRay, &QPushButton::clicked, this,

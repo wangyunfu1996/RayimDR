@@ -91,8 +91,9 @@ public:
     std::string XRAY_DEVICE_IP = "192.168.10.1";
     int XRAY_DEVICE_PORT = 10001;
 
-    std::string DET_HOST_IP_WIRED = "192.168.10.101";
-    std::string DET_HOST_IP_WIRELESS = "192.168.10.102";
+    std::string DET_REMOTE_IP = "192.168.10.2";
+    std::string DET_HOST_IP_WIRED = "192.168.10.110";
+    std::string DET_HOST_IP_WIRELESS = "192.168.10.110";
 
     // 采集时自动启动X射线
     bool AUTO_START_XRAY_ON_ACQ = true;

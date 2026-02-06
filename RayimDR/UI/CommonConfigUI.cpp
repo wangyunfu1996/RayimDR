@@ -174,16 +174,25 @@ void CommonConfigUI::initUIConnect()
             [this]()
             {
                 auto status = DET.Status();
-                ui.lineEdit_ChargingStatus->setText(status.Battery_ChargingStatus == 1 ? "充电中" : "未充电");
-                if (status.Battery_Remaining < xGlobal.DET_LOW_BATTERY_THRESHOLD && !status.Battery_ChargingStatus)
+                if (!status.Battery_Exist)
                 {
-                    QString msg = QString("请充电!(%1%)").arg(status.Battery_Remaining);
-                    ui.lineEdit_Battery_Remaining->setText(msg);
+                    ui.lineEdit_ChargingStatus->setText("未插入电池");
+                    ui.lineEdit_Battery_Remaining->setText(QString("%1%").arg(0));
                 }
                 else
                 {
-                    ui.lineEdit_Battery_Remaining->setText(QString::number(status.Battery_Remaining) + "%");
+                    ui.lineEdit_ChargingStatus->setText(status.Battery_ChargingStatus == 1 ? "充电中" : "未充电");
+                    if (status.Battery_Remaining < xGlobal.DET_LOW_BATTERY_THRESHOLD && !status.Battery_ChargingStatus)
+                    {
+                        QString msg = QString("请充电!(%1%)").arg(status.Battery_Remaining);
+                        ui.lineEdit_Battery_Remaining->setText(msg);
+                    }
+                    else
+                    {
+                        ui.lineEdit_Battery_Remaining->setText(QString::number(status.Battery_Remaining) + "%");
+                    }
                 }
+
                 ui.lineEdit_connState->setText(status.Connected ? "已连接" : "未连接");
                 if (status.State == 0)
                 {

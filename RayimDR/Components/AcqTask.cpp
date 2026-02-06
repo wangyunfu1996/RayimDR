@@ -132,7 +132,6 @@ void AcqTask::processStackedFrames(const QVector<QImage>& imagesToStack)
             // Apply image transformation if enabled
             stackedImage = applyImageTransform(stackedImage);
 
-            AcqTaskManager::Instance().receivedImageList[vecIdx] = stackedImage;
             qDebug() << "[异步处理] 叠加完成, 结果尺寸:" << stackedImage.width() << "x" << stackedImage.height()
                      << ", 缓冲索引:" << vecIdx;
 

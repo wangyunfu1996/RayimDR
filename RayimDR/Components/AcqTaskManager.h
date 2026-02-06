@@ -32,7 +32,6 @@ public:
     void updateAcqFrame(int frame);
     void updateAcqStackedFrame(int stackedFrame);
     void updateAcqDetMode(std::string mode);
-    QImage receivedImage(int idx);
 
 signals:
     void acqTaskFrameReceived(AcqCondition condition, int frameIdx, int subFrameIdx, QImage image);
@@ -46,7 +45,6 @@ private:
     AcqCondition* acqCondition{nullptr};
     AcqTask* acqTask{nullptr};
 
-    QVector<QImage> receivedImageList;
     QVector<QImage> stackedImageList;
 
     friend class AcqTask;

@@ -15,9 +15,6 @@ AcqTaskManager::AcqTaskManager(QObject* parent) : QObject(parent), acqCondition(
 {
     // 关键：注册 AcqCondition 为元类型
     qRegisterMetaType<AcqCondition>("AcqCondition");
-
-    receivedImageList.reserve(xGlobal.IMAGE_BUFFER_SIZE);
-    receivedImageList.resize(xGlobal.IMAGE_BUFFER_SIZE);
 }
 
 AcqTaskManager::~AcqTaskManager()
@@ -110,16 +107,4 @@ void AcqTaskManager::updateAcqStackedFrame(int stackedFrame)
 void AcqTaskManager::updateAcqDetMode(std::string mode)
 {
     acqCondition->mode = mode;
-}
-
-QImage AcqTaskManager::receivedImage(int idx)
-{
-    if (idx < 0)
-    {
-        qDebug() << "尝试获取的图像索引错误：" << idx << receivedImageList.size();
-        return QImage();
-    }
-    int vecIdx = idx % xGlobal.IMAGE_BUFFER_SIZE;
-    qDebug() << "读取图像：" << idx << "，在vec中的索引：" << vecIdx;
-    return receivedImageList.at(vecIdx);
 }

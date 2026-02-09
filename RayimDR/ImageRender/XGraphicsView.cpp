@@ -277,14 +277,14 @@ void XGraphicsView::openImage()
     {
         // RAW 文件需要用户输入图像尺寸
         bool okWidth = false;
-        int width = QInputDialog::getInt(nullptr, "输入图像宽度", "请输入图像宽度（像素）:", xGlobal.DET_WIDTH_1X1, 1,
+        int width = QInputDialog::getInt(nullptr, "输入图像宽度", "请输入图像宽度（像素）:", xGlobal.getInt("DET", "DET_WIDTH_1X1"), 1,
                                          65536, 1,
                                          &okWidth);
         if (!okWidth)
             return;
 
         bool okHeight = false;
-        int height = QInputDialog::getInt(nullptr, "输入图像高度", "请输入图像高度（像素）:", xGlobal.DET_HEIGHT_1X1, 1,
+        int height = QInputDialog::getInt(nullptr, "输入图像高度", "请输入图像高度（像素）:", xGlobal.getInt("DET", "DET_HEIGHT_1X1"), 1,
                                           65536,
                                           1, &okHeight);
         if (!okHeight)
@@ -365,12 +365,12 @@ void XGraphicsView::openImageFolder()
     const bool isTiffFormat = (tiffCount > 0);
 
     // 如果是 RAW 格式，需要用户输入图像尺寸
-    int rawWidth = xGlobal.DET_WIDTH_1X1;
-    int rawHeight = xGlobal.DET_HEIGHT_1X1;
+    int rawWidth = xGlobal.getInt("DET", "DET_WIDTH_1X1");
+    int rawHeight = xGlobal.getInt("DET", "DET_HEIGHT_1X1");
     if (isRawFormat)
     {
         bool okWidth = false;
-        rawWidth = QInputDialog::getInt(nullptr, "输入图像宽度", "请输入 RAW 图像宽度（像素）:", xGlobal.DET_WIDTH_1X1,
+        rawWidth = QInputDialog::getInt(nullptr, "输入图像宽度", "请输入 RAW 图像宽度（像素）:", xGlobal.getInt("DET", "DET_WIDTH_1X1"),
                                         1,
                                         65536, 1, &okWidth);
         if (!okWidth)
@@ -378,7 +378,7 @@ void XGraphicsView::openImageFolder()
 
         bool okHeight = false;
         rawHeight = QInputDialog::getInt(
-            nullptr, "输入图像高度", "请输入 RAW 图像高度（像素）:", xGlobal.DET_HEIGHT_1X1, 1,
+            nullptr, "输入图像高度", "请输入 RAW 图像高度（像素）:", xGlobal.getInt("DET", "DET_HEIGHT_1X1"), 1,
                                          65536, 1, &okHeight);
         if (!okHeight)
             return;

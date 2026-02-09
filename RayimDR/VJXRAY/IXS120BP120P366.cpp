@@ -180,10 +180,11 @@ bool IXS120BP120P366::isConnected() const
 bool IXS120BP120P366::setVoltage(int kV)
 {
     // Validate voltage range: 30.0 - 120.0 kV
-    if (kV < xGlobal.XRAY_MIN_VOLTAGE || kV > xGlobal.XRAY_MAX_VOLTAGE)
+    if (kV < xGlobal.getInt("XRay", "XRAY_MIN_VOLTAGE") || kV > xGlobal.getInt("XRay", "XRAY_MAX_VOLTAGE"))
     {
-        qDebug() << "[SetVoltage] Invalid voltage:" << kV << "kV (valid range:" << xGlobal.XRAY_MIN_VOLTAGE << "-"
-                 << xGlobal.XRAY_MAX_VOLTAGE << "kV)";
+        qDebug() << "[SetVoltage] Invalid voltage:" << kV
+                 << "kV (valid range:" << xGlobal.getInt("XRay", "XRAY_MIN_VOLTAGE") << "-"
+                 << xGlobal.getInt("XRay", "XRAY_MAX_VOLTAGE") << "kV)";
         return false;
     }
 
@@ -225,10 +226,11 @@ bool IXS120BP120P366::setVoltage(int kV)
 bool IXS120BP120P366::setCurrent(int uA)
 {
     // Validate current range: 0.2000 - 1.0000 mA (200 - 1000 uA)
-    if (uA < xGlobal.XRAY_MIN_CURRENT || uA > xGlobal.XRAY_MAX_CURRENT)
+    if (uA < xGlobal.getInt("Xray", "XRAY_MIN_CURRENT") || uA > xGlobal.getInt("Xray", "XRAY_MAX_CURRENT"))
     {
-        qDebug() << "[SetCurrent] Invalid current:" << uA << "uA (valid range:" << xGlobal.XRAY_MIN_CURRENT << "-"
-                 << xGlobal.XRAY_MAX_CURRENT << "uA)";
+        qDebug() << "[SetCurrent] Invalid current:" << uA
+                 << "uA (valid range:" << xGlobal.getInt("Xray", "XRAY_MIN_CURRENT") << "-"
+                 << xGlobal.getInt("Xray", "XRAY_MAX_CURRENT") << "uA)";
         return false;
     }
 

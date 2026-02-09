@@ -281,7 +281,7 @@ void MainWindow::onXRayStopRequested()
     if (IXS120BP120P366::Instance().xRayIsOn())
     {
         XElaDialog dialog("采集结束，是否关闭射线源？", XElaDialogType::ASK);
-        if (xGlobal.AUTO_STOP_XRAY_ON_ACQ_STOP || dialog.showCentered() == QDialog::Accepted)
+        if (xGlobal.getBool("System", "AUTO_STOP_XRAY_ON_ACQ_STOP") || dialog.showCentered() == QDialog::Accepted)
         {
             IXS120BP120P366::Instance().stopXRay();
         }
@@ -364,7 +364,7 @@ void MainWindow::onMenuAppCfg()
     AppCfgDialog dialog;
     if (dialog.exec() == QDialog::Accepted)
     {
-        DET.SetLowBatteryPercent(xGlobal.DET_LOW_BATTERY_THRESHOLD);
+        DET.SetLowBatteryPercent(xGlobal.getInt("DET", "DET_LOW_BATTERY_THRESHOLD"));
     }
 }
 
@@ -677,7 +677,8 @@ void MainWindow::connectToXRay()
     qDebug() << "[MainWindow] Connecting to X-ray source";
     emit xSignaHelper.signalUpdateStatusInfo("开始连接射线源");
 
-    bool connected = xRaySource.connectToSource(xGlobal.XRAY_DEVICE_IP.c_str(), xGlobal.XRAY_DEVICE_PORT);
+    bool connected = xRaySource.connectToSource(xGlobal.getString("XRay", "XRAY_DEVICE_IP_WIRED"),
+                                                xGlobal.getInt("XRay", "XRAY_DEVICE_PORT"));
     if (connected)
     {
         emit xSignaHelper.signalShowSuccessMessageBar("射线源已连接!");

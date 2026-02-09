@@ -52,64 +52,41 @@ int main(int argc, char* argv[])
 
     QtLogger::initialize();
 
-    int connectType = -1;
-    for (const QHostAddress& addr : xNetworkInfo.getAllIPv4Addresses(false))
+    if (!xGlobal.init())
     {
-        qDebug() << "addr: " << addr.toString() << " DET_HOST_IP_WIRED:" << xGlobal.DET_HOST_IP_WIRED << " DET_HOST_IP_WIRELESS " << xGlobal.DET_HOST_IP_WIRELESS;
-        if (addr.toString() == QString::fromStdString(xGlobal.DET_HOST_IP_WIRED))
-        {
-            qDebug() << "当前为有线连接";
-            connectType = 0;
-            break;
-        }
-        else if (addr.toString() == QString::fromStdString(xGlobal.DET_HOST_IP_WIRELESS))
-        {
-            qDebug() << "当前为无线连接";
-            connectType = 1;
-            break;
-        }
-    }
-
-    if (connectType != 0 && connectType != 1)
-    {
-        QMessageBox::critical(nullptr, "网络连接错误", "未检测到与探测器的网络连接，请检查网络设置后重试！",
-                              QMessageBox::Ok);
+        QMessageBox::critical(nullptr, "配置文件错误", "配置文件加载失败，请检查配置文件后重试！", QMessageBox::Ok);
         return 0;
     }
 
     // 读取配置文件
-    QString configPath = QApplication::applicationDirPath() + "/config.ini";
-    IniReader iniReader(configPath);
+    QString detWorkDir = QApplication::applicationDirPath() + "/" + xGlobal.getString("DET", "DET_WORK_DIR");
+    QString detConfigPath = detWorkDir + "/config.ini";
+    IniReader iniReader(detConfigPath);
     if (!iniReader.isLoaded())
     {
         QMessageBox::critical(nullptr, "配置文件错误", "配置文件加载失败，请检查配置文件后重试！", QMessageBox::Ok);
         return 0;
     }
-    for (auto section : iniReader.getSections())
-    {
-        qDebug() << "Section:" << section;
-        for (auto key : iniReader.getKeys(section))
-        {
-            qDebug() << "  Key:" << key << "Value:" << iniReader.getString(section, key);
-        }
-    }
 
-    if (connectType == 0)
+    int connectType = xGlobal.getInt("System", "CONNECT_TYPE");
+    if (connectType == 1)
     {
-        iniReader.setValue("Connection", "Cfg_HostIP", QString::fromUtf8(xGlobal.DET_HOST_IP_WIRED));
-        iniReader.setValue("FTP", "Cfg_FTP_Download_HostIP", QString::fromUtf8(xGlobal.DET_HOST_IP_WIRED));
-        iniReader.setValue("FTP", "Cfg_FTP_Upload_HostIP", QString::fromUtf8(xGlobal.DET_HOST_IP_WIRED));
+        xGlobal.setString("DET", "DET_HOST_IP", "192.168.10.110");
     }
-    else if (connectType == 1)
+    else if (connectType == 2)
     {
-        iniReader.setValue("Connection", "Cfg_HostIP", QString::fromUtf8(xGlobal.DET_HOST_IP_WIRELESS));
-        iniReader.setValue("FTP", "Cfg_FTP_Download_HostIP", QString::fromUtf8(xGlobal.DET_HOST_IP_WIRELESS));
-        iniReader.setValue("FTP", "Cfg_FTP_Upload_HostIP", QString::fromUtf8(xGlobal.DET_HOST_IP_WIRELESS));
+        xGlobal.setString("DET", "DET_HOST_IP", "192.168.10.110");
     }
+    else if (connectType == 3)
+    {
+        xGlobal.setString("DET", "DET_HOST_IP", "192.168.10.120");
+    }
+    iniReader.setValue("Connection", "Cfg_HostIP", xGlobal.getString("DET", "DET_HOST_IP"));
+    iniReader.setValue("FTP", "Cfg_FTP_Download_HostIP", xGlobal.getString("DET", "DET_HOST_IP"));
+    iniReader.setValue("FTP", "Cfg_FTP_Upload_HostIP", xGlobal.getString("DET", "DET_HOST_IP"));
     iniReader.save();
 
-
-    NDT1717MA::Instance().SetWorkDirPath(QApplication::applicationDirPath().toStdString() + "/NDT1717MA");
+    NDT1717MA::Instance().SetWorkDirPath(detWorkDir.toStdString());
 
     qDebug() << "程序运行，当前时间：" << QDateTime::currentDateTime();
     MainWindow w;

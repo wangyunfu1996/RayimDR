@@ -19,6 +19,9 @@
      <property name="text">
       <string/>
      </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignCenter</set>
+     </property>
     </widget>
    </item>
    <item row="1" column="0" colspan="2">
@@ -28,14 +31,54 @@
      </property>
      <widget class="QWidget" name="page_Offset">
       <layout class="QGridLayout" name="gridLayout_2" columnstretch="1,1,1,1">
+       <item row="3" column="2">
+        <widget class="ElaPushButton" name="pushButton_OffsetGenerationAbort">
+         <property name="text">
+          <string>取消</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1" colspan="2">
+        <widget class="ElaPushButton" name="pushButton_ToGain">
+         <property name="text">
+          <string>下一步</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
        <item row="2" column="1">
+        <widget class="ElaText" name="label_mode">
+         <property name="text">
+          <string>模式：</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="2">
+        <widget class="ElaLineEdit" name="lineEdit_OffsetProgress"/>
+       </item>
+       <item row="3" column="1">
         <widget class="ElaPushButton" name="pushButton_OffsetGenerationStart">
          <property name="text">
           <string>执行暗场校正</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="3">
+       <item row="4" column="3">
         <spacer name="horizontalSpacer_2">
          <property name="orientation">
           <enum>Qt::Orientation::Horizontal</enum>
@@ -48,15 +91,8 @@
          </property>
         </spacer>
        </item>
-       <item row="3" column="1">
-        <widget class="ElaText" name="label_OffsetProgress">
-         <property name="text">
-          <string>采集进度</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignmentFlag::AlignCenter</set>
-         </property>
-        </widget>
+       <item row="2" column="2">
+        <widget class="ElaComboBox" name="comboBox_mode"/>
        </item>
        <item row="0" column="2">
         <spacer name="verticalSpacer_2">
@@ -71,7 +107,17 @@
          </property>
         </spacer>
        </item>
-       <item row="5" column="2">
+       <item row="4" column="1">
+        <widget class="ElaText" name="label_OffsetProgress">
+         <property name="text">
+          <string>采集进度：</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="2">
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Orientation::Vertical</enum>
@@ -84,45 +130,15 @@
          </property>
         </spacer>
        </item>
-       <item row="3" column="0">
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Orientation::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="2" column="2">
-        <widget class="ElaPushButton" name="pushButton_OffsetGenerationAbort">
+       <item row="1" column="1" colspan="2">
+        <widget class="ElaText" name="label_offsetTips">
          <property name="text">
-          <string>取消</string>
+          <string>执行暗场校正时，距离上次开光采集时间需大于30分钟！</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
          </property>
         </widget>
-       </item>
-       <item row="4" column="1" colspan="2">
-        <widget class="ElaPushButton" name="pushButton_ToGain">
-         <property name="text">
-          <string>下一步</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="2">
-        <widget class="ElaLineEdit" name="lineEdit_OffsetProgress"/>
-       </item>
-       <item row="1" column="1">
-        <widget class="ElaText" name="label_mode">
-         <property name="text">
-          <string>模式</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="2">
-        <widget class="ElaComboBox" name="comboBox_mode"/>
        </item>
       </layout>
      </widget>
@@ -327,6 +343,9 @@
     <widget class="ElaText" name="label_Tips">
      <property name="text">
       <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignCenter</set>
      </property>
     </widget>
    </item>

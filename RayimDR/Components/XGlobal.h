@@ -75,47 +75,28 @@ public:
         return instance;
     }
 
+    bool init();
+
+    QString getString(const QString& section, const QString& key, const QString& defaultValue = QString()) const;
+    int getInt(const QString& section, const QString& key, int defaultValue = 0) const;
+    double getDouble(const QString& section, const QString& key, double defaultValue = 0.0) const;
+    bool getBool(const QString& section, const QString& key, bool defaultValue = false) const;
+
+    void setString(const QString& section, const QString& key, const QString& value);
+    void setInt(const QString& section, const QString& key, int value);
+    void setDouble(const QString& section, const QString& key, double value);
+    void setBool(const QString& section, const QString& key, bool value);
+
+    bool save();
+
     // 删除拷贝构造和赋值操作
     XGlobal(const XGlobal&) = delete;
     XGlobal& operator=(const XGlobal&) = delete;
 
-    int DET_WIDTH_1X1{4300};
-    int DET_HEIGHT_1X1{4300};
-    int IMAGE_BUFFER_SIZE{10};
-
-    int XRAY_MIN_VOLTAGE{30};    // kV
-    int XRAY_MAX_VOLTAGE{120};   // kV
-    int XRAY_MIN_CURRENT{200};   // uA
-    int XRAY_MAX_CURRENT{1000};  // uA
-
-    std::string XRAY_DEVICE_IP = "192.168.10.1";
-    int XRAY_DEVICE_PORT = 10001;
-
-    std::string DET_REMOTE_IP = "192.168.10.2";
-    std::string DET_HOST_IP_WIRED = "192.168.10.110";
-    std::string DET_HOST_IP_WIRELESS = "192.168.10.110";
-
-    // 采集时自动启动X射线
-    bool AUTO_START_XRAY_ON_ACQ = true;
-    // 采集停止时自动关闭X射线
-    bool AUTO_STOP_XRAY_ON_ACQ_STOP = true;
-
-    // 采集时发送子帧数据
-    bool SEND_SUBFRAME_ON_ACQ = true;
-
-    int DET_LOW_BATTERY_THRESHOLD = 20;  // 探测器低电量阈值，百分比
-
-    // 1 2 3 4 的含义为 射线源自带的软件通过VDC的阈值判断当前还剩几格电，剩一格电时开光会报错
-    int XRAY_LOW_BATTERY_THRESHOLD_1 = 20;  // 根据射线源的VDC判断
-    int XRAY_LOW_BATTERY_THRESHOLD_2 = 21;  // 根据射线源的VDC判断
-    int XRAY_LOW_BATTERY_THRESHOLD_3 = 22;  // 根据射线源的VDC判断
-    int XRAY_LOW_BATTERY_THRESHOLD_4 = 23;  // 根据射线源的VDC判断
-
-    bool FLIP_HORIZONTAL = true;
-    bool FLIP_VERTICAL = false;
-
 private:
     // 私有构造函数
-    XGlobal() = default;
-    ~XGlobal() = default;
+    XGlobal();
+    ~XGlobal();
+
+    class IniReader* m_IniReader{nullptr};
 };

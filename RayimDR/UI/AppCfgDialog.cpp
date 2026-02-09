@@ -25,38 +25,38 @@ AppCfgDialog::AppCfgDialog(QWidget* parent) : ElaDialog(parent)
 
     ElaUIHepler::ChangeToNormalStyle(this);
     ui.spinBox_detLowBattery->setRange(20, 100);
-    ui.spinBox_detLowBattery->setValue(xGlobal.DET_LOW_BATTERY_THRESHOLD);
-    ui.checkBox_autoStartXRay->setChecked(xGlobal.AUTO_START_XRAY_ON_ACQ);
-    ui.checkBox_autoStopXRay->setChecked(xGlobal.AUTO_STOP_XRAY_ON_ACQ_STOP);
-    ui.radioButton_everyFrame->setChecked(xGlobal.SEND_SUBFRAME_ON_ACQ);
-    ui.radioButton_stackedFrame->setChecked(!xGlobal.SEND_SUBFRAME_ON_ACQ);
-    ui.checkBox_FlipHorizontal->setChecked(xGlobal.FLIP_HORIZONTAL);
-    ui.checkBox_FlipVertical->setChecked(xGlobal.FLIP_VERTICAL);
+    ui.spinBox_detLowBattery->setValue(xGlobal.getInt("DET", "DET_LOW_BATTERY_THRESHOLD"));
+    ui.checkBox_autoStartXRay->setChecked(xGlobal.getBool("System", "AUTO_START_XRAY_ON_ACQ"));
+    ui.checkBox_autoStopXRay->setChecked(xGlobal.getBool("System", "AUTO_STOP_XRAY_ON_ACQ_STOP"));
+    ui.radioButton_everyFrame->setChecked(xGlobal.getBool("System", "SEND_SUBFRAME_ON_ACQ"));
+    ui.radioButton_stackedFrame->setChecked(!xGlobal.getBool("System", "SEND_SUBFRAME_ON_ACQ"));
+    ui.checkBox_FlipHorizontal->setChecked(xGlobal.getBool("System", "FLIP_HORIZONTAL"));
+    ui.checkBox_FlipVertical->setChecked(xGlobal.getBool("System", "FLIP_VERTICAL"));
 
     connect(ui.pushButton_confirm, &QPushButton::clicked, this,
             [this]()
             {
-                qDebug() << "DET_LOW_BATTERY_THRESHOLD: " << xGlobal.DET_LOW_BATTERY_THRESHOLD
-                         << " AUTO_START_XRAY_ON_ACQ: " << xGlobal.AUTO_START_XRAY_ON_ACQ
-                         << " AUTO_STOP_XRAY_ON_ACQ_STOP: " << xGlobal.AUTO_STOP_XRAY_ON_ACQ_STOP
-                         << " SEND_SUBFRAME_ON_ACQ: " << xGlobal.SEND_SUBFRAME_ON_ACQ;
+                qDebug() << "DET_LOW_BATTERY_THRESHOLD: " << xGlobal.getInt("DET", "DET_LOW_BATTERY_THRESHOLD")
+                         << " AUTO_START_XRAY_ON_ACQ: " << xGlobal.getBool("System", "AUTO_START_XRAY_ON_ACQ")
+                         << " AUTO_STOP_XRAY_ON_ACQ_STOP: " << xGlobal.getBool("System", "AUTO_STOP_XRAY_ON_ACQ_STOP")
+                         << " SEND_SUBFRAME_ON_ACQ: " << xGlobal.getBool("System", "SEND_SUBFRAME_ON_ACQ");
 
                 this->accept();
             });
     connect(ui.pushButton_cancel, &QPushButton::clicked, this, [this]() { this->reject(); });
 
     connect(ui.spinBox_detLowBattery, qOverload<int>(&QSpinBox::valueChanged), this,
-            [this](int value) { xGlobal.DET_LOW_BATTERY_THRESHOLD = value; });
+            [this](int value) { xGlobal.setInt("DET", "DET_LOW_BATTERY_THRESHOLD", value); });
     connect(ui.checkBox_autoStartXRay, &QCheckBox::toggled, this,
-            [this]() { xGlobal.AUTO_START_XRAY_ON_ACQ = ui.checkBox_autoStartXRay->isChecked(); });
+            [this](bool checked) { xGlobal.setBool("System", "AUTO_START_XRAY_ON_ACQ", checked); });
     connect(ui.checkBox_autoStopXRay, &QCheckBox::toggled, this,
-            [this]() { xGlobal.AUTO_STOP_XRAY_ON_ACQ_STOP = ui.checkBox_autoStopXRay->isChecked(); });
+            [this](bool checked) { xGlobal.setBool("System", "AUTO_STOP_XRAY_ON_ACQ_STOP", checked); });
     connect(ui.radioButton_everyFrame, &QRadioButton::toggled, this,
-            [this](bool checked) { xGlobal.SEND_SUBFRAME_ON_ACQ = checked; });
+            [this](bool checked) { xGlobal.setBool("System", "SEND_SUBFRAME_ON_ACQ", checked); });
     connect(ui.checkBox_FlipHorizontal, &QCheckBox::toggled, this,
-            [this]() { xGlobal.FLIP_HORIZONTAL = ui.checkBox_FlipHorizontal->isChecked(); });
+            [this](bool checked) { xGlobal.setBool("System", "FLIP_HORIZONTAL", checked); });
     connect(ui.checkBox_FlipVertical, &QCheckBox::toggled, this,
-            [this]() { xGlobal.FLIP_VERTICAL = ui.checkBox_FlipVertical->isChecked(); });
+            [this](bool checked) { xGlobal.setBool("System", "FLIP_VERTICAL", checked); });
 }
 
 AppCfgDialog::~AppCfgDialog() {}

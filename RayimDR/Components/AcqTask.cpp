@@ -31,29 +31,29 @@ AcqTask::~AcqTask()
 // Apply image transformation (flip horizontal/vertical) based on acquisition conditions
 QImage AcqTask::applyImageTransform(const QImage& image)
 {
-    if (!xGlobal.FLIP_HORIZONTAL && !xGlobal.FLIP_VERTICAL)
+    if (!xGlobal.xGlobal.getBool("System", "FLIP_HORIZONTAL") && !xGlobal.xGlobal.getBool("System", "FLIP_VERTICAL"))
     {
         return image;
     }
 
     qint64 transformStartTime = QDateTime::currentMSecsSinceEpoch();
 
-    qDebug() << "[图像变换] 开始处理 - 水平翻转:" << (xGlobal.FLIP_HORIZONTAL ? "是" : "否")
-             << ", 垂直翻转:" << (xGlobal.FLIP_VERTICAL ? "是" : "否");
+    qDebug() << "[图像变换] 开始处理 - 水平翻转:" << (xGlobal.xGlobal.getBool("System", "FLIP_HORIZONTAL") ? "是" : "否")
+             << ", 垂直翻转:" << (xGlobal.xGlobal.getBool("System", "FLIP_VERTICAL") ? "是" : "否");
 
     QImage transformedImage;
 
-    if (xGlobal.FLIP_HORIZONTAL && xGlobal.FLIP_VERTICAL)
+    if (xGlobal.xGlobal.getBool("System", "FLIP_HORIZONTAL") && xGlobal.xGlobal.getBool("System", "FLIP_VERTICAL"))
     {
         transformedImage = image.flipped(Qt::Horizontal | Qt::Vertical);
         qDebug() << "[图像变换] 执行: 水平+垂直翻转 (旋转180度)";
     }
-    else if (xGlobal.FLIP_HORIZONTAL)
+    else if (xGlobal.xGlobal.getBool("System", "FLIP_HORIZONTAL"))
     {
         transformedImage = image.flipped(Qt::Horizontal);
         qDebug() << "[图像变换] 执行: 水平翻转（左右镜像）";
     }
-    else if (xGlobal.FLIP_VERTICAL)
+    else if (xGlobal.xGlobal.getBool("System", "FLIP_VERTICAL"))
     {
         transformedImage = image.flipped(Qt::Vertical);
         qDebug() << "[图像变换] 执行: 垂直翻转（上下翻转）";
@@ -111,7 +111,7 @@ void AcqTask::saveStackedImage(const QImage& stackedImage, int frameIndex)
 // Helper function to process stacked frames and save results
 void AcqTask::processStackedFrames(const QVector<QImage>& imagesToStack)
 {
-    int vecIdx = nProcessedStacekd.load() % xGlobal.IMAGE_BUFFER_SIZE;
+    int vecIdx = nProcessedStacekd.load() % xGlobal.xGlobal.getInt("System", "IMAGE_BUFFER_SIZE");
     qint64 processStartTime = QDateTime::currentMSecsSinceEpoch();
 
     qDebug() << "[处理叠加] 第" << (nProcessedStacekd.load() + 1) << "组数据, 缓冲索引:" << vecIdx
@@ -189,8 +189,8 @@ void AcqTask::startAcq()
              << (acqCondition.frame == INT_MAX ? " (连续)" : "") << ", 帧率:" << acqCondition.frameRate
              << "fps, 叠加:" << acqCondition.stackedFrame << ", 电压:" << acqCondition.voltage
              << "kV, 电流:" << acqCondition.current << "mA, 保存:" << (acqCondition.saveToFiles ? "是" : "否")
-             << ", 水平翻转:" << (xGlobal.FLIP_HORIZONTAL ? "是" : "否")
-             << ", 垂直翻转:" << (xGlobal.FLIP_VERTICAL ? "是" : "否");
+             << ", 水平翻转:" << (xGlobal.xGlobal.getBool("System", "FLIP_HORIZONTAL") ? "是" : "否")
+             << ", 垂直翻转:" << (xGlobal.xGlobal.getBool("System", "FLIP_VERTICAL") ? "是" : "否");
 
     if (acqCondition.saveToFiles)
     {
@@ -310,7 +310,7 @@ void AcqTask::onImageReceived(QImage image, int idx, int grayValue)
     AcqTaskManager::Instance().stackedImageList.append(image);
     nReceivedIdx.fetch_add(1);
 
-    if (acqCondition.stackedFrame > 0 && xGlobal.SEND_SUBFRAME_ON_ACQ)
+    if (acqCondition.stackedFrame > 0 && xGlobal.xGlobal.getBool("System", "SEND_SUBFRAME_ON_ACQ"))
     {
         // Apply image transformation for display/emission
         QImage processedImage = applyImageTransform(image);

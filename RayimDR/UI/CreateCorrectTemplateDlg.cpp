@@ -73,6 +73,7 @@ void CreateCorrectTemplateDlg::initializeControls()
     constexpr int MIN_CURRENT = 200;
     constexpr int MAX_CURRENT = 1000;
 
+    ui.label_Stage->setText("当前流程：暗场校正");
     // Gain controls
     ui.spinBox_GainVoltage->setRange(MIN_VOLTAGE, MAX_VOLTAGE);
     ui.spinBox_GainCurrent->setRange(MIN_CURRENT, MAX_CURRENT);

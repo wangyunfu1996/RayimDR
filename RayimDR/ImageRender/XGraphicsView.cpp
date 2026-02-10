@@ -94,7 +94,8 @@ void XGraphicsView::updateImage(QImage image, bool adjustWL)
     int max = -1;
     int min = -1;
     XImageHelper::calculateMaxMinValue(currentSrcU16Image, max, min);
-    emit signalMinMaxValueChanged(min, max);
+    if (!enableROI)
+        emit signalMinMaxValueChanged(min, max);
 
     qDebug() << "图像统计 - Min:" << min << "Max:" << max << "Size:" << currentSrcU16Image.width() << "x"
              << currentSrcU16Image.height();
@@ -277,15 +278,15 @@ void XGraphicsView::openImage()
     {
         // RAW 文件需要用户输入图像尺寸
         bool okWidth = false;
-        int width = QInputDialog::getInt(nullptr, "输入图像宽度", "请输入图像宽度（像素）:", xGlobal.getInt("DET", "DET_WIDTH_1X1"), 1,
-                                         65536, 1,
+        int width = QInputDialog::getInt(nullptr, "输入图像宽度",
+                                         "请输入图像宽度（像素）:", xGlobal.getInt("DET", "DET_WIDTH_1X1"), 1, 65536, 1,
                                          &okWidth);
         if (!okWidth)
             return;
 
         bool okHeight = false;
-        int height = QInputDialog::getInt(nullptr, "输入图像高度", "请输入图像高度（像素）:", xGlobal.getInt("DET", "DET_HEIGHT_1X1"), 1,
-                                          65536,
+        int height = QInputDialog::getInt(nullptr, "输入图像高度",
+                                          "请输入图像高度（像素）:", xGlobal.getInt("DET", "DET_HEIGHT_1X1"), 1, 65536,
                                           1, &okHeight);
         if (!okHeight)
             return;
@@ -370,15 +371,15 @@ void XGraphicsView::openImageFolder()
     if (isRawFormat)
     {
         bool okWidth = false;
-        rawWidth = QInputDialog::getInt(nullptr, "输入图像宽度", "请输入 RAW 图像宽度（像素）:", xGlobal.getInt("DET", "DET_WIDTH_1X1"),
-                                        1,
+        rawWidth = QInputDialog::getInt(nullptr, "输入图像宽度",
+                                        "请输入 RAW 图像宽度（像素）:", xGlobal.getInt("DET", "DET_WIDTH_1X1"), 1,
                                         65536, 1, &okWidth);
         if (!okWidth)
             return;
 
         bool okHeight = false;
-        rawHeight = QInputDialog::getInt(
-            nullptr, "输入图像高度", "请输入 RAW 图像高度（像素）:", xGlobal.getInt("DET", "DET_HEIGHT_1X1"), 1,
+        rawHeight = QInputDialog::getInt(nullptr, "输入图像高度",
+                                         "请输入 RAW 图像高度（像素）:", xGlobal.getInt("DET", "DET_HEIGHT_1X1"), 1,
                                          65536, 1, &okHeight);
         if (!okHeight)
             return;

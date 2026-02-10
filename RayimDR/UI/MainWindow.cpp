@@ -474,7 +474,7 @@ void MainWindow::initToolBar()
     toolBar->addWidget(toolButtonDRMulti);
 
     toolButtonStopDR = new ElaToolButton(this);
-    toolButtonStopDR->setElaIcon(ElaIconType::Stop);
+    toolButtonStopDR->setElaIcon(ElaIconType::Pause);
     toolButtonStopDR->setToolTip("停止");
     toolBar->addWidget(toolButtonStopDR);
 

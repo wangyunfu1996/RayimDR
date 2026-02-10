@@ -295,6 +295,10 @@ bool IXS120BP120P366::startXRay()
                 qDebug() << "[StartXRay] Failed - No response from X-ray source";
                 result = false;
             }
+            if (result)
+            {
+                emit xrayStarted();
+            }
         },
         Qt::BlockingQueuedConnection);
 
@@ -326,6 +330,10 @@ bool IXS120BP120P366::stopXRay()
             {
                 qDebug() << "[StopXRay] Failed - No response from X-ray source";
                 result = false;
+            }
+            if (result)
+            {
+                emit xrayStopped();
             }
         },
         Qt::BlockingQueuedConnection);
@@ -504,7 +512,10 @@ void IXS120BP120P366::onTcpDisconnected()
 void IXS120BP120P366::onTcpError(const QString& errorMsg)
 {
     qDebug() << "[Event] TCP error:" << errorMsg;
-    emit xrayError(errorMsg);
+    if (m_tcpClient)
+    {
+        m_tcpClient->disconnectFromHost();
+    }
 }
 
 // ============================================================================

@@ -155,12 +155,21 @@ void MainWindow::setupConnections()
             [this]()
             {
                 auto detStatus = DET.Status();
-                if (!detStatus.Connected)
+
+                // 防止重复弹窗
+                if (!detStatus.Connected && !_detectorDisconnectDialogShown)
                 {
+                    _detectorDisconnectDialogShown = true;
+
+                    if (AcqTaskManager::Instance().isAcquiring())
+                    {
+                        AcqTaskManager::Instance().stopAcq();
+                    }
                     XElaDialog dialog("探测器连接已断开，请检查连接，重启探测器，并重新启动本程序",
                                       XElaDialogType::ERR);
                     dialog.showCentered();
                     this->close();
+                    return;  // 提前返回，避免后续逻辑
                 }
 
                 if (!detStatus.Connected || detStatus.State != 1 || IXS120BP120P366::Instance().isPreheat())
@@ -201,16 +210,15 @@ void MainWindow::setupConnections()
     connect(&XImageHelper::Instance(), &XImageHelper::signalOpenImageFolderProgressChanged, this,
             &MainWindow::onImageFolderProgressChanged);
 
-    connect(&IXS120BP120P366::Instance(), &IXS120BP120P366::xrayError, this,
+    connect(&IXS120BP120P366::Instance(), &IXS120BP120P366::disconnected, this,
             [this]()
             {
+                onErrorMessageBar("检测到射线源断开连接，请检查网络连接并重启本程序", 3000);
+                qDebug() << "检测到射线源断开连接";
                 if (AcqTaskManager::Instance().isAcquiring())
                 {
-                    XElaDialog dialog("检测到射线源错误，是否停止采集？", XElaDialogType::ERR);
-                    if (dialog.showCentered() == QDialog::Accepted)
-                    {
-                        AcqTaskManager::Instance().stopAcq();
-                    }
+                    qDebug() << "停止采集";
+                    AcqTaskManager::Instance().stopAcq();
                 }
             });
 }

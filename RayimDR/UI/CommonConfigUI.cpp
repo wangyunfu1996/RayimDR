@@ -47,22 +47,6 @@ CommonConfigUI::CommonConfigUI(QWidget* parent) : QWidget(parent)
         QPixmap(":/Resource/Image/xray_close.png").scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     ui.label_xRayStatus->setScaledContents(false);  // 自动缩放
                                                     // 定时器超时时切换图标
-    connect(
-        blinkTimer, &QTimer::timeout, this,
-        [this]()
-        {
-            isIndicatorBright = !isIndicatorBright;
-            if (isIndicatorBright)
-            {
-                ui.label_xRayStatus->setPixmap(
-                    QPixmap(":/Resource/Image/xray.png").scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-            }
-            else
-            {
-                ui.label_xRayStatus->setPixmap(QPixmap(":/Resource/Image/xray_close.png")
-                                                   .scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-            }
-        });
     initUIConnect();
 }
 
@@ -114,7 +98,7 @@ bool CommonConfigUI::checkInputValid()
 
     if (!IXS120BP120P366::Instance().isConnected())
     {
-        errMsg = "射线源未连接，请检查连接后再进行采集！";
+        errMsg = "射线源未连接，请检查网络连接并重启本程序！";
         emit xSignaHelper.signalShowErrorMessageBar(errMsg);
         return false;
     }
@@ -296,25 +280,31 @@ void CommonConfigUI::initUIConnect()
                     QString msg = QString("射线源电源电压过低，请进行充电！");
                     ui.lineEdit_errMsg->setText(msg);
                 }
+            });
 
-                if (status.voltage > 0)
-                {
-                    blinkTimer->start();
-                }
-                else
-                {
-                    blinkTimer->stop();
-                    ui.label_xRayStatus->setPixmap(QPixmap(":/Resource/Image/xray_close.png")
-                                                       .scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-                }
+    connect(&IXS120BP120P366::Instance(), &IXS120BP120P366::xrayStarted, this, [this]() { blinkTimer->start(); });
+
+    connect(&IXS120BP120P366::Instance(), &IXS120BP120P366::xrayStopped, this,
+            [this]()
+            {
+                blinkTimer->stop();
+                ui.label_xRayStatus->setPixmap(QPixmap(":/Resource/Image/xray_close.png")
+                                                   .scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
             });
 
     connect(ui.pushButton_startXRay, &QPushButton::clicked, this,
             [this]()
             {
-                IXS120BP120P366::Instance().setVoltage(ui.spinBox_targetVoltage->value());
-                IXS120BP120P366::Instance().setCurrent(ui.spinBox_targetCurrent->value());
-                IXS120BP120P366::Instance().startXRay();
+                if (IXS120BP120P366::Instance().isConnected())
+                {
+                    IXS120BP120P366::Instance().setVoltage(ui.spinBox_targetVoltage->value());
+                    IXS120BP120P366::Instance().setCurrent(ui.spinBox_targetCurrent->value());
+                    IXS120BP120P366::Instance().startXRay();
+                }
+                else
+                {
+                    emit xSignaHelper.signalShowErrorMessageBar("射线源未连接，请检查网络连接并重启本程序");
+                }
             });
 
     connect(ui.pushButton_stopXRay, &QPushButton::clicked, this, [this]() { IXS120BP120P366::Instance().stopXRay(); });
@@ -330,10 +320,36 @@ void CommonConfigUI::initUIConnect()
 
     connect(&IXS120BP120P366::Instance(), &IXS120BP120P366::xrayErrorCleared, this,
             [this]() { ui.lineEdit_errMsg->clear(); });
+    connect(&IXS120BP120P366::Instance(), &IXS120BP120P366::disconnected, this,
+            [this]()
+            {
+                ui.pushButton_startXRay->setEnabled(false);
+                ui.pushButton_startPreheat->setEnabled(false);
+                blinkTimer->stop();
+                ui.label_xRayStatus->setPixmap(QPixmap(":/Resource/Image/xray_close.png")
+                                                   .scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            });
 
     connect(ui.pushButton_startPreheat, &QPushButton::clicked, this, &CommonConfigUI::startPreheat);
 
     connect(ui.pushButton_stopPreheat, &QPushButton::clicked, this, &CommonConfigUI::stopPreheat);
+
+    connect(
+        blinkTimer, &QTimer::timeout, this,
+        [this]()
+        {
+            isIndicatorBright = !isIndicatorBright;
+            if (isIndicatorBright)
+            {
+                ui.label_xRayStatus->setPixmap(
+                    QPixmap(":/Resource/Image/xray.png").scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            }
+            else
+            {
+                ui.label_xRayStatus->setPixmap(QPixmap(":/Resource/Image/xray_close.png")
+                                                   .scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            }
+        });
 }
 
 void CommonConfigUI::changeMode(const QString& modeText)
@@ -444,6 +460,12 @@ void CommonConfigUI::updateUIFromMode(std::string mode)
 
 void CommonConfigUI::startPreheat()
 {
+    if (!IXS120BP120P366::Instance().isConnected())
+    {
+        emit xSignaHelper.signalShowErrorMessageBar("射线源未连接，请检查网络连接并重启本程序");
+        return;
+    }
+
     ui.pushButton_startPreheat->setEnabled(false);
     ui.pushButton_startXRay->setEnabled(false);
     ui.pushButton_stopXRay->setEnabled(false);

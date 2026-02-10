@@ -68,6 +68,8 @@ signals:
     void xrayError(const QString& errorMsg);
     void xrayErrorCleared();  // 错误已清除信号
     void statusUpdated(const XRaySourceStatus& status);
+    void xrayStarted();
+    void xrayStopped();
 
 private slots:
     void onTcpConnected();

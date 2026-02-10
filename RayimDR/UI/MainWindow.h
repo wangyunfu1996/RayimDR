@@ -92,4 +92,5 @@ private:
     ElaToolButton* toolButtonRealTimeDR{nullptr};
     ElaToolButton* toolButtonDRMulti{nullptr};
     ElaToolButton* toolButtonStopDR{nullptr};
+    bool _detectorDisconnectDialogShown{false};
 };

@@ -51,6 +51,10 @@ QImage AcqTask::applyImageTransform(const QImage& image)
         transform.rotate(xGlobal.getInt("SYSTEM", "IMG_ROTATE"));
         rotatedImage = image.transformed(transform, Qt::SmoothTransformation);
     }
+    else
+    {
+        rotatedImage = image;
+    }
 
     QImage transformedImage;
     if (xGlobal.getBool("SYSTEM", "FLIP_HORIZONTAL") && xGlobal.getBool("SYSTEM", "FLIP_VERTICAL"))

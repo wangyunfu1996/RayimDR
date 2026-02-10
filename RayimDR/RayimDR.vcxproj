@@ -73,9 +73,6 @@
     <QtUic Include="UI\MultiAcqCfgDialog.ui" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="VJXRAY\tcp_echo_server.py" />
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="RayimDR.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -24,8 +24,6 @@ AppCfgDialog::AppCfgDialog(QWidget* parent) : ElaDialog(parent)
     btnGroup->addButton(ui.radioButton_everyFrame);
 
     ElaUIHepler::ChangeToNormalStyle(this);
-    ui.spinBox_detLowBattery->setRange(20, 100);
-    ui.spinBox_detLowBattery->setValue(xGlobal.getInt("DET", "DET_LOW_BATTERY_THRESHOLD"));
     ui.checkBox_autoStartXRay->setChecked(xGlobal.getBool("SYSTEM", "AUTO_START_XRAY_ON_ACQ"));
     ui.checkBox_autoStopXRay->setChecked(xGlobal.getBool("SYSTEM", "AUTO_STOP_XRAY_ON_ACQ_STOP"));
     ui.radioButton_everyFrame->setChecked(xGlobal.getBool("SYSTEM", "SEND_SUBFRAME_ON_ACQ"));
@@ -46,8 +44,6 @@ AppCfgDialog::AppCfgDialog(QWidget* parent) : ElaDialog(parent)
             });
     connect(ui.pushButton_cancel, &QPushButton::clicked, this, [this]() { this->reject(); });
 
-    connect(ui.spinBox_detLowBattery, qOverload<int>(&QSpinBox::valueChanged), this,
-            [this](int value) { xGlobal.setInt("DET", "DET_LOW_BATTERY_THRESHOLD", value); });
     connect(ui.checkBox_autoStartXRay, &QCheckBox::toggled, this,
             [this](bool checked) { xGlobal.setBool("SYSTEM", "AUTO_START_XRAY_ON_ACQ", checked); });
     connect(ui.checkBox_autoStopXRay, &QCheckBox::toggled, this,

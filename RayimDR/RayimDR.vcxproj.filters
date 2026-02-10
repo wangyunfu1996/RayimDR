@@ -163,9 +163,6 @@
     <QtRcc Include="RayimDR.qrc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="VJXRAY\tcp_echo_server.py" />
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="RayimDR.rc" />
   </ItemGroup>
 </Project>

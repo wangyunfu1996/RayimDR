@@ -39,21 +39,24 @@ QImage AcqTask::applyImageTransform(const QImage& image)
 
     qint64 transformStartTime = QDateTime::currentMSecsSinceEpoch();
 
+    QImage::Format originalFormat = image.format();
     qDebug() << "[图像变换] 开始处理 - 水平翻转:" << (xGlobal.getBool("SYSTEM", "FLIP_HORIZONTAL") ? "是" : "否")
-             << ", 垂直翻转:" << (xGlobal.getBool("SYSTEM", "FLIP_VERTICAL") ? "是" : "否");
+             << ", 垂直翻转：" << (xGlobal.getBool("SYSTEM", "FLIP_VERTICAL") ? "是" : "否") << ", 旋转角度："
+             << xGlobal.getInt("SYSTEM", "IMG_ROTATE") << ", 图象格式：" << originalFormat;
 
-
-    QImage rotatedImage;
+    QImage rotatedImage = image;
     if (xGlobal.getInt("SYSTEM", "IMG_ROTATE"))
     {
-        qDebug() << "[图像变换] 执行: 旋转角度：" << xGlobal.getInt("SYSTEM", "IMG_ROTATE");
         QTransform transform;
         transform.rotate(xGlobal.getInt("SYSTEM", "IMG_ROTATE"));
         rotatedImage = image.transformed(transform, Qt::SmoothTransformation);
-    }
-    else
-    {
-        rotatedImage = image;
+
+        // 保持原始图像格式
+        if (rotatedImage.format() != originalFormat)
+        {
+            qDebug() << "[图像变换] 格式转换: " << rotatedImage.format() << " -> " << originalFormat;
+            rotatedImage = rotatedImage.convertToFormat(originalFormat);
+        }
     }
 
     QImage transformedImage;
@@ -76,7 +79,6 @@ QImage AcqTask::applyImageTransform(const QImage& image)
     {
         transformedImage = rotatedImage;
     }
-
 
     qint64 transformTime = QDateTime::currentMSecsSinceEpoch() - transformStartTime;
     qDebug() << "[图像变换] 完成, 耗时:" << transformTime << "ms, 结果尺寸:" << transformedImage.width() << "x"

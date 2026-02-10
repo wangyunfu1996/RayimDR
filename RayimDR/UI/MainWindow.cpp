@@ -154,8 +154,8 @@ void MainWindow::setupConnections()
     connect(&DET, &NDT1717MA::signalStatusChanged, this,
             [this]()
             {
-                auto status = DET.Status();
-                if (!status.Connected)
+                auto detStatus = DET.Status();
+                if (!detStatus.Connected)
                 {
                     XElaDialog dialog("探测器连接已断开，请检查连接，重启探测器，并重新启动本程序",
                                       XElaDialogType::ERR);
@@ -163,7 +163,7 @@ void MainWindow::setupConnections()
                     this->close();
                 }
 
-                if (!status.Connected || status.State != 1)
+                if (!detStatus.Connected || detStatus.State != 1 || IXS120BP120P366::Instance().isPreheat())
                 {
                     enableAcq(false);
                 }
@@ -404,7 +404,10 @@ void MainWindow::initMenuBar()
     // Settings menu
     ElaMenu* configMenu = menuBar->addMenu("设置");
     connect(configMenu->addAction("软件配置"), &QAction::triggered, this, &MainWindow::onMenuAppCfg);
-    connect(configMenu->addAction("探测器设置"), &QAction::triggered, this, &MainWindow::onMenuDetectorConfig);
+    if (xGlobal.getBool("TEST", "OPEN_NDT1717MA_TEST_WIDGET"))
+    {
+        connect(configMenu->addAction("探测器设置"), &QAction::triggered, this, &MainWindow::onMenuDetectorConfig);
+    }
     connect(configMenu->addAction("探测器校正"), &QAction::triggered, this, &MainWindow::onMenuDetectorCalibration);
     configMenu->addSeparator();
     connect(configMenu->addAction("清理日志"), &QAction::triggered, this, &MainWindow::onMenuCleanupLogs);
@@ -550,6 +553,7 @@ void MainWindow::onAcqStopped()
 
     // Check if X-ray source should be turned off
     onXRayStopRequested();
+    ElaMessageBar::success(ElaMessageBarType::TopRight, "提示", "扫描结束", 5000);
 }
 
 void MainWindow::onAcqTaskFrameReceived(AcqCondition condition, int frameIdx, int subFrameIdx, QImage image)

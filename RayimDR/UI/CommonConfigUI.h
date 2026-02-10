@@ -24,6 +24,8 @@ private:
     std::string getModeFromUI();
     void setUIEnable(bool enable);
     void updateUIFromMode(std::string mode);
+    void startPreheat();
+    void stopPreheat();
 
 private:
     Ui::CommonConfigUIClass ui;

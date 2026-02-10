@@ -295,68 +295,9 @@ void CommonConfigUI::initUIConnect()
     connect(&IXS120BP120P366::Instance(), &IXS120BP120P366::xrayErrorCleared, this,
             [this]() { ui.lineEdit_errMsg->clear(); });
 
-    connect(ui.pushButton_startPreheat, &QPushButton::clicked, this,
-            [this]()
-            {
-                ui.pushButton_startPreheat->setEnabled(false);
-                ui.pushButton_startXRay->setEnabled(false);
-                ui.pushButton_stopXRay->setEnabled(false);
-                int waitTime{3};
-                std::vector<int> voltages = {30, 40, 50, 60, 70, 80, 90, 100, 110, 120};
-                std::vector<float> currents = {0.2000, 0.2889, 0.3778, 0.4667, 0.5556,
-                                               0.6444, 0.7333, 0.8222, 0.9111, 1.0000};
-                if (ui.comboBox_preheat->currentIndex() == 0)
-                {
-                    waitTime = 3;
-                }
-                else if (ui.comboBox_preheat->currentIndex() == 1)
-                {
-                    waitTime = 6;
-                }
-                else
-                {
-                    waitTime = 30;
-                }
+    connect(ui.pushButton_startPreheat, &QPushButton::clicked, this, &CommonConfigUI::startPreheat);
 
-                auto future = QtConcurrent::run(
-                    [this, waitTime, voltages, currents]()
-                    {
-                        IXS120BP120P366::Instance().setVoltage(voltages.at(0));
-                        IXS120BP120P366::Instance().setCurrent(currents.at(0) * 1000);
-                        IXS120BP120P366::Instance().startXRay();
-                        int ptst = IXS120BP120P366::Instance().getPTST();
-                        qDebug() << "ptst: " << ptst;
-                        QThread::msleep(waitTime * 1000 + ptst * 1000);
-                        for (int i(1); i < voltages.size(); i++)
-                        {
-                            IXS120BP120P366::Instance().setVoltage(voltages.at(i));
-                            IXS120BP120P366::Instance().setCurrent(currents.at(i) * 1000);
-                            QThread::msleep(waitTime * 1000);
-                        }
-                        IXS120BP120P366::Instance().stopXRay();
-                    });
-
-                auto* watcher = new QFutureWatcher<void>(this);
-                connect(watcher, &QFutureWatcher<void>::finished, this,
-                        [this, watcher]()
-                        {
-                            ui.pushButton_startPreheat->setEnabled(true);
-                            ui.pushButton_startXRay->setEnabled(true);
-                            ui.pushButton_stopXRay->setEnabled(true);
-                            emit xSignaHelper.signalShowSuccessMessageBar("训管结束");
-                        });
-                watcher->setFuture(future);
-            });
-
-    connect(ui.pushButton_stopPreheat, &QPushButton::clicked, this,
-            [this]()
-            {
-                IXS120BP120P366::Instance().getPTST();
-                IXS120BP120P366::Instance().stopXRay();
-                ui.pushButton_startPreheat->setEnabled(true);
-                ui.pushButton_startXRay->setEnabled(true);
-                ui.pushButton_stopXRay->setEnabled(true);
-            });
+    connect(ui.pushButton_stopPreheat, &QPushButton::clicked, this, &CommonConfigUI::stopPreheat);
 }
 
 void CommonConfigUI::changeMode(const QString& modeText)
@@ -463,4 +404,66 @@ void CommonConfigUI::updateUIFromMode(std::string mode)
 
     ui.comboBox_mode->blockSignals(false);
     ui.comboBox_frameRate->blockSignals(false);
+}
+
+void CommonConfigUI::startPreheat()
+{
+    ui.pushButton_startPreheat->setEnabled(false);
+    ui.pushButton_startXRay->setEnabled(false);
+    ui.pushButton_stopXRay->setEnabled(false);
+    int waitTime{3};
+    std::vector<int> voltages = {30, 40, 50, 60, 70, 80, 90, 100, 110, 120};
+    std::vector<float> currents = {0.2000, 0.2889, 0.3778, 0.4667, 0.5556, 0.6444, 0.7333, 0.8222, 0.9111, 1.0000};
+    if (ui.comboBox_preheat->currentIndex() == 0)
+    {
+        waitTime = 3;
+    }
+    else if (ui.comboBox_preheat->currentIndex() == 1)
+    {
+        waitTime = 6;
+    }
+    else
+    {
+        waitTime = 30;
+    }
+
+    auto future = QtConcurrent::run(
+        [this, waitTime, voltages, currents]()
+        {
+            IXS120BP120P366::Instance().setIsPreheat(true);
+            IXS120BP120P366::Instance().setVoltage(voltages.at(0));
+            IXS120BP120P366::Instance().setCurrent(currents.at(0) * 1000);
+            IXS120BP120P366::Instance().startXRay();
+            int ptst = IXS120BP120P366::Instance().getPTST();
+            qDebug() << "ptst: " << ptst;
+            QThread::msleep(waitTime * 1000 + ptst * 1000);
+            for (int i(1); i < voltages.size(); i++)
+            {
+                IXS120BP120P366::Instance().setVoltage(voltages.at(i));
+                IXS120BP120P366::Instance().setCurrent(currents.at(i) * 1000);
+                QThread::msleep(waitTime * 1000);
+            }
+            IXS120BP120P366::Instance().stopXRay();
+        });
+
+    auto* watcher = new QFutureWatcher<void>(this);
+    connect(watcher, &QFutureWatcher<void>::finished, this,
+            [this, watcher]()
+            {
+                ui.pushButton_startPreheat->setEnabled(true);
+                ui.pushButton_startXRay->setEnabled(true);
+                ui.pushButton_stopXRay->setEnabled(true);
+                IXS120BP120P366::Instance().setIsPreheat(false);
+                emit xSignaHelper.signalShowSuccessMessageBar("训管结束");
+            });
+    watcher->setFuture(future);
+}
+
+void CommonConfigUI::stopPreheat()
+{
+    IXS120BP120P366::Instance().getPTST();
+    IXS120BP120P366::Instance().stopXRay();
+    ui.pushButton_startPreheat->setEnabled(true);
+    ui.pushButton_startXRay->setEnabled(true);
+    ui.pushButton_stopXRay->setEnabled(true);
 }

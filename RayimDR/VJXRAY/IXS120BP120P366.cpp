@@ -400,6 +400,16 @@ bool IXS120BP120P366::xRayIsOn()
     return on == 1;
 }
 
+void IXS120BP120P366::setIsPreheat(bool preheat)
+{
+    m_isPreheat = preheat;
+}
+
+bool IXS120BP120P366::isPreheat() const
+{
+    return m_isPreheat;
+}
+
 int IXS120BP120P366::getPTST()
 {
     qDebug() << "[GetPTST] Querying pre-warmup time";

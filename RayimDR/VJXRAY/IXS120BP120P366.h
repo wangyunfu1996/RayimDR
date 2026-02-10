@@ -49,6 +49,8 @@ public:
     bool stopXRay();
     void clearErr();
     bool xRayIsOn();
+    void setIsPreheat(bool preheat);
+    bool isPreheat() const;
 
     int getPTST();
 
@@ -86,4 +88,5 @@ private:
     XRaySourceStatus m_currentStatus;
     mutable QMutex m_statusMutex;
     bool m_statusQueryEnabled{false};
+    bool m_isPreheat{false};
 };

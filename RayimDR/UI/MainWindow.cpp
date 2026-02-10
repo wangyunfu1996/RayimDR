@@ -281,7 +281,7 @@ void MainWindow::onXRayStopRequested()
     if (IXS120BP120P366::Instance().xRayIsOn())
     {
         XElaDialog dialog("采集结束，是否关闭射线源？", XElaDialogType::ASK);
-        if (xGlobal.getBool("System", "AUTO_STOP_XRAY_ON_ACQ_STOP") || dialog.showCentered() == QDialog::Accepted)
+        if (xGlobal.getBool("SYSTEM", "AUTO_STOP_XRAY_ON_ACQ_STOP") || dialog.showCentered() == QDialog::Accepted)
         {
             IXS120BP120P366::Instance().stopXRay();
         }
@@ -677,15 +677,19 @@ void MainWindow::connectToXRay()
     qDebug() << "[MainWindow] Connecting to X-ray source";
     emit xSignaHelper.signalUpdateStatusInfo("开始连接射线源");
 
-    bool connected = xRaySource.connectToSource(xGlobal.getString("XRay", "XRAY_DEVICE_IP_WIRED"),
-                                                xGlobal.getInt("XRay", "XRAY_DEVICE_PORT"));
+    bool connected = xRaySource.connectToSource(xGlobal.getString("XRAY", "XRAY_DEVICE_IP"),
+                                                xGlobal.getInt("XRAY", "XRAY_DEVICE_PORT"));
     if (connected)
     {
         emit xSignaHelper.signalShowSuccessMessageBar("射线源已连接!");
     }
     else
     {
-        emit xSignaHelper.signalShowErrorMessageBar("射线源连接失败!");
+        emit xSignaHelper.signalShowErrorMessageBar("射线源连接失败!请检查射线源的网络设置！");
+        qDebug() << "射线源连接失败！请检查射线源的网络设置！" << "连接类型："
+                 << xGlobal.getString("SYSTEM", "CONNECT_TYPE")
+                 << "XRAY_DEVICE_IP: " << xGlobal.getString("XRAY", "XRAY_DEVICE_IP")
+                 << "XRAY_DEVICE_PORT: " << xGlobal.getInt("XRAY", "XRAY_DEVICE_PORT");
     }
 }
 
@@ -693,15 +697,14 @@ void MainWindow::connectToDet()
 {
     qDebug() << "[MainWindow] Connecting to detector";
 
-#if DET_TYPE == DET_TYPE_VIRTUAL
-    QThread::currentThread()->msleep(1000);
-    emit xSignaHelper.signalUpdateStatusInfo("探测器已连接");
-    emit xSignaHelper.signalShowSuccessMessageBar("探测器已连接");
-#elif DET_TYPE == DET_TYPE_IRAY
     if (!DET.Initialize())
     {
         DET.DeInitialize();
-        emit xSignaHelper.signalShowErrorMessageBar("探测器连接失败！");
+        emit xSignaHelper.signalShowErrorMessageBar("探测器连接失败！请检查探测器的网络设置！");
+        qDebug() << "探测器连接失败！请检查探测器的网络设置！" << "连接类型："
+                 << xGlobal.getString("SYSTEM", "CONNECT_TYPE")
+                 << "DET_HOST_IP: " << xGlobal.getString("DET", "DET_HOST_IP")
+                 << "DET_REMOTE_IP: " << xGlobal.getString("DET", "DET_REMOTE_IP");
     }
     else
     {
@@ -709,5 +712,4 @@ void MainWindow::connectToDet()
         emit xSignaHelper.signalShowSuccessMessageBar("探测器已连接");
         DET.StartQueryStatus();
     }
-#endif  // DET_TYPE
 }

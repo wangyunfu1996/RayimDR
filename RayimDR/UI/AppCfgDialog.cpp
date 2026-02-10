@@ -26,20 +26,21 @@ AppCfgDialog::AppCfgDialog(QWidget* parent) : ElaDialog(parent)
     ElaUIHepler::ChangeToNormalStyle(this);
     ui.spinBox_detLowBattery->setRange(20, 100);
     ui.spinBox_detLowBattery->setValue(xGlobal.getInt("DET", "DET_LOW_BATTERY_THRESHOLD"));
-    ui.checkBox_autoStartXRay->setChecked(xGlobal.getBool("System", "AUTO_START_XRAY_ON_ACQ"));
-    ui.checkBox_autoStopXRay->setChecked(xGlobal.getBool("System", "AUTO_STOP_XRAY_ON_ACQ_STOP"));
-    ui.radioButton_everyFrame->setChecked(xGlobal.getBool("System", "SEND_SUBFRAME_ON_ACQ"));
-    ui.radioButton_stackedFrame->setChecked(!xGlobal.getBool("System", "SEND_SUBFRAME_ON_ACQ"));
-    ui.checkBox_FlipHorizontal->setChecked(xGlobal.getBool("System", "FLIP_HORIZONTAL"));
-    ui.checkBox_FlipVertical->setChecked(xGlobal.getBool("System", "FLIP_VERTICAL"));
+    ui.checkBox_autoStartXRay->setChecked(xGlobal.getBool("SYSTEM", "AUTO_START_XRAY_ON_ACQ"));
+    ui.checkBox_autoStopXRay->setChecked(xGlobal.getBool("SYSTEM", "AUTO_STOP_XRAY_ON_ACQ_STOP"));
+    ui.radioButton_everyFrame->setChecked(xGlobal.getBool("SYSTEM", "SEND_SUBFRAME_ON_ACQ"));
+    ui.radioButton_stackedFrame->setChecked(!xGlobal.getBool("SYSTEM", "SEND_SUBFRAME_ON_ACQ"));
+    ui.checkBox_FlipHorizontal->setChecked(xGlobal.getBool("SYSTEM", "FLIP_HORIZONTAL"));
+    ui.checkBox_FlipVertical->setChecked(xGlobal.getBool("SYSTEM", "FLIP_VERTICAL"));
+    ui.spinBox_rotate->setValue(xGlobal.getInt("SYSTEM", "IMG_ROTATE"));
 
     connect(ui.pushButton_confirm, &QPushButton::clicked, this,
             [this]()
             {
                 qDebug() << "DET_LOW_BATTERY_THRESHOLD: " << xGlobal.getInt("DET", "DET_LOW_BATTERY_THRESHOLD")
-                         << " AUTO_START_XRAY_ON_ACQ: " << xGlobal.getBool("System", "AUTO_START_XRAY_ON_ACQ")
-                         << " AUTO_STOP_XRAY_ON_ACQ_STOP: " << xGlobal.getBool("System", "AUTO_STOP_XRAY_ON_ACQ_STOP")
-                         << " SEND_SUBFRAME_ON_ACQ: " << xGlobal.getBool("System", "SEND_SUBFRAME_ON_ACQ");
+                         << " AUTO_START_XRAY_ON_ACQ: " << xGlobal.getBool("SYSTEM", "AUTO_START_XRAY_ON_ACQ")
+                         << " AUTO_STOP_XRAY_ON_ACQ_STOP: " << xGlobal.getBool("SYSTEM", "AUTO_STOP_XRAY_ON_ACQ_STOP")
+                         << " SEND_SUBFRAME_ON_ACQ: " << xGlobal.getBool("SYSTEM", "SEND_SUBFRAME_ON_ACQ");
 
                 this->accept();
             });
@@ -48,15 +49,17 @@ AppCfgDialog::AppCfgDialog(QWidget* parent) : ElaDialog(parent)
     connect(ui.spinBox_detLowBattery, qOverload<int>(&QSpinBox::valueChanged), this,
             [this](int value) { xGlobal.setInt("DET", "DET_LOW_BATTERY_THRESHOLD", value); });
     connect(ui.checkBox_autoStartXRay, &QCheckBox::toggled, this,
-            [this](bool checked) { xGlobal.setBool("System", "AUTO_START_XRAY_ON_ACQ", checked); });
+            [this](bool checked) { xGlobal.setBool("SYSTEM", "AUTO_START_XRAY_ON_ACQ", checked); });
     connect(ui.checkBox_autoStopXRay, &QCheckBox::toggled, this,
-            [this](bool checked) { xGlobal.setBool("System", "AUTO_STOP_XRAY_ON_ACQ_STOP", checked); });
+            [this](bool checked) { xGlobal.setBool("SYSTEM", "AUTO_STOP_XRAY_ON_ACQ_STOP", checked); });
     connect(ui.radioButton_everyFrame, &QRadioButton::toggled, this,
-            [this](bool checked) { xGlobal.setBool("System", "SEND_SUBFRAME_ON_ACQ", checked); });
+            [this](bool checked) { xGlobal.setBool("SYSTEM", "SEND_SUBFRAME_ON_ACQ", checked); });
     connect(ui.checkBox_FlipHorizontal, &QCheckBox::toggled, this,
-            [this](bool checked) { xGlobal.setBool("System", "FLIP_HORIZONTAL", checked); });
+            [this](bool checked) { xGlobal.setBool("SYSTEM", "FLIP_HORIZONTAL", checked); });
     connect(ui.checkBox_FlipVertical, &QCheckBox::toggled, this,
-            [this](bool checked) { xGlobal.setBool("System", "FLIP_VERTICAL", checked); });
+            [this](bool checked) { xGlobal.setBool("SYSTEM", "FLIP_VERTICAL", checked); });
+    connect(ui.spinBox_rotate, qOverload<int>(&QSpinBox::valueChanged), this,
+            [this](int value) { xGlobal.setInt("SYSTEM", "IMG_ROTATE", value); });
 }
 
 AppCfgDialog::~AppCfgDialog() {}

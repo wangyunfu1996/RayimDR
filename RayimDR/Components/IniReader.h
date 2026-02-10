@@ -31,10 +31,10 @@ public:
     QString getLastError() const;
 
     // Write operations
-    void setValue(const QString& section, const QString& key, const QString& value);
-    void setValue(const QString& section, const QString& key, int value);
-    void setValue(const QString& section, const QString& key, double value);
-    void setValue(const QString& section, const QString& key, bool value);
+    void setString(const QString& section, const QString& key, const QString& value);
+    void setInt(const QString& section, const QString& key, int value);
+    void setDouble(const QString& section, const QString& key, double value);
+    void setBool(const QString& section, const QString& key, bool value);
 
     bool removeKey(const QString& section, const QString& key);
     bool removeSection(const QString& section);

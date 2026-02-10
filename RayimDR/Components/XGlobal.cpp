@@ -10,6 +10,7 @@ XGlobal::~XGlobal()
 {
     if (m_IniReader)
     {
+        m_IniReader->save();
         delete m_IniReader;
         m_IniReader = nullptr;
     }
@@ -61,22 +62,22 @@ bool XGlobal::getBool(const QString& section, const QString& key, bool defaultVa
 
 void XGlobal::setString(const QString& section, const QString& key, const QString& value)
 {
-    return m_IniReader->setValue(section, key, value);
+    return m_IniReader->setString(section, key, value);
 }
 
 void XGlobal::setInt(const QString& section, const QString& key, int value)
 {
-    return m_IniReader->setValue(section, key, value);
+    return m_IniReader->setInt(section, key, value);
 }
 
 void XGlobal::setDouble(const QString& section, const QString& key, double value)
 {
-    return m_IniReader->setValue(section, key, value);
+    return m_IniReader->setDouble(section, key, value);
 }
 
 void XGlobal::setBool(const QString& section, const QString& key, bool value)
 {
-    return m_IniReader->setValue(section, key, value);
+    return m_IniReader->setBool(section, key, value);
 }
 
 bool XGlobal::save()

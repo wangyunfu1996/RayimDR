@@ -243,7 +243,7 @@ QString IniReader::makeKey(const QString& section, const QString& key) const
     return section + "::" + key;
 }
 
-void IniReader::setValue(const QString& section, const QString& key, const QString& value)
+void IniReader::setString(const QString& section, const QString& key, const QString& value)
 {
     if (section.isEmpty() || key.isEmpty())
     {
@@ -270,19 +270,19 @@ void IniReader::setValue(const QString& section, const QString& key, const QStri
     m_data[section][key] = value;
 }
 
-void IniReader::setValue(const QString& section, const QString& key, int value)
+void IniReader::setInt(const QString& section, const QString& key, int value)
 {
-    setValue(section, key, QString::number(value));
+    setString(section, key, QString::number(value));
 }
 
-void IniReader::setValue(const QString& section, const QString& key, double value)
+void IniReader::setDouble(const QString& section, const QString& key, double value)
 {
-    setValue(section, key, QString::number(value));
+    setString(section, key, QString::number(value));
 }
 
-void IniReader::setValue(const QString& section, const QString& key, bool value)
+void IniReader::setBool(const QString& section, const QString& key, bool value)
 {
-    setValue(section, key, value ? "true" : "false");
+    setString(section, key, value ? "true" : "false");
 }
 
 bool IniReader::removeKey(const QString& section, const QString& key)

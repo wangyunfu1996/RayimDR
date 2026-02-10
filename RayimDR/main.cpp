@@ -68,22 +68,28 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    int connectType = xGlobal.getInt("System", "CONNECT_TYPE");
+    // 根据连接类型设置设备IP地址
+    int connectType = xGlobal.getInt("SYSTEM", "CONNECT_TYPE");
     if (connectType == 1)
     {
+        xGlobal.setString("XRAY", "XRAY_DEVICE_IP", "192.168.10.1");
         xGlobal.setString("DET", "DET_HOST_IP", "192.168.10.110");
     }
     else if (connectType == 2)
     {
-        xGlobal.setString("DET", "DET_HOST_IP", "192.168.10.110");
+        xGlobal.setString("XRAY", "XRAY_DEVICE_IP", "192.168.10.1");
+        xGlobal.setString("DET", "DET_HOST_IP", "192.168.10.111");
     }
     else if (connectType == 3)
     {
-        xGlobal.setString("DET", "DET_HOST_IP", "192.168.10.120");
+        xGlobal.setString("XRAY", "XRAY_DEVICE_IP", "192.168.1.1");
+        xGlobal.setString("DET", "DET_HOST_IP", "192.168.10.112");
     }
-    iniReader.setValue("Connection", "Cfg_HostIP", xGlobal.getString("DET", "DET_HOST_IP"));
-    iniReader.setValue("FTP", "Cfg_FTP_Download_HostIP", xGlobal.getString("DET", "DET_HOST_IP"));
-    iniReader.setValue("FTP", "Cfg_FTP_Upload_HostIP", xGlobal.getString("DET", "DET_HOST_IP"));
+    xGlobal.setString("DET", "DET_REMOTE_IP", "192.168.10.2");
+
+    iniReader.setString("Connection", "Cfg_HostIP", xGlobal.getString("DET", "DET_HOST_IP"));
+    iniReader.setString("FTP", "Cfg_FTP_Download_HostIP", xGlobal.getString("DET", "DET_HOST_IP"));
+    iniReader.setString("FTP", "Cfg_FTP_Upload_HostIP", xGlobal.getString("DET", "DET_HOST_IP"));
     iniReader.save();
 
     NDT1717MA::Instance().SetWorkDirPath(detWorkDir.toStdString());

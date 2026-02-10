@@ -46,23 +46,23 @@ CommonConfigUI::~CommonConfigUI() {}
 bool CommonConfigUI::checkInputValid()
 {
     QString errMsg;
-    if (ui.spinBox_targetVoltage->value() > xGlobal.getInt("XRay", "XRAY_MAX_VOLTAGE") ||
-        ui.spinBox_targetVoltage->value() < xGlobal.getInt("XRay", "XRAY_MIN_VOLTAGE"))
+    if (ui.spinBox_targetVoltage->value() > xGlobal.getInt("XRAY", "XRAY_MAX_VOLTAGE") ||
+        ui.spinBox_targetVoltage->value() < xGlobal.getInt("XRAY", "XRAY_MIN_VOLTAGE"))
     {
         errMsg = QString("设置的电压值必须在 %1kV - %2kV 之间")
-                     .arg(xGlobal.getInt("XRay", "XRAY_MIN_VOLTAGE"))
-                     .arg(xGlobal.getInt("XRay", "XRAY_MAX_VOLTAGE"));
+                     .arg(xGlobal.getInt("XRAY", "XRAY_MIN_VOLTAGE"))
+                     .arg(xGlobal.getInt("XRAY", "XRAY_MAX_VOLTAGE"));
         qDebug() << errMsg;
         emit xSignaHelper.signalShowErrorMessageBar(errMsg);
         return false;
     }
 
-    if (ui.spinBox_targetCurrent->value() > xGlobal.getInt("XRay", "XRAY_MAX_CURRENT") ||
-        ui.spinBox_targetCurrent->value() < xGlobal.getInt("XRay", "XRAY_MIN_CURRENT"))
+    if (ui.spinBox_targetCurrent->value() > xGlobal.getInt("XRAY", "XRAY_MAX_CURRENT") ||
+        ui.spinBox_targetCurrent->value() < xGlobal.getInt("XRAY", "XRAY_MIN_CURRENT"))
     {
         errMsg = QString("设置的电流值必须在 %1uA - %2uA 之间")
-                     .arg(xGlobal.getInt("XRay", "XRAY_MIN_CURRENT"))
-                     .arg(xGlobal.getInt("XRay", "XRAY_MAX_CURRENT"));
+                     .arg(xGlobal.getInt("XRAY", "XRAY_MIN_CURRENT"))
+                     .arg(xGlobal.getInt("XRAY", "XRAY_MAX_CURRENT"));
         qDebug() << errMsg;
         emit xSignaHelper.signalShowErrorMessageBar(errMsg);
         return false;
@@ -98,7 +98,7 @@ bool CommonConfigUI::checkInputValid()
     if (!IXS120BP120P366::Instance().xRayIsOn())
     {
         XElaDialog dialog("射线源未开启，是否先开启射线源？", XElaDialogType::ASK);
-        if (xGlobal.getBool("System", "AUTO_START_XRAY_ON_ACQ") || dialog.showCentered() == QDialog::Accepted)
+        if (xGlobal.getBool("SYSTEM", "AUTO_START_XRAY_ON_ACQ") || dialog.showCentered() == QDialog::Accepted)
         {
             bool bRet = IXS120BP120P366::Instance().setVoltage(ui.spinBox_targetVoltage->value());
             bRet = IXS120BP120P366::Instance().setCurrent(ui.spinBox_targetCurrent->value());
@@ -266,7 +266,7 @@ void CommonConfigUI::initUIConnect()
                 }
                 ui.lineEdit_vdc->setText(QString::number(status.vdc, 'f', 2) + " V");
 
-                if (status.vdc < xGlobal.getInt("XRay", "XRAY_LOW_BATTERY_THRESHOLD_2"))
+                if (status.vdc < xGlobal.getInt("XRAY", "XRAY_LOW_BATTERY_THRESHOLD_2"))
                 {
                     QString msg = QString("射线源电源电压过低，请进行充电！");
                     ui.lineEdit_errMsg->setText(msg);

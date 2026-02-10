@@ -30,5 +30,8 @@ private:
 private:
     Ui::CommonConfigUIClass ui;
 
+    QTimer* blinkTimer{nullptr};
+    bool isIndicatorBright;  // 闪烁状态标志
+
     AcqCondition acqCondition;
 };

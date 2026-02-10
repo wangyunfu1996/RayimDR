@@ -38,6 +38,31 @@ CommonConfigUI::CommonConfigUI(QWidget* parent) : QWidget(parent)
     ui.label_18->setVisible(false);
     ui.lineEdit_detErr->setVisible(false);
 
+    // 初始化闪烁定时器
+    blinkTimer = new QTimer(this);
+    blinkTimer->setInterval(200);  // 500ms 闪烁一次（可调整：300-800ms）
+
+    // 初始状态设为灰色
+    ui.label_xRayStatus->setPixmap(
+        QPixmap(":/Resource/Image/xray_close.png").scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    ui.label_xRayStatus->setScaledContents(false);  // 自动缩放
+                                                    // 定时器超时时切换图标
+    connect(
+        blinkTimer, &QTimer::timeout, this,
+        [this]()
+        {
+            isIndicatorBright = !isIndicatorBright;
+            if (isIndicatorBright)
+            {
+                ui.label_xRayStatus->setPixmap(
+                    QPixmap(":/Resource/Image/xray.png").scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            }
+            else
+            {
+                ui.label_xRayStatus->setPixmap(QPixmap(":/Resource/Image/xray_close.png")
+                                                   .scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            }
+        });
     initUIConnect();
 }
 
@@ -270,6 +295,17 @@ void CommonConfigUI::initUIConnect()
                 {
                     QString msg = QString("射线源电源电压过低，请进行充电！");
                     ui.lineEdit_errMsg->setText(msg);
+                }
+
+                if (status.voltage > 0)
+                {
+                    blinkTimer->start();
+                }
+                else
+                {
+                    blinkTimer->stop();
+                    ui.label_xRayStatus->setPixmap(QPixmap(":/Resource/Image/xray_close.png")
+                                                       .scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
                 }
             });
 

@@ -3,5 +3,8 @@
         <file>Resource/Image/logo.png</file>
         <file>Resource/Image/logo_with_name.png</file>
         <file>Resource/Image/logo_32x32.ico</file>
+        <file>Resource/Image/warning.png</file>
+        <file>Resource/Image/xray.png</file>
+        <file>Resource/Image/xray_close.png</file>
     </qresource>
 </RCC>

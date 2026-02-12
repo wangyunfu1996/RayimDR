@@ -350,6 +350,8 @@ void CommonConfigUI::initUIConnect()
                                                    .scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation));
             }
         });
+
+    connect(ui.pushButton_detShutDown, &QPushButton::clicked, this, [this]() { DET.ShutDown(); });
 }
 
 void CommonConfigUI::changeMode(const QString& modeText)

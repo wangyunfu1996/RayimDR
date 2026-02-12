@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>528</width>
-    <height>550</height>
+    <height>529</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -384,6 +384,13 @@
        <widget class="ElaText" name="label_18">
         <property name="text">
          <string>错误信息</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="5">
+       <widget class="ElaPushButton" name="pushButton_detShutDown">
+        <property name="text">
+         <string>关机</string>
         </property>
        </widget>
       </item>

@@ -118,6 +118,50 @@ void AcqTask::saveStackedImage(const QImage& stackedImage, int frameIndex)
             qint64 saveTime = QDateTime::currentMSecsSinceEpoch() - saveStartTime;
             qDebug() << "[文件保存] TIFF文件保存成功, 文件:" << fileName << ", 耗时:" << saveTime << "ms";
         }
+        else if (acqCondition.saveType == ".PNG")
+        {
+            int max = -1;
+            int min = -1;
+            XImageHelper::calculateMaxMinValue(stackedImage, max, min);
+            int width = 0;
+            int level = 0;
+            XImageHelper::calculateWLAdvanced(max, min, width, level, 2);
+            QImage displayImage = XImageHelper::adjustWL(stackedImage, width, level);
+            QString fileName = QString("%1/Image%2.png").arg(acqCondition.savePath).arg(frameIndex);
+            bool ret = XImageHelper::Instance().saveImagePNG(displayImage, fileName);
+
+            if (ret)
+            {
+                qint64 saveTime = QDateTime::currentMSecsSinceEpoch() - saveStartTime;
+                qDebug() << "[文件保存] PNG文件保存成功, 文件:" << fileName << ", 耗时:" << saveTime << "ms";
+            }
+            else
+            {
+                qCritical() << "[文件保存] PNG文件保存失败, 文件:" << fileName;
+            }
+        }
+        else if (acqCondition.saveType == ".JPG" || acqCondition.saveType == ".JPEG")
+        {
+            int max = -1;
+            int min = -1;
+            XImageHelper::calculateMaxMinValue(stackedImage, max, min);
+            int width = 0;
+            int level = 0;
+            XImageHelper::calculateWLAdvanced(max, min, width, level, 2);
+            QImage displayImage = XImageHelper::adjustWL(stackedImage, width, level);
+            QString fileName = QString("%1/Image%2.jpg").arg(acqCondition.savePath).arg(frameIndex);
+            bool ret = XImageHelper::Instance().saveImageJPG(displayImage, fileName);
+            if (ret)
+            {
+                qint64 saveTime = QDateTime::currentMSecsSinceEpoch() - saveStartTime;
+                qDebug() << "[文件保存] JPG文件保存成功, 文件:" << fileName << ", 耗时:" << saveTime << "ms";
+            }
+            else
+            {
+                qCritical() << "[文件保存] JPG文件保存失败, 文件:" << fileName;
+            }
+        }
+
         else
         {
             qWarning() << "[文件保存] 未知的保存格式:" << acqCondition.saveType;
@@ -178,6 +222,7 @@ void AcqTask::processStackedFrames(const QVector<QImage>& imagesToStack)
                 watcher->deleteLater();
             });
     watcher->setFuture(future);
+    watcher->waitForFinished();
 }
 
 void AcqTask::onErrorOccurred(const QString& msg)
@@ -300,13 +345,16 @@ void AcqTask::run()
 
 void AcqTask::onImageReceived(QImage image, int idx, int grayValue)
 {
+    qDebug() << "[接收] idx=" << idx << ", nProcessedStacekd=" << nProcessedStacekd.load()
+             << ", acqCondition.frame=" << acqCondition.frame;
+
     if (bStopRequested.load())
     {
         qDebug() << "[接收] idx=" << idx << ", 采集已停止, 忽略此帧";
         return;
     }
 
-    if (nProcessedStacekd.load() == acqCondition.frame)
+    if (nProcessedStacekd.load() >= acqCondition.frame)
     {
         qDebug() << "[接收] idx=" << idx << ", 已采集足够数据, 处理数:" << nProcessedStacekd.load() << ", 停止采集";
         bStopRequested.store(true);

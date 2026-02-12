@@ -395,6 +395,29 @@ void MainWindow::onMenuCleanupLogs()
     }
 }
 
+void MainWindow::onMenuOpenLogDir()
+{
+    // 打开可执行程序所在目录下的 logs 文件夹
+    QString logDirPath = QApplication::applicationDirPath() + "/logs";
+    // 检查目录是否存在
+    if (!QDir(logDirPath).exists())
+    {
+        emit xSignaHelper.signalShowErrorMessageBar("日志目录不存在: " + logDirPath);
+        qWarning() << "[MainWindow] Log directory not found:" << logDirPath;
+        return;
+    }
+    // 使用系统资源管理器打开日志目录
+    if (QProcess::startDetached("explorer.exe", QStringList() << QDir::toNativeSeparators(logDirPath)))
+    {
+        qDebug() << "[MainWindow] Opened log directory in Explorer:" << logDirPath;
+    }
+    else
+    {
+        emit xSignaHelper.signalShowErrorMessageBar("无法打开日志目录，请手动打开: " + logDirPath);
+        qDebug() << "[MainWindow] Failed to open log directory:" << logDirPath;
+    }
+}
+
 void MainWindow::onMenuOpenCfg()
 {
     QString configFilePath = QApplication::applicationDirPath() + "/config.ini";
@@ -436,7 +459,8 @@ void MainWindow::onMenuOpenHelpFile()
     if (!QDesktopServices::openUrl(QUrl::fromLocalFile(helpFilePath)))
     {
         // 如果默认程序打开失败，尝试用资源管理器打开
-        if (QProcess::startDetached("explorer.exe", QStringList() << "/select," << QDir::toNativeSeparators(helpFilePath)))
+        if (QProcess::startDetached("explorer.exe", QStringList()
+                                                        << "/select," << QDir::toNativeSeparators(helpFilePath)))
         {
             qDebug() << "[MainWindow] Opened help file location in Explorer:" << helpFilePath;
         }
@@ -469,7 +493,7 @@ void MainWindow::initMenuBar()
     connect(fileMenu->addAction("打开图像文件夹"), &QAction::triggered, this, &MainWindow::onMenuFileOpenFolder);
     connect(fileMenu->addAction("保存图像"), &QAction::triggered, this, &MainWindow::onMenuFileSave);
     fileMenu->addSeparator();
-    connect(fileMenu->addAction("退出"), &QAction::triggered, this, &MainWindow::onMenuFileExit);
+    connect(fileMenu->addAction("退出程序"), &QAction::triggered, this, &MainWindow::onMenuFileExit);
 
     // Settings menu
     ElaMenu* configMenu = menuBar->addMenu("设置");
@@ -482,7 +506,10 @@ void MainWindow::initMenuBar()
 
     ElaMenu* helpMenu = menuBar->addMenu("帮助");
     connect(helpMenu->addAction("清理日志"), &QAction::triggered, this, &MainWindow::onMenuCleanupLogs);
+    connect(helpMenu->addAction("打开日志文件目录"), &QAction::triggered, this, &MainWindow::onMenuOpenLogDir);
+    helpMenu->addSeparator();
     connect(helpMenu->addAction("打开配置文件"), &QAction::triggered, this, &MainWindow::onMenuOpenCfg);
+    helpMenu->addSeparator();
     connect(helpMenu->addAction("使用说明"), &QAction::triggered, this, &MainWindow::onMenuOpenHelpFile);
 
     qDebug() << "[MainWindow] Menu bar initialized";

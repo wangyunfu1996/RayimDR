@@ -22,7 +22,7 @@ CommonConfigUI::CommonConfigUI(QWidget* parent) : QWidget(parent)
     connect(eTheme, &ElaTheme::themeModeChanged, this, &CommonConfigUI::onThemeChanged);
     ElaUIHepler::ChangeToNormalStyle(this);
 
-    for (int i(0); i < DET.GetMaxStackedNum(); i++)
+    for (int i(0); i < xGlobal.getInt("SYSTEM", "MAX_STACKED_NUM"); i++)
     {
         ui.comboBox_stakcedNum->addItem(QString::number(i));
     }

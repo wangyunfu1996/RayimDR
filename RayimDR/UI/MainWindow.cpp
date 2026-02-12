@@ -611,7 +611,7 @@ void MainWindow::onDROnceTimeBtnClicked()
     AcqCondition acqCond = _CommonConfigUI->getAcqCondition();
     acqCond.acqType = AcqType::DR;
     acqCond.frame = 1;
-
+    _XGraphicsView->setAutoWLEnable(true);
     AcqTaskManager::Instance().updateAcqCond(acqCond);
     AcqTaskManager::Instance().startAcq();
     onAcqStarted(acqCond);
@@ -642,7 +642,7 @@ void MainWindow::onDRMutliBtnClicked()
         qDebug() << "[MainWindow] Input validation failed";
         return;
     }
-
+    _XGraphicsView->setAutoWLEnable(true);
     AcqTaskManager::Instance().updateAcqCond(acqCond);
     AcqTaskManager::Instance().startAcq();
     onAcqStarted(acqCond);
@@ -661,7 +661,7 @@ void MainWindow::onDRRealTimeBtnClicked()
     AcqCondition acqCond = _CommonConfigUI->getAcqCondition();
     acqCond.acqType = AcqType::DR;
     acqCond.frame = INT_MAX;
-
+    _XGraphicsView->setAutoWLEnable(true);
     AcqTaskManager::Instance().updateAcqCond(acqCond);
     AcqTaskManager::Instance().startAcq();
     onAcqStarted(acqCond);

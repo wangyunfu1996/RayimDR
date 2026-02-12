@@ -56,6 +56,8 @@ private:
     void onMenuDetectorCalibration();
     void onMenuAppCfg();
     void onMenuCleanupLogs();
+    void onMenuOpenCfg();
+    void onMenuOpenHelpFile();
 
     // Close event handlers
     void onCloseButtonClicked();

@@ -9,6 +9,11 @@
 #include <qfuture.h>
 #include <qfuturewatcher.h>
 #include <qfutureinterface.h>
+#include <qprocess.h>
+#include <qdesktopservices.h>
+#include <qurl.h>
+#include <qdir.h>
+#include <qfile.h>
 
 #include "ElaContentDialog.h"
 #include "ElaTheme.h"
@@ -390,6 +395,63 @@ void MainWindow::onMenuCleanupLogs()
     }
 }
 
+void MainWindow::onMenuOpenCfg()
+{
+    QString configFilePath = QApplication::applicationDirPath() + "/config.ini";
+
+    // 检查文件是否存在
+    if (!QFile::exists(configFilePath))
+    {
+        emit xSignaHelper.signalShowErrorMessageBar("配置文件不存在: " + configFilePath);
+        qWarning() << "[MainWindow] Config file not found:" << configFilePath;
+        return;
+    }
+
+    // 用记事本打开配置文件
+    if (QProcess::startDetached("notepad.exe", QStringList() << configFilePath, QDir::currentPath()))
+    {
+        qDebug() << "[MainWindow] Opened config file in Notepad:" << configFilePath;
+    }
+    else
+    {
+        emit xSignaHelper.signalShowErrorMessageBar("无法打开配置文件，请检查记事本是否可用");
+        qDebug() << "[MainWindow] Failed to open config file in Notepad:" << configFilePath;
+    }
+}
+
+void MainWindow::onMenuOpenHelpFile()
+{
+    // 打开帮助文件，位于可执行程序所在的目录下，文件名为 help.pdf
+    QString helpFilePath = QApplication::applicationDirPath() + "/help.pdf";
+
+    // 检查文件是否存在
+    if (!QFile::exists(helpFilePath))
+    {
+        emit xSignaHelper.signalShowErrorMessageBar("帮助文件不存在: " + helpFilePath);
+        qWarning() << "[MainWindow] Help file not found:" << helpFilePath;
+        return;
+    }
+
+    // 使用系统默认程序打开 PDF 文件
+    if (!QDesktopServices::openUrl(QUrl::fromLocalFile(helpFilePath)))
+    {
+        // 如果默认程序打开失败，尝试用资源管理器打开
+        if (QProcess::startDetached("explorer.exe", QStringList() << "/select," << QDir::toNativeSeparators(helpFilePath)))
+        {
+            qDebug() << "[MainWindow] Opened help file location in Explorer:" << helpFilePath;
+        }
+        else
+        {
+            emit xSignaHelper.signalShowErrorMessageBar("无法打开帮助文件，请手动打开: " + helpFilePath);
+            qDebug() << "[MainWindow] Failed to open help file:" << helpFilePath;
+        }
+    }
+    else
+    {
+        qDebug() << "[MainWindow] Opened help file in default PDF viewer:" << helpFilePath;
+    }
+}
+
 // ============================================================================
 // Menu and Toolbar Initialization
 // ============================================================================
@@ -405,7 +467,7 @@ void MainWindow::initMenuBar()
     ElaMenu* fileMenu = menuBar->addMenu("文件");
     connect(fileMenu->addAction("打开图像文件"), &QAction::triggered, this, &MainWindow::onMenuFileOpen);
     connect(fileMenu->addAction("打开图像文件夹"), &QAction::triggered, this, &MainWindow::onMenuFileOpenFolder);
-    connect(fileMenu->addAction("保存"), &QAction::triggered, this, &MainWindow::onMenuFileSave);
+    connect(fileMenu->addAction("保存图像"), &QAction::triggered, this, &MainWindow::onMenuFileSave);
     fileMenu->addSeparator();
     connect(fileMenu->addAction("退出"), &QAction::triggered, this, &MainWindow::onMenuFileExit);
 
@@ -417,8 +479,11 @@ void MainWindow::initMenuBar()
         connect(configMenu->addAction("探测器设置"), &QAction::triggered, this, &MainWindow::onMenuDetectorConfig);
     }
     connect(configMenu->addAction("探测器校正"), &QAction::triggered, this, &MainWindow::onMenuDetectorCalibration);
-    configMenu->addSeparator();
-    connect(configMenu->addAction("清理日志"), &QAction::triggered, this, &MainWindow::onMenuCleanupLogs);
+
+    ElaMenu* helpMenu = menuBar->addMenu("帮助");
+    connect(helpMenu->addAction("清理日志"), &QAction::triggered, this, &MainWindow::onMenuCleanupLogs);
+    connect(helpMenu->addAction("打开配置文件"), &QAction::triggered, this, &MainWindow::onMenuOpenCfg);
+    connect(helpMenu->addAction("使用说明"), &QAction::triggered, this, &MainWindow::onMenuOpenHelpFile);
 
     qDebug() << "[MainWindow] Menu bar initialized";
 }

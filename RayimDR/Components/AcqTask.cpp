@@ -222,7 +222,7 @@ void AcqTask::processStackedFrames(const QVector<QImage>& imagesToStack)
                 watcher->deleteLater();
             });
     watcher->setFuture(future);
-    watcher->waitForFinished();
+    //watcher->waitForFinished();
 }
 
 void AcqTask::onErrorOccurred(const QString& msg)

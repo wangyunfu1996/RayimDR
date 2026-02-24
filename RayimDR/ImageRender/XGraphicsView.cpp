@@ -94,11 +94,13 @@ void XGraphicsView::updateImage(QImage image, bool adjustWL)
     int max = -1;
     int min = -1;
     XImageHelper::calculateMaxMinValue(currentSrcU16Image, max, min);
-    if (!enableROI)
-        emit signalMinMaxValueChanged(min, max);
 
     qDebug() << "图像统计 - Min:" << min << "Max:" << max << "Size:" << currentSrcU16Image.width() << "x"
-             << currentSrcU16Image.height();
+             << currentSrcU16Image.height() << " enableROI: " << enableROI << " adjustWL: " << adjustWL
+             << " autoWL: " << autoWL << " bIsFirstImage: " << bIsFirstImage;
+
+    if (!enableROI)
+        emit signalMinMaxValueChanged(min, max);
 
     // 根据需要调整窗宽窗位
     if (adjustWL || autoWL || bIsFirstImage)
